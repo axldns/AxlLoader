@@ -315,11 +315,11 @@ package
 		
 		protected function recentResizeEvent(e:Event):void
 		{
-			if(recentWindow && recentWindow.stage)
+			/*if(recentWindow && recentWindow.stage)
 			{
 				recentWindow.stage.stageWidth = recentContainer.size.x;
 				recentWindow.stage.stageHeight = recentContainer.size.y;
-			}
+			}*/
 		}		
 		
 		protected function wheelEvent(e:MouseEvent):void
@@ -391,7 +391,9 @@ package
 			contextParameters.fakeTimestamp = String(ts);
 			if(tfRemote.text != 'remote config addr')
 				contextParameters.remote = tfRemote.text;
+			contextParameters.fileName = LOADABLEURL.url.split('/').pop();
 			context.parameters  = contextParameters;
+			U.log("LOADING WITH PARAMETERS:", U.bin.structureToString(context.parameters));
 			Ldr.load(LOADABLEURL.url,null,swfLoaded,null,{},Ldr.behaviours.loadOverwrite,Ldr.defaultValue,Ldr.defaultValue,0,context);
 		}
 		protected function fileSelected(e:Event):void
@@ -444,7 +446,9 @@ package
 				U.msg("Loaded content is not displayable");
 				Ldr.unload(v);
 				track_event('fail',LOADABLEURL.url);
-				return;
+				i = cookie.data.recent.indexOf(LOADABLEURL.url);
+				if(i > -1)
+					cookie.data.recent.shift(i,1);
 			}
 			
 			swfLoaderInfo = Ldr.loaderInfos[v];
