@@ -21,17 +21,15 @@ package
 	import flash.filesystem.File;
 	import flash.net.SharedObject;
 	import flash.net.URLRequest;
-	import flash.system.ApplicationDomain;
 	import flash.system.Capabilities;
 	import flash.system.LoaderContext;
 	import flash.text.TextField;
 	
 	import axl.utils.ConnectPHP;
 	import axl.utils.Ldr;
-	import axl.utils.LiveAranger;
-	import axl.utils.Req;
 	import axl.utils.U;
 	import axl.utils.binAgent.BinAgent;
+	import axl.xdef.xLiveAranger;
 	
 	import fl.controls.BaseButton;
 	import fl.controls.Button;
@@ -64,7 +62,7 @@ package
 		private var hh:NumericStepper;
 		private var min:NumericStepper;
 		private var sec:NumericStepper;
-		private var liveAranger:LiveAranger;
+		private var liveAranger:xLiveAranger;
 		private var LOADABLEURL:URLRequest;
 		private var btnConsole:Button;
 		private var consoleWindow:NativeWindow;
@@ -80,6 +78,10 @@ package
 		private var btnRecent:Button;
 		private var recentWindow:NativeWindow;
 		private var recentContainer:Recent;
+		private var configProcessor:ConfigProcessor;
+		private var xmlPool:Array=[];
+		private var xconfig:XML;
+		
 		public function PromoLoader()
 		{
 			super();
@@ -87,7 +89,7 @@ package
 			if(!(cookie.data.recent is Array))
 				cookie.data.recent = [];
 			U.fullScreen=false;
-			U.init(this, 800,600,function():void { liveAranger = new LiveAranger() });
+			U.init(this, 800,600,function():void { liveAranger = new xLiveAranger() });
 			f = new File();
 			f.addEventListener(Event.SELECT, fileSelected);
 			
@@ -97,8 +99,8 @@ package
 			exitObject = getNetObject('exit');
 			if(Capabilities.version.substr(0,3).toLowerCase() == "mac")
 				NativeApplication.nativeApplication.menu.addEventListener(Event.SELECT, niKeyMac);
-			else
-				NativeApplication.nativeApplication.addEventListener(KeyboardEvent.KEY_DOWN, niKey);
+			
+			NativeApplication.nativeApplication.addEventListener(KeyboardEvent.KEY_DOWN, niKey);
 		
 			dates.addEventListener(KeyboardEvent.KEY_UP, keyUp);
 			tfMember = new TextInput();
@@ -205,7 +207,37 @@ package
 			fakeDateFetch();
 			this.addChild(bar);
 			track_event('launch',null);
+			configProcessor = new ConfigProcessor(getConfigXML);
+			Ldr.addExternalProgressListener(somethingLoaded);
+
 		}
+		private function getConfigXML():XML { return xconfig }
+		private function somethingLoaded():void
+		{
+			
+			var xmls:Vector.<String> = Ldr.getNames(/\.xml/);
+			U.log(this,'something loaded',xmls);
+			
+			for(var i:int = 0; i < xmls.length; i++)
+			{
+				var xn:String = xmls[i];
+				U.log('checking', xn, xmlPool.indexOf(xn));
+				var j:int = xmlPool.indexOf(xn);
+				if(j < 0) // if its new
+				{
+					xmlPool.push(xn);
+					var pt:XML = Ldr.getXML(xn);
+					U.log('checking', xn, 'is unique. has attrs?', pt is XML && pt.hasOwnProperty('root') && pt.hasOwnProperty('additions') );
+					if(pt is XML && pt.hasOwnProperty('root') && pt.hasOwnProperty('additions'))
+					{
+						U.log(this, "NEW CONFIG DETECTED");
+						xconfig = pt;
+						break;
+					}
+				}
+			}
+		}
+		
 		
 		protected function recentSelectEvent(e:Event):void
 		{
@@ -395,6 +427,7 @@ package
 			context.parameters  = contextParameters;
 			U.log("LOADING WITH PARAMETERS:", U.bin.structureToString(context.parameters));
 			Ldr.load(LOADABLEURL.url,null,swfLoaded,null,{},Ldr.behaviours.loadOverwrite,Ldr.defaultValue,Ldr.defaultValue,0,context);
+			xmlPool = [];
 		}
 		protected function fileSelected(e:Event):void
 		{
@@ -419,6 +452,7 @@ package
 		private function swfLoaded(v:String):void
 		{
 			U.log('swf loaded', v);
+			configProcessor.saveFile = null;
 			
 			//overlap = f.parent.resolvePath('..');
 			overlap = LOADABLEURL.url;
@@ -440,7 +474,7 @@ package
 			else
 				Ldr.defaultPathPrefixes.unshift(tfRemote.text);
 			var u:* = Ldr.getAny(v);
-			var o:DisplayObject = u  as DisplayObject;
+			var o:DisplayObject = u as DisplayObject;
 			if(o == null)
 			{
 				U.msg("Loaded content is not displayable");
@@ -449,6 +483,7 @@ package
 				i = cookie.data.recent.indexOf(LOADABLEURL.url);
 				if(i > -1)
 					cookie.data.recent.shift(i,1);
+				return;
 			}
 			
 			swfLoaderInfo = Ldr.loaderInfos[v];
@@ -500,6 +535,17 @@ package
 		{
 			if((e.ctrlKey || e.commandKey) && String.fromCharCode(e.charCode).toLowerCase() == 'v')
 				pasteEventParse();
+			else if((e.ctrlKey || e.commandKey) && String.fromCharCode(e.charCode).toLowerCase() == 'l')
+			{
+				if(this.bar.parent)
+					this.bar.parent.removeChild(bar);
+				else
+					this.addChild(bar);
+			}
+			else if((e.ctrlKey || e.commandKey) && String.fromCharCode(e.charCode).toLowerCase() == 's')
+			{
+				configProcessor.saveConfig(e.shiftKey);
+			}
 		}
 		
 		private function pasteEventParse():void
