@@ -26,16 +26,14 @@ package {
 	            return U.msg("Nothing to save");
 	        saveString = xml.toString();
 	        var replaced:String =  saveString.replace(/\"/g, "'");
-	        replaced = replaced.replace(/\&quot;/g, '"');
+			saveString = replaced.replace(/\&quot;/g, '"');
 			U.log("saveString", saveString);
 	        if(newFile || (saveFile == null))
 	        {
 	            saveFile = new File();
 				saveFile.addEventListener(Event.SELECT, fileSelected);
 				saveFile.browseForSave("Choose config saving path");
-	          
 	        }
-	           
 	        else
 	            saveFileSelected();
 	
