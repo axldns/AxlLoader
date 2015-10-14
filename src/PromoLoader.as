@@ -216,18 +216,14 @@ package
 		{
 			
 			var xmls:Vector.<String> = Ldr.getNames(/\.xml/);
-			U.log(this,'something loaded',xmls);
-			
 			for(var i:int = 0; i < xmls.length; i++)
 			{
 				var xn:String = xmls[i];
-				U.log('checking', xn, xmlPool.indexOf(xn));
 				var j:int = xmlPool.indexOf(xn);
 				if(j < 0) // if its new
 				{
 					xmlPool.push(xn);
 					var pt:XML = Ldr.getXML(xn);
-					U.log('checking', xn, 'is unique. has attrs?', pt is XML && pt.hasOwnProperty('root') && pt.hasOwnProperty('additions') );
 					if(pt is XML && pt.hasOwnProperty('root') && pt.hasOwnProperty('additions'))
 					{
 						U.log(this, "NEW CONFIG DETECTED");
@@ -463,12 +459,13 @@ package
 			i = overlap.lastIndexOf('/');
 			j = overlap.lastIndexOf("\\");
 			i = (i > j ? i : j);
-			overlap = overlap.substring(0,i);
+			var overlap2:String = overlap.substring(0,i);
 			U.log('resolved dir overlap', overlap);
 			Ldr.defaultLoadBehavior = Ldr.behaviours.loadOverwrite;
 			if(tfRemote.text == 'remote config addr' || tfRemote.text.replace(/\s/g).length == 0)
 			{
 				Ldr.defaultPathPrefixes.unshift(overlap);
+				Ldr.defaultPathPrefixes.unshift(overlap2);
 				U.log("NOW PATH PREFIXES", Ldr.defaultPathPrefixes)
 			}
 			else
@@ -482,7 +479,7 @@ package
 				track_event('fail',LOADABLEURL.url);
 				i = cookie.data.recent.indexOf(LOADABLEURL.url);
 				if(i > -1)
-					cookie.data.recent.shift(i,1);
+					cookie.data.recent.splice(i,1);
 				return;
 			}
 			
