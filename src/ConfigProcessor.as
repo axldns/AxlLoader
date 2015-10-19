@@ -27,17 +27,24 @@ package {
 	        saveString = xml.toString();
 	        var replaced:String =  saveString.replace(/\"/g, "'");
 			saveString = replaced.replace(/\&quot;/g, '"');
-			U.log("saveString", saveString);
 	        if(newFile || (saveFile == null))
 	        {
 	            saveFile = new File();
 				saveFile.addEventListener(Event.SELECT, fileSelected);
+				saveFile.addEventListener(Event.CANCEL, fileSavingCanceled);
 				saveFile.browseForSave("Choose config saving path");
 	        }
 	        else
 	            saveFileSelected();
 	
 	    }
+		
+		protected function fileSavingCanceled(e:Event):void
+		{
+			saveFile.removeEventListener(Event.SELECT, fileSelected);
+			saveFile.removeEventListener(Event.CANCEL, fileSavingCanceled);
+			saveFile = null;
+		}
 		
 		protected function fileSelected(e:Event):void
 		{

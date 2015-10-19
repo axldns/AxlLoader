@@ -48,7 +48,11 @@
   <buildTargets>
     <buildTarget buildTargetName="default" platformId="default">
       <airSettings airCertificatePath="/Users/denis.aleksandrowicz/Documents/Adobe Flash Builder 4.7/PromoLoader/cert.p12" airTimestamp="true" anePathSet="true" version="1">
-        <airExcludes/>
+        <airExcludes>
+          <pathEntry path=".DS_Store"/>
+          <pathEntry path="axl"/>
+          <pathEntry path=".idea"/>
+        </airExcludes>
         <anePaths/>
         <newLaunchParams/>
         <modifiedLaunchParams/>

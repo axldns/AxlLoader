@@ -6,6 +6,10 @@ package
 	import flash.events.MouseEvent;
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
+	import flash.net.SharedObject;
+	import flash.ui.Keyboard;
+	
+	import axl.utils.U;
 	
 	import fl.controls.List;
 	import fl.controls.TextInput;
@@ -20,12 +24,17 @@ package
 		private var searcher:TextInput;
 		private var ca:Array;
 		private var xselectedUrl:String;
+		private var cookie:SharedObject;
 		public function Recent()
 		{
 			super();
+			cookie = SharedObject.getLocal('recent');
+			if(!(cookie.data.recent is Array))
+				cookie.data.recent = [];
 			list = new List();
 			list.doubleClickEnabled = true;
 			list.addEventListener(MouseEvent.DOUBLE_CLICK, mdc);
+			list.addEventListener(KeyboardEvent.KEY_UP, listKeyUp);
 			dp = new DataProvider();
 			searcher = new TextInput();
 			searcher.width = 800;
@@ -34,6 +43,29 @@ package
 			list.y = searcher.height;
 			addChild(list);
 			this.addEventListener(Event.ADDED_TO_STAGE, stageAdded);
+			reRead(cookie.data.recent)
+		}
+		
+		protected function listKeyUp(e:KeyboardEvent):void
+		{
+			U.log(e.keyCode == flash.ui.Keyboard.DELETE, list.selectedItem != null)
+			if(e.keyCode == flash.ui.Keyboard.DELETE && list.selectedItem != null)
+				this.removeRowContaining(list.selectedItem.label);
+		}
+		public function selectListItemUrlAt(index:int):void
+		{
+			if(index >= list.length)
+				index = list.length -1;
+			if(index < 0)
+				index = 0;
+			var o:Object = list.getItemAt(index);
+			if(o&&o.hasOwnProperty('label'))
+			{
+				list.selectedItem = o;
+				xselectedUrl = list.selectedItem.label;
+				this.dispatchEvent(new Event(Event.SELECT));
+			}
+			
 		}
 		
 		public function get selectedURL():String { return xselectedUrl }
@@ -95,6 +127,26 @@ package
 			list.drawNow();
 			xsize.x = list.width;
 			xsize.y = list.height;
+		}
+		
+		public function removeRowContaining(url:String):void
+		{
+			var i:int = cookie.data.recent.indexOf(url);
+			if(i > -1)
+				cookie.data.recent.splice(i,1);
+			cookie.flush();
+			reRead(cookie.data.recent)
+		}
+		
+		public function registerLoaded(url:String):void
+		{
+			var i:Object = cookie.data.recent.indexOf(url);
+			if(i < 0)
+				cookie.data.recent.push(url);
+			else
+				cookie.data.recent.unshift(cookie.data.recent.splice(i,1)[0]);
+			cookie.flush();
+			reRead(cookie.data.recent)
 		}
 	}
 }

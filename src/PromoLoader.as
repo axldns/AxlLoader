@@ -18,6 +18,7 @@ package
 	import flash.events.KeyboardEvent;
 	import flash.events.MouseEvent;
 	import flash.events.NativeWindowBoundsEvent;
+	import flash.events.SyncEvent;
 	import flash.filesystem.File;
 	import flash.net.SharedObject;
 	import flash.net.URLRequest;
@@ -74,7 +75,6 @@ package
 		private var session:Number;
 		private var exit:ConnectPHP;
 		private var exitObject:Object;
-		private var cookie:SharedObject;
 		private var btnRecent:Button;
 		private var recentWindow:NativeWindow;
 		private var recentContainer:Recent;
@@ -85,9 +85,7 @@ package
 		public function PromoLoader()
 		{
 			super();
-			cookie = SharedObject.getLocal('recent');
-			if(!(cookie.data.recent is Array))
-				cookie.data.recent = [];
+			
 			U.fullScreen=false;
 			U.init(this, 800,600,function():void { liveAranger = new xLiveAranger() });
 			f = new File();
@@ -197,7 +195,6 @@ package
 			recentContainer = new Recent();
 			recentContainer.addEventListener('resize', recentResizeEvent);
 			recentContainer.addEventListener(Event.SELECT, recentSelectEvent);
-			updateRecentList();
 			
 			this.addGrouop(dates,yyyy,mm,dd,tf,hh,min,sec);
 			U.distribute(dates,0);
@@ -233,7 +230,6 @@ package
 				}
 			}
 		}
-		
 		
 		protected function recentSelectEvent(e:Event):void
 		{
@@ -477,9 +473,7 @@ package
 				U.msg("Loaded content is not displayable");
 				Ldr.unload(v);
 				track_event('fail',LOADABLEURL.url);
-				i = cookie.data.recent.indexOf(LOADABLEURL.url);
-				if(i > -1)
-					cookie.data.recent.splice(i,1);
+				recentContainer.removeRowContaining(LOADABLEURL.url);
 				return;
 			}
 			
@@ -487,61 +481,53 @@ package
 			if(swfLoaderInfo != null)
 			{
 				U.msg(LOADABLEURL.url + ' LOADED!');
-				i = cookie.data.recent.indexOf(LOADABLEURL.url);
-				if(i < 0)
-					cookie.data.recent.push(LOADABLEURL.url);
-				else
-					cookie.data.recent.unshift(cookie.data.recent.splice(i,1)[0]);
-				cookie.flush();
-				updateRecentList();
+				recentContainer.registerLoaded(LOADABLEURL.url);
+				
 				track_event('loaded',LOADABLEURL.url);
 				this.stage.stageWidth = swfLoaderInfo.width;
 				this.stage.stageHeight = swfLoaderInfo.height;
+				if(swfLoaderInfo.contentType == '"application/x-shockwave-flash')
+				{
+					U.log("SWF LOADED, attaching sharedEvents listener");
+					//swfLoaderInfo.sharedEvents.addEventListener(flash.events.SyncEvent.SYNC, syncEventReceived);
+				}
 			}
 			this.addChildAt(o,0);
 			U.align(btnReload, U.REC, 'right', 'top');
-			
-			
-			this.addChild(bar);
 		}
 		
-		private function updateRecentList():void
+		protected function syncEventReceived(e:Event):void
 		{
-			recentContainer.reRead(cookie.data.recent);
+			U.log(U.bin.structureToString(e));
 		}
-		
-		//---------------- cpy ----------------- ///
 		
 		protected function niKeyMac(e:Event):void
 		{
-			trace(e);
 			var menuItem:NativeMenuItem = e.target as NativeMenuItem; 
-			
 			switch(menuItem.label.toLowerCase())
 			{
-				case "cut":
-				case "copy":
-					break;
-				case "paste":
-					pasteEventParse();
-					break;
+				case "paste": pasteEventParse();break;
 			}
 		}		
 		
 		protected function niKey(e:KeyboardEvent):void
 		{
-			if((e.ctrlKey || e.commandKey) && String.fromCharCode(e.charCode).toLowerCase() == 'v')
-				pasteEventParse();
-			else if((e.ctrlKey || e.commandKey) && String.fromCharCode(e.charCode).toLowerCase() == 'l')
+			
+			if(e.ctrlKey || e.commandKey)
 			{
-				if(this.bar.parent)
-					this.bar.parent.removeChild(bar);
-				else
-					this.addChild(bar);
-			}
-			else if((e.ctrlKey || e.commandKey) && String.fromCharCode(e.charCode).toLowerCase() == 's')
-			{
-				configProcessor.saveConfig(e.shiftKey);
+				var keyp:String = String.fromCharCode(e.charCode).toLowerCase();
+				switch(keyp)
+				{
+					case 'v': pasteEventParse(); break;
+					case 's': configProcessor.saveConfig(e.shiftKey); break;
+					case 'l': (bar.parent != null) ? bar.parent.removeChild(bar) : addChild(bar); break;
+					case 'r': btnReloadDown(e); break;
+					default:
+						var n:Number = Number(keyp);
+						if(!isNaN(n))
+							this.recentContainer.selectListItemUrlAt(n-1);
+						break;
+				}
 			}
 		}
 		
@@ -550,7 +536,6 @@ package
 			var ff:File, uu:URLRequest;
 			if(Clipboard.generalClipboard.hasFormat(ClipboardFormats.FILE_LIST_FORMAT))
 			{ 
-				U.log('file paste');
 				var arr:Array = Clipboard.generalClipboard.formats;
 				var o:Array = Clipboard.generalClipboard.getData(arr[0]) as Array;
 				if(o != null && o.length == 1)
