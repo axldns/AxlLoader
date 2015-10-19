@@ -18,9 +18,7 @@ package
 	import flash.events.KeyboardEvent;
 	import flash.events.MouseEvent;
 	import flash.events.NativeWindowBoundsEvent;
-	import flash.events.SyncEvent;
 	import flash.filesystem.File;
-	import flash.net.SharedObject;
 	import flash.net.URLRequest;
 	import flash.system.Capabilities;
 	import flash.system.LoaderContext;
@@ -77,10 +75,12 @@ package
 		private var exitObject:Object;
 		private var btnRecent:Button;
 		private var recentWindow:NativeWindow;
+		private var syncWindow:NativeWindow;
 		private var recentContainer:Recent;
 		private var configProcessor:ConfigProcessor;
 		private var xmlPool:Array=[];
 		private var xconfig:XML;
+		private var sync:Sync;
 		
 		public function PromoLoader()
 		{
@@ -196,9 +196,13 @@ package
 			recentContainer.addEventListener('resize', recentResizeEvent);
 			recentContainer.addEventListener(Event.SELECT, recentSelectEvent);
 			
-			this.addGrouop(dates,yyyy,mm,dd,tf,hh,min,sec);
+			sync = new Sync();
+			sync.addEventListener('resize', recentResizeEvent);
+			sync.addEventListener(Event.SELECT, recentSelectEvent);
+			
+			addGrouop(dates,yyyy,mm,dd,tf,hh,min,sec);
 			U.distribute(dates,0);
-			this.addGrouop(bar, btnLoad,btnRecent,tfMember,btnConsole,tfCompVal,dates,btnReload);
+			addGrouop(bar, btnLoad,btnRecent,tfMember,btnConsole,tfCompVal,dates,btnReload);
 			U.distribute(bar,0);
 			U.align(btnReload, U.REC, 'right', 'top');
 			fakeDateFetch();
@@ -332,6 +336,25 @@ package
 			}
 		}
 		
+		protected function btnSyncDown(e:ComponentEvent=null):void
+		{
+			if(syncWindow == null || syncWindow.closed)
+			{
+				var nio:NativeWindowInitOptions = new NativeWindowInitOptions();
+				nio.type = NativeWindowType.NORMAL;
+				syncWindow = new NativeWindow(new NativeWindowInitOptions());
+				syncWindow.stage.scaleMode = StageScaleMode.NO_SCALE;
+				syncWindow.stage.align = StageAlign.TOP_LEFT;
+				syncWindow.stage.addChild(sync);
+				syncWindow.activate();
+				syncWindow.visible = true;
+				syncWindow.title = 'manage flash.events.SyncEvent';
+				syncWindow.addEventListener(NativeWindowBoundsEvent.RESIZE, recentManualyResized);
+			}
+			else
+				syncWindow.visible = !syncWindow.visible;
+		}
+		
 		protected function recentManualyResized(e:NativeWindowBoundsEvent):void
 		{
 			recentContainer.reResize(e.afterBounds)
@@ -362,7 +385,7 @@ package
 			return null;
 		}
 		
-		private function addGrouop(where:DisplayObjectContainer, ...args):void
+		public static function addGrouop(where:DisplayObjectContainer, ...args):void
 		{
 			while(args.length)
 				where.addChild(args.shift());
@@ -486,7 +509,7 @@ package
 				track_event('loaded',LOADABLEURL.url);
 				this.stage.stageWidth = swfLoaderInfo.width;
 				this.stage.stageHeight = swfLoaderInfo.height;
-				if(swfLoaderInfo.contentType == '"application/x-shockwave-flash')
+				if(swfLoaderInfo.contentType == 'application/x-shockwave-flash')
 				{
 					U.log("SWF LOADED, attaching sharedEvents listener");
 					//swfLoaderInfo.sharedEvents.addEventListener(flash.events.SyncEvent.SYNC, syncEventReceived);
@@ -522,6 +545,7 @@ package
 					case 's': configProcessor.saveConfig(e.shiftKey); break;
 					case 'l': (bar.parent != null) ? bar.parent.removeChild(bar) : addChild(bar); break;
 					case 'r': btnReloadDown(e); break;
+					case 'e': btnSyncDown(); break;
 					default:
 						var n:Number = Number(keyp);
 						if(!isNaN(n))
