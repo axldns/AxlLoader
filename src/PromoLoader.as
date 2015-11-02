@@ -22,7 +22,6 @@ package
 	import flash.net.URLRequest;
 	import flash.system.Capabilities;
 	import flash.system.LoaderContext;
-	import flash.text.TextField;
 	
 	import axl.utils.ConnectPHP;
 	import axl.utils.Ldr;
@@ -30,7 +29,6 @@ package
 	import axl.utils.binAgent.BinAgent;
 	import axl.xdef.xLiveAranger;
 	
-	import fl.controls.BaseButton;
 	import fl.controls.Button;
 	import fl.controls.NumericStepper;
 	import fl.controls.TextInput;
@@ -50,17 +48,8 @@ package
 		
 		private var overlap:String;
 		private var tfCompVal:TextInput;
-		//private var tfTimestamp:TextInput;
-		private var tfRemote:TextInput;
 		private var bar:Sprite = new Sprite();
-		private var dates:Sprite = new Sprite();
-		private var yyyy:NumericStepper;
-		private var time:Date;
-		private var mm:NumericStepper;
-		private var dd:NumericStepper;
-		private var hh:NumericStepper;
-		private var min:NumericStepper;
-		private var sec:NumericStepper;
+		private var dates:DateComponent
 		private var liveAranger:xLiveAranger;
 		private var LOADABLEURL:URLRequest;
 		private var btnConsole:Button;
@@ -81,6 +70,9 @@ package
 		private var xmlPool:Array=[];
 		private var xconfig:XML;
 		private var sync:Sync;
+		private var tsgWindow:NativeWindow;
+		private var tsg:TimestampGenerator;
+		private var tfRemote:TextInput;
 		
 		public function PromoLoader()
 		{
@@ -99,7 +91,8 @@ package
 				NativeApplication.nativeApplication.menu.addEventListener(Event.SELECT, niKeyMac);
 			
 			NativeApplication.nativeApplication.addEventListener(KeyboardEvent.KEY_DOWN, niKey);
-		
+			
+			dates = new DateComponent();
 			dates.addEventListener(KeyboardEvent.KEY_UP, keyUp);
 			tfMember = new TextInput();
 			tfMember.text = 'memberId';
@@ -113,60 +106,6 @@ package
 			tfCompVal.text = 'comp value';
 			tfCompVal.width = tfCompVal.textField.textWidth + 15;
 			tfCompVal.textField.restrict = '0-9';
-			
-			
-			time = new Date();
-			yyyy = new NumericStepper();
-			yyyy.maximum = 2020;
-			yyyy.minimum = 2010;
-			yyyy.value = time.getUTCFullYear();
-			yyyy.width = 40;
-			yyyy.textField.restrict = '0-9';
-			yyyy.textField.maxChars = 4;
-			
-			mm = new NumericStepper();
-			mm.minimum=1;
-			mm.maximum=12;
-			mm.value = time.getUTCMonth() + 1;
-			mm.width = 30;
-			mm.textField.restrict = '0-9';
-			mm.textField.maxChars = 4;
-			
-			dd = new NumericStepper();
-			dd.minimum = 1;
-			dd.maximum = 31;
-			dd.value = time.getUTCDate();
-			dd.textField.restrict = '0-9';
-			dd.textField.maxChars = 2;
-			dd.width = 30;
-			var tf:TextField = new TextField();
-			tf.defaultTextFormat = dd.textField.textField.defaultTextFormat;
-			tf.text = '-';
-			tf.width = tf.textWidth+5;
-			hh = new NumericStepper();
-			hh.minimum = 0;
-			hh.maximum = 23;
-			hh.value = time.getUTCHours();
-			hh.textField.restrict = '0-9';
-			hh.textField.maxChars = 2;
-			hh.width = 30;
-			
-			min = new NumericStepper();
-			min.minimum = 0;
-			min.maximum = 59;
-			min.value = time.getUTCMinutes();
-			min.textField.restrict = '0-9';
-			min.textField.maxChars = 2;
-			min.width = 30;
-			
-			sec = new NumericStepper();
-			sec.minimum = 0;
-			sec.maximum = 59;
-			sec.value = time.getUTCSeconds();
-			sec.textField.restrict = '0-9';
-			sec.textField.maxChars = 2;
-			sec.width = 30;
-			this.sizeStepperButtons([yyyy,mm,dd,hh,min,sec])
 			
 			tfRemote = new TextInput();
 			tfRemote.addEventListener(MouseEvent.CLICK, fin);
@@ -197,15 +136,12 @@ package
 			recentContainer.addEventListener(Event.SELECT, recentSelectEvent);
 			
 			sync = new Sync();
-			sync.addEventListener('resize', recentResizeEvent);
-			sync.addEventListener(Event.SELECT, recentSelectEvent);
+			tsg = new TimestampGenerator();
 			
-			addGrouop(dates,yyyy,mm,dd,tf,hh,min,sec);
-			U.distribute(dates,0);
 			addGrouop(bar, btnLoad,btnRecent,tfMember,btnConsole,tfCompVal,dates,btnReload);
 			U.distribute(bar,0);
 			U.align(btnReload, U.REC, 'right', 'top');
-			fakeDateFetch();
+			dates.timestampSec;
 			this.addChild(bar);
 			track_event('launch',null);
 			configProcessor = new ConfigProcessor(getConfigXML);
@@ -284,7 +220,7 @@ package
 			return netObject;
 		}
 		
-		protected function btnConsoleDown(e:ComponentEvent):void
+		protected function btnConsoleDown(e:ComponentEvent=null):void
 		{
 			if(consoleWindow == null || consoleWindow.closed)
 			{
@@ -349,10 +285,28 @@ package
 				syncWindow.activate();
 				syncWindow.visible = true;
 				syncWindow.title = 'manage flash.events.SyncEvent';
-				syncWindow.addEventListener(NativeWindowBoundsEvent.RESIZE, recentManualyResized);
 			}
 			else
 				syncWindow.visible = !syncWindow.visible;
+		}
+		
+		private function btnTimestampDown():void
+		{
+			if(tsgWindow == null || tsgWindow.closed)
+			{
+				var nio:NativeWindowInitOptions = new NativeWindowInitOptions();
+				nio.type = NativeWindowType.NORMAL;
+				tsgWindow = new NativeWindow(new NativeWindowInitOptions());
+				tsgWindow.stage.scaleMode = StageScaleMode.NO_SCALE;
+				tsgWindow.stage.align = StageAlign.TOP_LEFT;
+				tsgWindow.stage.addChild(tsg);
+				tsgWindow.activate();
+				tsgWindow.visible = true;
+				tsgWindow.title = 'timestamp generator';
+			}
+			else
+				tsgWindow.visible = !tsgWindow.visible;
+			
 		}
 		
 		protected function recentManualyResized(e:NativeWindowBoundsEvent):void
@@ -391,12 +345,7 @@ package
 				where.addChild(args.shift());
 		}
 		
-		private function sizeStepperButtons(v:Array, wid:Number=10):void{
-			for(var j:int =0; j < v.length; j++)
-				for(var i:int = 0; i < v[j].numChildren; i++)
-					if( v[j].getChildAt(i) is BaseButton)
-						v[j].getChildAt(i).width = wid;
-		}
+		
 		protected function asyncError(e:Event):void
 		{
 			U.msg("Async error occured: " + e.toString());
@@ -410,7 +359,7 @@ package
 				btnReloadDown(e)
 			}
 		}
-		protected function fout(e:FocusEvent):void {fakeDateFetch() }
+		protected function fout(e:FocusEvent):void { dates.timestampSec }
 		protected function fin(e:MouseEvent):void {	e.target.setSelection(0, e.target.text.length) }
 		protected function btnLoadDown(e:ComponentEvent):void { f.browseForOpen("select promo swf") }
 		
@@ -423,7 +372,7 @@ package
 		{
 			U.msg("loading: " +LOADABLEURL.url);
 			U.log("loading: " + LOADABLEURL.url);
-			var ts:Number = fakeDateFetch();
+			var ts:Number = dates.timestampSec;
 			Ldr.unloadAll();
 			Ldr.defaultPathPrefixes = [];
 			var contextParameters:Object = {};
@@ -436,8 +385,6 @@ package
 			if(tfCompVal.text.match(/^\d+$/g).length > 0)
 				contextParameters.fakeComp = tfCompVal.text;
 			contextParameters.fakeTimestamp = String(ts);
-			if(tfRemote.text != 'remote config addr')
-				contextParameters.remote = tfRemote.text;
 			contextParameters.fileName = LOADABLEURL.url.split('/').pop();
 			context.parameters  = contextParameters;
 			U.log("LOADING WITH PARAMETERS:", U.bin.structureToString(context.parameters));
@@ -451,19 +398,7 @@ package
 			loadContent();
 		}
 		
-		private function fakeDateFetch():Number
-		{
-			var d:Date = new Date(yyyy.value, mm.value -1, dd.value, hh.value, min.value, sec.value);
-			d.minutes -= d.getTimezoneOffset();
-			yyyy.value = d.getUTCFullYear();
-			mm.value = d.getUTCMonth() +1;
-			dd.value =d.getUTCDate();
-			hh.value = d.getUTCHours();
-			min.value = d.getUTCMinutes();
-			sec.value =d.getUTCSeconds();
-			
-			return Math.round(d.getTime()/1000);
-		}
+		
 		private function swfLoaded(v:String):void
 		{
 			U.log('swf loaded', v);
@@ -546,6 +481,8 @@ package
 					case 'l': (bar.parent != null) ? bar.parent.removeChild(bar) : addChild(bar); break;
 					case 'r': btnReloadDown(e); break;
 					case 'e': btnSyncDown(); break;
+					case 't': btnTimestampDown() ; break;
+					case 'c': e.shiftKey ? btnConsoleDown() : null ; break;
 					default:
 						var n:Number = Number(keyp);
 						if(!isNaN(n))
@@ -554,6 +491,7 @@ package
 				}
 			}
 		}
+		
 		
 		private function pasteEventParse():void
 		{
