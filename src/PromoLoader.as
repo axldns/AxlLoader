@@ -248,7 +248,7 @@ package
 			}
 		}
 		
-		protected function btnRecentDown(event:ComponentEvent):void
+		protected function btnRecentDown(event:ComponentEvent=null):void
 		{
 			if(recentWindow == null || recentWindow.closed)
 			{
@@ -482,6 +482,7 @@ package
 					case 'r': btnReloadDown(e); break;
 					case 'e': btnSyncDown(); break;
 					case 't': btnTimestampDown() ; break;
+					case 'h': btnRecentDown() ; break;
 					case 'c': e.shiftKey ? btnConsoleDown() : null ; break;
 					default:
 						var n:Number = Number(keyp);
