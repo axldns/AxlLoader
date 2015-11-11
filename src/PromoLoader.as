@@ -30,6 +30,7 @@ package
 	import axl.xdef.xLiveAranger;
 	
 	import fl.controls.Button;
+	import fl.controls.CheckBox;
 	import fl.controls.NumericStepper;
 	import fl.controls.TextInput;
 	import fl.events.ComponentEvent;
@@ -73,12 +74,14 @@ package
 		private var tsgWindow:NativeWindow;
 		private var tsg:TimestampGenerator;
 		private var tfRemote:TextInput;
-		
+		public var clearLogEveryLoad:Boolean = true;
+		private var cboxAutoSize:CheckBox;
 		public function PromoLoader()
 		{
 			super();
 			
 			U.fullScreen=false;
+			U.onResize = arangeBar;
 			U.init(this, 800,600,function():void { liveAranger = new xLiveAranger() });
 			f = new File();
 			f.addEventListener(Event.SELECT, fileSelected);
@@ -99,12 +102,12 @@ package
 			tfMember.addEventListener(MouseEvent.CLICK, fin);
 			tfMember.textField.addEventListener(KeyboardEvent.KEY_UP, keyUp);
 			tfMember.textField.restrict = '0-9';
-			tfMember.width = tfMember.textField.textWidth + 15;
+			tfMember.width = tfMember.textField.textWidth + 5;
 			tfCompVal = new TextInput();
 			tfCompVal.addEventListener(MouseEvent.CLICK, fin);
 			tfCompVal.textField.addEventListener(KeyboardEvent.KEY_UP, keyUp);
-			tfCompVal.text = 'comp value';
-			tfCompVal.width = tfCompVal.textField.textWidth + 15;
+			tfCompVal.text = 'compValue';
+			tfCompVal.width = tfCompVal.textField.textWidth + 5;
 			tfCompVal.textField.restrict = '0-9';
 			
 			tfRemote = new TextInput();
@@ -114,12 +117,12 @@ package
 			
 			btnLoad = new Button();
 			btnLoad.label = 'select swf';
-			btnLoad.width = btnLoad.textField.textWidth + 25;
+			btnLoad.width = btnLoad.textField.textWidth + 15;
 			btnLoad.addEventListener(ComponentEvent.BUTTON_DOWN, btnLoadDown);
 			
 			btnReload = new Button();
 			btnReload.label = 'reload';
-			btnReload.width = btnReload.textField.textWidth + 25;
+			btnReload.width = btnReload.textField.textWidth + 15;
 			btnReload.addEventListener(ComponentEvent.BUTTON_DOWN, btnReloadDown);
 			
 			btnConsole = new Button();
@@ -135,18 +138,42 @@ package
 			recentContainer.addEventListener('resize', recentResizeEvent);
 			recentContainer.addEventListener(Event.SELECT, recentSelectEvent);
 			
+			cboxAutoSize = new CheckBox();
+			cboxAutoSize.label = '↔';
+			cboxAutoSize.labelPlacement ='left';
+			cboxAutoSize.width = 70;
+			cboxAutoSize.addEventListener(Event.CHANGE, btnAutoSizeDown);
+			cboxAutoSize.selected = true;
+			cboxAutoSize.drawNow();
 			sync = new Sync();
 			tsg = new TimestampGenerator();
 			
-			addGrouop(bar, btnLoad,btnRecent,tfMember,btnConsole,tfCompVal,dates,btnReload);
-			U.distribute(bar,0);
-			U.align(btnReload, U.REC, 'right', 'top');
-			dates.timestampSec;
+			addGrouop(bar, btnLoad,btnRecent,tfMember,btnConsole,tfCompVal,dates,cboxAutoSize,btnReload);
+			arangeBar();
 			this.addChild(bar);
 			track_event('launch',null);
 			configProcessor = new ConfigProcessor(getConfigXML);
 			Ldr.addExternalProgressListener(somethingLoaded);
 
+		}
+		
+		private function arangeBar():void
+		{
+			if(bar == null)
+				return
+			if(btnReload == null)
+				return;
+			U.distribute(bar,0);
+			U.align(btnReload, U.REC, 'right', 'top');
+			if(cboxAutoSize == null)
+				return;
+			cboxAutoSize.x = btnReload.x - cboxAutoSize.width;
+		}
+		
+		protected function btnAutoSizeDown(event:Event):void
+		{
+			// TODO Auto-generated method stub
+			
 		}
 		private function getConfigXML():XML { return xconfig }
 		private function somethingLoaded():void
@@ -229,15 +256,17 @@ package
 				consoleWindow = new NativeWindow(new NativeWindowInitOptions());
 				consoleWindow.stage.scaleMode = StageScaleMode.NO_SCALE;
 				consoleWindow.stage.align = StageAlign.TOP_LEFT;
+				consoleWindow.addEventListener(NativeWindowBoundsEvent.RESIZE,consoleManualyResized);
+				consoleWindow.stage.addChild(BinAgent.instance);
 				consoleWindow.stage.stageWidth = 800;
 				consoleWindow.stage.stageHeight = 600;
 				consoleWindow.x =0;
 				consoleWindow.y = 0;
 				consoleWindow.title = 'console';
-				consoleWindow.stage.addChild(BinAgent.instance);
-				U.bin.resize(800,600);
+				
 				consoleWindow.activate();
 				consoleWindow.visible = true;
+				
 			}
 			else
 			{
@@ -246,6 +275,11 @@ package
 				else
 					consoleWindow.visible = true;
 			}
+		}
+		
+		protected function consoleManualyResized(e:NativeWindowBoundsEvent):void
+		{
+			U.bin.resize(e.afterBounds.width-1, e.afterBounds.height-22);
 		}
 		
 		protected function btnRecentDown(event:ComponentEvent=null):void
@@ -345,7 +379,6 @@ package
 				where.addChild(args.shift());
 		}
 		
-		
 		protected function asyncError(e:Event):void
 		{
 			U.msg("Async error occured: " + e.toString());
@@ -440,10 +473,15 @@ package
 			{
 				U.msg(LOADABLEURL.url + ' LOADED!');
 				recentContainer.registerLoaded(LOADABLEURL.url);
-				
+				if(this.clearLogEveryLoad && U.bin != null)
+					U.bin.clear();
 				track_event('loaded',LOADABLEURL.url);
-				this.stage.stageWidth = swfLoaderInfo.width;
-				this.stage.stageHeight = swfLoaderInfo.height;
+				if(this.cboxAutoSize.selected)
+				{
+					this.stage.stageWidth = swfLoaderInfo.width;
+					this.stage.stageHeight = swfLoaderInfo.height;
+				}
+				
 				if(swfLoaderInfo.contentType == 'application/x-shockwave-flash')
 				{
 					U.log("SWF LOADED, attaching sharedEvents listener");
@@ -451,7 +489,6 @@ package
 				}
 			}
 			this.addChildAt(o,0);
-			U.align(btnReload, U.REC, 'right', 'top');
 		}
 		
 		protected function syncEventReceived(e:Event):void
@@ -470,7 +507,6 @@ package
 		
 		protected function niKey(e:KeyboardEvent):void
 		{
-			
 			if(e.ctrlKey || e.commandKey)
 			{
 				var keyp:String = String.fromCharCode(e.charCode).toLowerCase();
@@ -492,7 +528,6 @@ package
 				}
 			}
 		}
-		
 		
 		private function pasteEventParse():void
 		{

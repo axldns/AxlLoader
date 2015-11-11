@@ -4,8 +4,6 @@ package
 	import flash.events.Event;
 	import flash.events.KeyboardEvent;
 	
-	import axl.utils.U;
-	
 	import fl.controls.Button;
 	import fl.controls.Label;
 	import fl.controls.NumericStepper;
@@ -28,7 +26,8 @@ package
 		private var sample:String = "<!-- CONTAINER [ {index} ][ {timestamp} ][ {date} ] -->"+
 			"\n<div name='timeContainer{index}'  alpha='0' meta='{\"addedToStage\":[0.5,{\"alpha\":1,\"delay\":0.5}],\"removeChild\":[0.5,{\"alpha\":0}]}'>"
 			+ '{user}'
-			+"\n\n</div>\n0	";
+			+"\n</div>\n\n";
+		private var resizeListenerAdded:Boolean;
 		public function TimestampGenerator()
 		{
 			super();
@@ -87,8 +86,6 @@ package
 			rEnd.x  = 295;
 			rEnd.y = end.y;
 			
-			
-			
 			updateRightTimeStamps();
 			
 			this.addChild(lstart);
@@ -108,6 +105,20 @@ package
 			out.height = 120;
 			this.addChild(out);
 			
+			this.addEventListener(Event.ADDED_TO_STAGE, ats);
+			
+		}
+		
+		protected function ats(event:Event):void
+		{
+			if(!resizeListenerAdded)
+				this.stage.addEventListener(Event.RESIZE, resize);
+		}
+		
+		protected function resize(e:Event):void
+		{
+			out.height = stage.stageHeight - out.y - 10;
+			out.width = stage.stageWidth - out.x - 10;
 		}
 		
 		protected function timestampChangeS(event:KeyboardEvent):void
@@ -132,7 +143,7 @@ package
 		{
 			updateIntervalData();
 			var o:String;
-			o = "'promoStartTimestamp='_sts_' promoEndTimestamp='_ets_'\n\n";
+			o = "promoStartTimestamp='_sts_' promoEndTimestamp='_ets_'\n\n";
 			o+= '"timing":[_tarr_]\n\n';
 			o+= '_timeContainers_';
 			
