@@ -10,7 +10,6 @@ package
 	
 	import fl.controls.BaseButton;
 	import fl.controls.NumericStepper;
-	import fl.events.ComponentEvent;
 	
 	public class DateComponent extends Sprite
 	{

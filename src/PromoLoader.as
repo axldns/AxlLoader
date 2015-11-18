@@ -55,7 +55,7 @@ package
 		private var LOADABLEURL:URLRequest;
 		private var btnConsole:Button;
 		private var consoleWindow:NativeWindow;
-		private var tracking:String = null;//'https://axldns.com/promoloader/gateway.php'
+		private var tracking:String = null;
 		private var appUrl:String;
 		private var VERSION:String = '0.0.5';
 		private var userAgentData:String;
@@ -113,7 +113,7 @@ package
 			tfRemote = new TextInput();
 			tfRemote.addEventListener(MouseEvent.CLICK, fin);
 			tfRemote.textField.addEventListener(KeyboardEvent.KEY_UP, keyUp);
-			tfRemote.text = 'remote config addr';
+			tfRemote.text = 'dataParameter';
 			
 			btnLoad = new Button();
 			btnLoad.label = 'select swf';
@@ -148,7 +148,7 @@ package
 			sync = new Sync();
 			tsg = new TimestampGenerator();
 			
-			addGrouop(bar, btnLoad,btnRecent,tfMember,btnConsole,tfCompVal,dates,cboxAutoSize,btnReload);
+			addGrouop(bar, btnLoad,btnRecent,tfMember,btnConsole,tfCompVal,dates,cboxAutoSize,tfRemote,btnReload);
 			arangeBar();
 			this.addChild(bar);
 			track_event('launch',null);
@@ -172,7 +172,7 @@ package
 		
 		protected function btnAutoSizeDown(event:Event):void
 		{
-			// TODO Auto-generated method stub
+			// TODO Auto-generated method stub2
 			
 		}
 		private function getConfigXML():XML { return xconfig }
@@ -418,6 +418,8 @@ package
 			if(tfCompVal.text.match(/^\d+$/g).length > 0)
 				contextParameters.fakeComp = tfCompVal.text;
 			contextParameters.fakeTimestamp = String(ts);
+			if(tfRemote.text != 'dataParameter' && tfRemote.text.length > 1)
+				contextParameters.dataParameter = tfRemote.text;
 			contextParameters.fileName = LOADABLEURL.url.split('/').pop();
 			context.parameters  = contextParameters;
 			U.log("LOADING WITH PARAMETERS:", U.bin.structureToString(context.parameters));
@@ -448,15 +450,10 @@ package
 			i = (i > j ? i : j);
 			var overlap2:String = overlap.substring(0,i);
 			U.log('resolved dir overlap', overlap);
-			Ldr.defaultLoadBehavior = Ldr.behaviours.loadOverwrite;
-			if(tfRemote.text == 'remote config addr' || tfRemote.text.replace(/\s/g).length == 0)
-			{
-				Ldr.defaultPathPrefixes.unshift(overlap);
-				Ldr.defaultPathPrefixes.unshift(overlap2);
-				U.log("NOW PATH PREFIXES", Ldr.defaultPathPrefixes)
-			}
-			else
-				Ldr.defaultPathPrefixes.unshift(tfRemote.text);
+			Ldr.defaultPathPrefixes.unshift(overlap);
+			Ldr.defaultPathPrefixes.unshift(overlap2);
+			U.log("NOW PATH PREFIXES", Ldr.defaultPathPrefixes);
+			
 			var u:* = Ldr.getAny(v);
 			var o:DisplayObject = u as DisplayObject;
 			if(o == null)
