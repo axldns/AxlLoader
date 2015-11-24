@@ -1,6 +1,5 @@
-package
+package nativeWindows
 {
-	import flash.display.Sprite;
 	import flash.events.Event;
 	import flash.events.KeyboardEvent;
 	
@@ -9,7 +8,7 @@ package
 	import fl.controls.NumericStepper;
 	import fl.controls.TextInput;
 	
-	public class TimestampGenerator extends Sprite
+	public class WindowTimestamp extends WindowOwner
 	{
 		private var start:DateComponent;
 		private var end:DateComponent;
@@ -28,9 +27,9 @@ package
 			+ '{user}'
 			+"\n</div>\n\n";
 		private var resizeListenerAdded:Boolean;
-		public function TimestampGenerator()
+		public function WindowTimestamp(windowTitle:String)
 		{
-			super();
+			super(windowTitle);
 			lstart= new Label();
 			lstart.text = "start time";
 			lstart.width = 80;

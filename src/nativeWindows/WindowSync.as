@@ -1,4 +1,4 @@
-package
+package nativeWindows
 {
 	import flash.display.Sprite;
 	import flash.events.Event;
@@ -7,16 +7,16 @@ package
 	
 	import fl.controls.TextInput;
 	
-	public class Sync extends Sprite
+	public class WindowSync extends WindowOwner
 	{
 		private var xsize:Point = new Point();
 		private var searcher:TextInput;
 		private var ca:Array;
 		private var cookie:SharedObject;
 		private var list:Sprite;
-		public function Sync()
+		public function WindowSync(windowTitle:String)
 		{
-			super();
+			super(windowTitle);
 			list = new Sprite();
 			this.addChild(list);
 			cookie = SharedObject.getLocal('sync');

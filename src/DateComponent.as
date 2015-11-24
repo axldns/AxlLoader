@@ -90,6 +90,7 @@ package
 			this.addChild(sec);
 			eventChange = new Event(flash.events.Event.CHANGE)
 			U.distribute(this,0);
+			this.addEventListener(MouseEvent.MOUSE_WHEEL, wheelEvent);
 		}
 		
 		protected function dispatchChange(e:Object=null):void
@@ -132,5 +133,22 @@ package
 			min.value = d.getUTCMinutes();
 			sec.value =d.getUTCSeconds();
 		}
+		
+		protected function wheelEvent(e:MouseEvent):void
+		{
+			var v:NumericStepper = findRecursive(e.target);
+			if(v != null)
+				v.value += e.delta > 0 ? 1 : -1;
+		}
+		
+		private function findRecursive(target:Object):NumericStepper
+		{
+			if(target is NumericStepper)
+				return target as NumericStepper;
+			if(target.hasOwnProperty('parent') && target.parent != null)
+				return findRecursive(target.parent);
+			return null;
+		}
+		
 	}
 }

@@ -7,75 +7,59 @@ package
 	import flash.display.DisplayObjectContainer;
 	import flash.display.LoaderInfo;
 	import flash.display.NativeMenuItem;
-	import flash.display.NativeWindow;
-	import flash.display.NativeWindowInitOptions;
-	import flash.display.NativeWindowType;
 	import flash.display.Sprite;
-	import flash.display.StageAlign;
-	import flash.display.StageScaleMode;
 	import flash.events.Event;
-	import flash.events.FocusEvent;
+	import flash.events.InvokeEvent;
 	import flash.events.KeyboardEvent;
-	import flash.events.MouseEvent;
-	import flash.events.NativeWindowBoundsEvent;
 	import flash.filesystem.File;
 	import flash.net.URLRequest;
 	import flash.system.Capabilities;
 	import flash.system.LoaderContext;
 	
-	import axl.utils.ConnectPHP;
 	import axl.utils.Ldr;
 	import axl.utils.U;
-	import axl.utils.binAgent.BinAgent;
 	import axl.xdef.xLiveAranger;
 	
-	import fl.controls.Button;
-	import fl.controls.CheckBox;
-	import fl.controls.NumericStepper;
-	import fl.controls.TextInput;
 	import fl.events.ComponentEvent;
+	
+	import nativeWindows.WindowConsole;
+	import nativeWindows.WindowSync;
+	import nativeWindows.WindowTimestamp;
+	import nativeWindows.WondowRecent;
 	
 	public class PromoLoader extends Sprite
 	{
-		private var btnLoad:Button;
 		
-		private var f:File;
-		private var btnReload:Button;
+		//loading
+		private var openFile:File;
+		private var clickFile:File;
 		private var currentName:String;
 		private var currentUrl:String;
-		
 		private var swfLoaderInfo:LoaderInfo;
-		private var tfMember:TextInput;
-		
 		private var overlap:String;
-		private var tfCompVal:TextInput;
-		private var bar:Sprite = new Sprite();
-		private var dates:DateComponent
-		private var liveAranger:xLiveAranger;
 		private var LOADABLEURL:URLRequest;
-		private var btnConsole:Button;
-		private var consoleWindow:NativeWindow;
-		private var tracking:String = null;
-		private var appUrl:String;
-		private var VERSION:String = '0.0.5';
-		private var userAgentData:String;
-		private var netObject:Object;
-		private var session:Number;
-		private var exit:ConnectPHP;
-		private var exitObject:Object;
-		private var btnRecent:Button;
-		private var recentWindow:NativeWindow;
-		private var syncWindow:NativeWindow;
-		private var recentContainer:Recent;
-		private var configProcessor:ConfigProcessor;
+		
+		//parsing
 		private var xmlPool:Array=[];
 		private var xconfig:XML;
-		private var sync:Sync;
-		private var tsgWindow:NativeWindow;
-		private var tsg:TimestampGenerator;
-		private var tfRemote:TextInput;
+		private var configProcessor:ConfigProcessor;
 		public var clearLogEveryLoad:Boolean = true;
-		private var cboxAutoSize:CheckBox;
+		
+		//windows
+		private var windowSync:WindowSync;
+		private var windowTimestamp:WindowTimestamp;
+		private var windowConsole:WindowConsole;
+		private var windowRecent:WondowRecent;
+		
+		//elements
+		private var bar:TopBar;
+		private var liveAranger:xLiveAranger;
+		
+		//tracking
+		private var VERSION:String = '0.0.48';
+		private var trackingURL:String;
+		private var tracker:Tracking;
+		
 		public function PromoLoader()
 		{
 			super();
@@ -83,302 +67,67 @@ package
 			U.fullScreen=false;
 			U.onResize = arangeBar;
 			U.init(this, 800,600,function():void { liveAranger = new xLiveAranger() });
-			f = new File();
-			f.addEventListener(Event.SELECT, fileSelected);
 			
-			this.addEventListener(MouseEvent.MOUSE_WHEEL, wheelEvent);
-			this.addEventListener(FocusEvent.FOCUS_OUT, fout);
-			exit = new ConnectPHP('event');
-			exitObject = getNetObject('exit');
-			if(Capabilities.version.substr(0,3).toLowerCase() == "mac")
-				NativeApplication.nativeApplication.menu.addEventListener(Event.SELECT, niKeyMac);
+			buildBar();
+			setupApp();
+			buildWindows();
 			
-			NativeApplication.nativeApplication.addEventListener(KeyboardEvent.KEY_DOWN, niKey);
-			
-			dates = new DateComponent();
-			dates.addEventListener(KeyboardEvent.KEY_UP, keyUp);
-			tfMember = new TextInput();
-			tfMember.text = 'memberId';
-			tfMember.addEventListener(MouseEvent.CLICK, fin);
-			tfMember.textField.addEventListener(KeyboardEvent.KEY_UP, keyUp);
-			tfMember.textField.restrict = '0-9';
-			tfMember.width = tfMember.textField.textWidth + 5;
-			tfCompVal = new TextInput();
-			tfCompVal.addEventListener(MouseEvent.CLICK, fin);
-			tfCompVal.textField.addEventListener(KeyboardEvent.KEY_UP, keyUp);
-			tfCompVal.text = 'compValue';
-			tfCompVal.width = tfCompVal.textField.textWidth + 5;
-			tfCompVal.textField.restrict = '0-9';
-			
-			tfRemote = new TextInput();
-			tfRemote.addEventListener(MouseEvent.CLICK, fin);
-			tfRemote.textField.addEventListener(KeyboardEvent.KEY_UP, keyUp);
-			tfRemote.text = 'dataParameter';
-			
-			btnLoad = new Button();
-			btnLoad.label = 'select swf';
-			btnLoad.width = btnLoad.textField.textWidth + 15;
-			btnLoad.addEventListener(ComponentEvent.BUTTON_DOWN, btnLoadDown);
-			
-			btnReload = new Button();
-			btnReload.label = 'reload';
-			btnReload.width = btnReload.textField.textWidth + 15;
-			btnReload.addEventListener(ComponentEvent.BUTTON_DOWN, btnReloadDown);
-			
-			btnConsole = new Button();
-			btnConsole.label = 'C';
-			btnConsole.width = btnConsole.height;
-			btnConsole.addEventListener(ComponentEvent.BUTTON_DOWN, btnConsoleDown);
-			
-			btnRecent = new Button();
-			btnRecent.label = 'R';
-			btnRecent.width = btnRecent.height;
-			btnRecent.addEventListener(ComponentEvent.BUTTON_DOWN, btnRecentDown);
-			recentContainer = new Recent();
-			recentContainer.addEventListener('resize', recentResizeEvent);
-			recentContainer.addEventListener(Event.SELECT, recentSelectEvent);
-			
-			cboxAutoSize = new CheckBox();
-			cboxAutoSize.label = '↔';
-			cboxAutoSize.labelPlacement ='left';
-			cboxAutoSize.width = 70;
-			cboxAutoSize.addEventListener(Event.CHANGE, btnAutoSizeDown);
-			cboxAutoSize.selected = true;
-			cboxAutoSize.drawNow();
-			sync = new Sync();
-			tsg = new TimestampGenerator();
-			
-			addGrouop(bar, btnLoad,btnRecent,tfMember,btnConsole,tfCompVal,dates,cboxAutoSize,tfRemote,btnReload);
-			arangeBar();
 			this.addChild(bar);
-			track_event('launch',null);
+		}
+		
+		//__________________________________________________________________ INSTANTIATION
+		private function buildWindows():void
+		{
+			windowConsole = new WindowConsole('console');
+			windowSync = new WindowSync('manage flash.events.SyncEvent');
+			windowTimestamp = new WindowTimestamp('timestamp generator');
+			windowRecent = new WondowRecent('recently loaded');
+			windowRecent.addEventListener(Event.SELECT, recentSelectEvent);
+		}
+		
+		private function setupApp():void
+		{
+			openFile = new File();
+			openFile.addEventListener(Event.SELECT, fileSelected);
 			configProcessor = new ConfigProcessor(getConfigXML);
 			Ldr.addExternalProgressListener(somethingLoaded);
-
-		}
-		
-		private function arangeBar():void
-		{
-			if(bar == null)
-				return
-			if(btnReload == null)
-				return;
-			U.distribute(bar,0);
-			U.align(btnReload, U.REC, 'right', 'top');
-			if(cboxAutoSize == null)
-				return;
-			cboxAutoSize.x = btnReload.x - cboxAutoSize.width;
-		}
-		
-		protected function btnAutoSizeDown(event:Event):void
-		{
-			// TODO Auto-generated method stub2
 			
-		}
-		private function getConfigXML():XML { return xconfig }
-		private function somethingLoaded():void
-		{
+			tracker = new Tracking(trackingURL, VERSION);
 			
-			var xmls:Vector.<String> = Ldr.getNames(/\.xml/);
-			for(var i:int = 0; i < xmls.length; i++)
-			{
-				var xn:String = xmls[i];
-				var j:int = xmlPool.indexOf(xn);
-				if(j < 0) // if its new
-				{
-					xmlPool.push(xn);
-					var pt:XML = Ldr.getXML(xn);
-					if(pt is XML && pt.hasOwnProperty('root') && pt.hasOwnProperty('additions'))
-					{
-						U.log(this, "NEW CONFIG DETECTED");
-						xconfig = pt;
-						break;
-					}
-				}
-			}
+			if(Capabilities.version.substr(0,3).toLowerCase() == "mac")
+				NativeApplication.nativeApplication.menu.addEventListener(Event.SELECT, niKeyMac);
+			NativeApplication.nativeApplication.addEventListener(KeyboardEvent.KEY_DOWN, niKey);
+			NativeApplication.nativeApplication.addEventListener(InvokeEvent.INVOKE, onInvokeEvent);
+		}		
+		
+		private function buildBar():void
+		{
+			bar = new TopBar();
+			bar.dates.addEventListener(KeyboardEvent.KEY_UP, keyUp);
+			bar.tfCompVal.textField.addEventListener(KeyboardEvent.KEY_UP, keyUp);
+			bar.tfData.textField.addEventListener(KeyboardEvent.KEY_UP, keyUp);
+			bar.tfMember.textField.addEventListener(KeyboardEvent.KEY_UP, keyUp);
+			bar.btnLoad.addEventListener(ComponentEvent.BUTTON_DOWN, btnLoadDown);
+			bar.btnConsole.addEventListener(ComponentEvent.BUTTON_DOWN, btnConsoleDown);
+			bar.btnRecent.addEventListener(ComponentEvent.BUTTON_DOWN, btnRecentDown);
+			bar.btnReload.addEventListener(ComponentEvent.BUTTON_DOWN, btnReloadDown);
 		}
 		
-		protected function recentSelectEvent(e:Event):void
+		private function btnConsoleDown(e:*=null):void { windowConsole.wappear() }
+		private function btnRecentDown(e:*=null):void { windowRecent.wappear() }
+		private function btnTimestampDown(e:*=null):void { windowTimestamp.wappear() }
+		private function btnSyncDown(e:*=null):void { windowSync.wappear() }
+		private function btnReloadDown(e:*=null):void { loadContent() }
+		private function btnLoadDown(e:*=null):void { openFile.browseForOpen("select promo swf") }
+		
+		
+		//__________________________________________________________________  events handling
+		protected function fileSelected(e:Event):void
 		{
-			LOADABLEURL = new URLRequest(recentContainer.selectedURL); 
+			U.log("DIRECTORY", openFile ?  openFile.parent.url : null);
+			LOADABLEURL = new URLRequest(openFile.url); 
 			loadContent();
-		}		
-		
-		private function track_event(type:String,url:String=null):void
-		{
-			if(tracking == null)
-				return;
-			var p:ConnectPHP = new ConnectPHP('event');
-			p.sendData(getNetObject(type,url),completed,tracking);
-			function completed():void { p.destroy(true); p = null}
 		}
-		private function get getAppUrl():String
-		{
-			if(appUrl == null)
-				appUrl = File.applicationDirectory.nativePath;
-			return appUrl;
-		}
-		private function get getUserAgentData():String
-		{
-			if(userAgentData == null)
-				userAgentData = File.userDirectory.nativePath;
-			return userAgentData;
-		}
-		private function get getSession():Number
-		{
-			if(isNaN(session))
-				session = new Date().time;
-			return session;
-		}
-		
-		private function getNetObject(type:String,subURL:String=null):Object
-		{
-			if(netObject == null)
-			{
-				netObject = {
-					appURL: getAppUrl,
-					version : VERSION,
-					userAgent : getUserAgentData,
-					session  : getSession
-				}
-			}
-			netObject.subjectURL = subURL;
-			netObject.type = type;
-			return netObject;
-		}
-		
-		protected function btnConsoleDown(e:ComponentEvent=null):void
-		{
-			if(consoleWindow == null || consoleWindow.closed)
-			{
-				var nio:NativeWindowInitOptions = new NativeWindowInitOptions();
-				nio.type = NativeWindowType.NORMAL;
-				consoleWindow = new NativeWindow(new NativeWindowInitOptions());
-				consoleWindow.stage.scaleMode = StageScaleMode.NO_SCALE;
-				consoleWindow.stage.align = StageAlign.TOP_LEFT;
-				consoleWindow.addEventListener(NativeWindowBoundsEvent.RESIZE,consoleManualyResized);
-				consoleWindow.stage.addChild(BinAgent.instance);
-				consoleWindow.stage.stageWidth = 800;
-				consoleWindow.stage.stageHeight = 600;
-				consoleWindow.x =0;
-				consoleWindow.y = 0;
-				consoleWindow.title = 'console';
-				
-				consoleWindow.activate();
-				consoleWindow.visible = true;
-				
-			}
-			else
-			{
-				if(consoleWindow.visible)
-					consoleWindow.visible = false;
-				else
-					consoleWindow.visible = true;
-			}
-		}
-		
-		protected function consoleManualyResized(e:NativeWindowBoundsEvent):void
-		{
-			U.bin.resize(e.afterBounds.width-1, e.afterBounds.height-22);
-		}
-		
-		protected function btnRecentDown(event:ComponentEvent=null):void
-		{
-			if(recentWindow == null || recentWindow.closed)
-			{
-				var nio:NativeWindowInitOptions = new NativeWindowInitOptions();
-				nio.type = NativeWindowType.NORMAL;
-				recentWindow = new NativeWindow(new NativeWindowInitOptions());
-				recentWindow.stage.scaleMode = StageScaleMode.NO_SCALE;
-				recentWindow.stage.align = StageAlign.TOP_LEFT;
-				recentWindow.stage.addChild(recentContainer);
-				recentWindow.activate();
-				recentWindow.visible = true;
-				recentWindow.title = 'recently loaded';
-				recentWindow.addEventListener(NativeWindowBoundsEvent.RESIZE, recentManualyResized);
-			}
-			else
-			{
-				if(recentWindow.visible)
-					recentWindow.visible = false;
-				else
-					recentWindow.visible = true;
-			}
-		}
-		
-		protected function btnSyncDown(e:ComponentEvent=null):void
-		{
-			if(syncWindow == null || syncWindow.closed)
-			{
-				var nio:NativeWindowInitOptions = new NativeWindowInitOptions();
-				nio.type = NativeWindowType.NORMAL;
-				syncWindow = new NativeWindow(new NativeWindowInitOptions());
-				syncWindow.stage.scaleMode = StageScaleMode.NO_SCALE;
-				syncWindow.stage.align = StageAlign.TOP_LEFT;
-				syncWindow.stage.addChild(sync);
-				syncWindow.activate();
-				syncWindow.visible = true;
-				syncWindow.title = 'manage flash.events.SyncEvent';
-			}
-			else
-				syncWindow.visible = !syncWindow.visible;
-		}
-		
-		private function btnTimestampDown():void
-		{
-			if(tsgWindow == null || tsgWindow.closed)
-			{
-				var nio:NativeWindowInitOptions = new NativeWindowInitOptions();
-				nio.type = NativeWindowType.NORMAL;
-				tsgWindow = new NativeWindow(new NativeWindowInitOptions());
-				tsgWindow.stage.scaleMode = StageScaleMode.NO_SCALE;
-				tsgWindow.stage.align = StageAlign.TOP_LEFT;
-				tsgWindow.stage.addChild(tsg);
-				tsgWindow.activate();
-				tsgWindow.visible = true;
-				tsgWindow.title = 'timestamp generator';
-			}
-			else
-				tsgWindow.visible = !tsgWindow.visible;
-			
-		}
-		
-		protected function recentManualyResized(e:NativeWindowBoundsEvent):void
-		{
-			recentContainer.reResize(e.afterBounds)
-		}
-		
-		protected function recentResizeEvent(e:Event):void
-		{
-			/*if(recentWindow && recentWindow.stage)
-			{
-				recentWindow.stage.stageWidth = recentContainer.size.x;
-				recentWindow.stage.stageHeight = recentContainer.size.y;
-			}*/
-		}		
-		
-		protected function wheelEvent(e:MouseEvent):void
-		{
-			var v:NumericStepper = findRecursive(e.target);
-			if(v != null)
-				v.value += e.delta > 0 ? 1 : -1;
-		}
-		
-		private function findRecursive(target:Object):NumericStepper
-		{
-			if(target is NumericStepper)
-				return target as NumericStepper;
-			if(target.hasOwnProperty('parent') && target.parent != null)
-				return findRecursive(target.parent);
-			return null;
-		}
-		
-		public static function addGrouop(where:DisplayObjectContainer, ...args):void
-		{
-			while(args.length)
-				where.addChild(args.shift());
-		}
-		
 		protected function asyncError(e:Event):void
 		{
 			U.msg("Async error occured: " + e.toString());
@@ -388,24 +137,79 @@ package
 		protected function keyUp(e:KeyboardEvent):void
 		{
 			if(e.charCode == 13)
+				btnReloadDown()
+		}
+		private function recentSelectEvent(e:Event):void
+		{
+			LOADABLEURL = new URLRequest(windowRecent.selectedURL); 
+			btnReloadDown();
+		}
+		protected function onInvokeEvent(e:InvokeEvent):void
+		{
+			var uu:URLRequest, u:String
+			if(e.arguments.length > 0)
 			{
-				btnReloadDown(e)
+				u = e.arguments.pop();
+				try {
+					clickFile = new File(u);
+					uu = new URLRequest(clickFile.url);
+				}
+				catch (e:Error) { U.msg(e.message) };
+				if(uu == null)
+					return U.msg("Can't open " + u);
+				LOADABLEURL = uu;
+				btnReloadDown();
 			}
 		}
-		protected function fout(e:FocusEvent):void { dates.timestampSec }
-		protected function fin(e:MouseEvent):void {	e.target.setSelection(0, e.target.text.length) }
-		protected function btnLoadDown(e:ComponentEvent):void { f.browseForOpen("select promo swf") }
 		
-		protected function btnReloadDown(e:Event):void
+		protected function niKey(e:KeyboardEvent):void
 		{
-			if(LOADABLEURL != null)
-				loadContent();
+			if(e.ctrlKey || e.commandKey)
+			{
+				var keyp:String = String.fromCharCode(e.charCode).toLowerCase();
+				switch(keyp)
+				{
+					case 'v': pasteEventParse(); break;
+					case 's': configProcessor.saveConfig(e.shiftKey); break;
+					case 'l': (bar.parent != null) ? bar.parent.removeChild(bar) : addChild(bar); break;
+					case 'r': btnReloadDown(); break;
+					case 'e': btnSyncDown(); break;
+					case 't': btnTimestampDown() ; break;
+					case 'h': btnRecentDown() ; break;
+					case 'c': e.shiftKey ? btnConsoleDown() : null ; break;
+					default:
+						var n:Number = Number(keyp);
+						if(!isNaN(n))
+							windowRecent.selectListItemUrlAt(n-1);
+						break;
+				}
+			}
 		}
+		protected function niKeyMac(e:Event):void
+		{
+			var menuItem:NativeMenuItem = e.target as NativeMenuItem; 
+			switch(menuItem.label.toLowerCase())
+			{
+				case "paste": pasteEventParse();break;
+			}
+		}
+		protected function syncEventReceived(e:Event):void
+		{
+			U.log(U.bin.structureToString(e));
+		}
+		
+		
+		// __________________________________________________________________ LOADING AND PARSING
 		protected function loadContent():void
 		{
+			if(LOADABLEURL == null)
+			{
+				U.msg("Nothing to load?");
+				return
+			}
 			U.msg("loading: " +LOADABLEURL.url);
 			U.log("loading: " + LOADABLEURL.url);
-			var ts:Number = dates.timestampSec;
+			var ts:Number = bar.dates.timestampSec;
 			Ldr.unloadAll();
 			Ldr.defaultPathPrefixes = [];
 			var contextParameters:Object = {};
@@ -413,27 +217,20 @@ package
 			//var context:LoaderContext =new LoaderContext(Ldr.policyFileCheck, new ApplicationDomain(null));
 			//var context:LoaderContext =new LoaderContext(Ldr.policyFileCheck, ApplicationDomain.currentDomain);
 			var context:LoaderContext =new LoaderContext(Ldr.policyFileCheck);
-			if(tfMember.text.match(/^\d+$/g).length > 0)
-				contextParameters.memberId = tfMember.text;
-			if(tfCompVal.text.match(/^\d+$/g).length > 0)
-				contextParameters.fakeComp = tfCompVal.text;
+			if(bar.tfMember.text.match(/^\d+$/g).length > 0)
+				contextParameters.memberId = bar.tfMember.text;
+			if(bar.tfCompVal.text.match(/^\d+$/g).length > 0)
+				contextParameters.fakeComp = bar.tfCompVal.text;
 			contextParameters.fakeTimestamp = String(ts);
-			if(tfRemote.text != 'dataParameter' && tfRemote.text.length > 1)
-				contextParameters.dataParameter = tfRemote.text;
+			if(bar.tfData.text != 'dataParameter' && bar.tfData.text.length > 1)
+				contextParameters.dataParameter = bar.tfData.text;
 			contextParameters.fileName = LOADABLEURL.url.split('/').pop();
 			context.parameters  = contextParameters;
 			U.log("LOADING WITH PARAMETERS:", U.bin.structureToString(context.parameters));
 			Ldr.load(LOADABLEURL.url,null,swfLoaded,null,{},Ldr.behaviours.loadOverwrite,Ldr.defaultValue,Ldr.defaultValue,0,context);
 			xmlPool = [];
 		}
-		protected function fileSelected(e:Event):void
-		{
-			U.log("DIRECTORY", f ?  f.parent.url : null);
-			LOADABLEURL = new URLRequest(f.url); 
-			loadContent();
-		}
-		
-		
+	
 		private function swfLoaded(v:String):void
 		{
 			U.log('swf loaded', v);
@@ -460,8 +257,8 @@ package
 			{
 				U.msg("Loaded content is not displayable");
 				Ldr.unload(v);
-				track_event('fail',LOADABLEURL.url);
-				recentContainer.removeRowContaining(LOADABLEURL.url);
+				tracker.track_event('fail',LOADABLEURL.url);
+				windowRecent.removeRowContaining(LOADABLEURL.url);
 				return;
 			}
 			
@@ -469,11 +266,11 @@ package
 			if(swfLoaderInfo != null)
 			{
 				U.msg(LOADABLEURL.url + ' LOADED!');
-				recentContainer.registerLoaded(LOADABLEURL.url);
+				windowRecent.registerLoaded(LOADABLEURL.url);
 				if(this.clearLogEveryLoad && U.bin != null)
 					U.bin.clear();
-				track_event('loaded',LOADABLEURL.url);
-				if(this.cboxAutoSize.selected)
+				tracker.track_event('loaded',LOADABLEURL.url);
+				if(bar.cboxAutoSize.selected)
 				{
 					this.stage.stageWidth = swfLoaderInfo.width;
 					this.stage.stageHeight = swfLoaderInfo.height;
@@ -481,50 +278,13 @@ package
 				
 				if(swfLoaderInfo.contentType == 'application/x-shockwave-flash')
 				{
-					U.log("SWF LOADED, attaching sharedEvents listener");
+					U.log("SWF LOADED, attaching sharedEvents listener.. not ready yet");
 					//swfLoaderInfo.sharedEvents.addEventListener(flash.events.SyncEvent.SYNC, syncEventReceived);
 				}
 			}
 			this.addChildAt(o,0);
 		}
 		
-		protected function syncEventReceived(e:Event):void
-		{
-			U.log(U.bin.structureToString(e));
-		}
-		
-		protected function niKeyMac(e:Event):void
-		{
-			var menuItem:NativeMenuItem = e.target as NativeMenuItem; 
-			switch(menuItem.label.toLowerCase())
-			{
-				case "paste": pasteEventParse();break;
-			}
-		}		
-		
-		protected function niKey(e:KeyboardEvent):void
-		{
-			if(e.ctrlKey || e.commandKey)
-			{
-				var keyp:String = String.fromCharCode(e.charCode).toLowerCase();
-				switch(keyp)
-				{
-					case 'v': pasteEventParse(); break;
-					case 's': configProcessor.saveConfig(e.shiftKey); break;
-					case 'l': (bar.parent != null) ? bar.parent.removeChild(bar) : addChild(bar); break;
-					case 'r': btnReloadDown(e); break;
-					case 'e': btnSyncDown(); break;
-					case 't': btnTimestampDown() ; break;
-					case 'h': btnRecentDown() ; break;
-					case 'c': e.shiftKey ? btnConsoleDown() : null ; break;
-					default:
-						var n:Number = Number(keyp);
-						if(!isNaN(n))
-							this.recentContainer.selectListItemUrlAt(n-1);
-						break;
-				}
-			}
-		}
 		
 		private function pasteEventParse():void
 		{
@@ -562,6 +322,41 @@ package
 				else
 					U.msg('no link found');
 			} 
+		}
+		
+		private function getConfigXML():XML { return xconfig }
+		private function somethingLoaded():void
+		{
+			var xmls:Vector.<String> = Ldr.getNames(/\.xml/);
+			for(var i:int = 0; i < xmls.length; i++)
+			{
+				var xn:String = xmls[i];
+				var j:int = xmlPool.indexOf(xn);
+				if(j < 0) // if its new
+				{
+					xmlPool.push(xn);
+					var pt:XML = Ldr.getXML(xn);
+					if(pt is XML && pt.hasOwnProperty('root') && pt.hasOwnProperty('additions'))
+					{
+						U.log(this, "NEW CONFIG DETECTED");
+						xconfig = pt;
+						break;
+					}
+				}
+			}
+		}
+		
+		
+		// __________________________________________________________________ helpers
+		public static function addGrouop(where:DisplayObjectContainer, ...args):void
+		{
+			while(args.length)
+				where.addChild(args.shift());
+		}
+		private function arangeBar():void
+		{
+			if(bar != null && bar.parent != null)
+				bar.arangeBar();
 		}
 	}
 }

@@ -1,9 +1,9 @@
-package
+package nativeWindows
 {
-	import flash.display.Sprite;
 	import flash.events.Event;
 	import flash.events.KeyboardEvent;
 	import flash.events.MouseEvent;
+	import flash.events.NativeWindowBoundsEvent;
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
 	import flash.net.SharedObject;
@@ -16,7 +16,7 @@ package
 	import fl.controls.listClasses.CellRenderer;
 	import fl.data.DataProvider;
 	
-	public class Recent extends Sprite
+	public class WondowRecent extends WindowOwner
 	{
 		private var list:List;
 		private var dp:DataProvider;
@@ -25,9 +25,9 @@ package
 		private var ca:Array;
 		private var xselectedUrl:String;
 		private var cookie:SharedObject;
-		public function Recent()
+		public function WondowRecent(windowTitle:String)
 		{
-			super();
+			super(windowTitle);
 			cookie = SharedObject.getLocal('recent');
 			if(!(cookie.data.recent is Array))
 				cookie.data.recent = [];
@@ -43,7 +43,18 @@ package
 			list.y = searcher.height;
 			addChild(list);
 			this.addEventListener(Event.ADDED_TO_STAGE, stageAdded);
-			reRead(cookie.data.recent)
+			reRead(cookie.data.recent);
+			
+		}
+		
+		override protected function onWindowCreated():void
+		{
+			window.addEventListener(NativeWindowBoundsEvent.RESIZE,manualyResized);
+		}
+		
+		protected function manualyResized(e:NativeWindowBoundsEvent):void
+		{
+			reResize(e.afterBounds);
 		}
 		
 		protected function listKeyUp(e:KeyboardEvent):void
