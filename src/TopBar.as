@@ -4,6 +4,7 @@ package
 	import flash.events.Event;
 	import flash.events.FocusEvent;
 	import flash.events.MouseEvent;
+	import flash.net.SharedObject;
 	
 	import axl.utils.U;
 	
@@ -24,29 +25,30 @@ package
 		private var xdates:DateComponent;
 		private var xtfData:TextInput;
 		private var xcboxAutoSize:CheckBox;
+		private var cookie:SharedObject;
 		
 		public function TopBar()
 		{
 			super();
-			
+			cookie = SharedObject.getLocal('bar');
 			xdates = new DateComponent();
 			
 			xtfMember = new TextInput();
-			tfMember.text = 'memberId';
+			tfMember.text =  cookie.data.memberId || 'memberId';
 			
 			
 			tfMember.textField.restrict = '0-9';
-			tfMember.width = tfMember.textField.textWidth + 5;
+			tfMember.width = 60;
 			
 			xtfCompVal = new TextInput();
 			
 			
-			tfCompVal.text = 'compValue';
-			tfCompVal.width = tfCompVal.textField.textWidth + 5;
+			tfCompVal.text = cookie.data.compValue ||'compValue';
+			tfCompVal.width = 60;
 			tfCompVal.textField.restrict = '0-9';
 			
 			xtfData = new TextInput();
-			tfData.text = 'dataParameter';
+			tfData.text = cookie.data.dataParameter || 'dataParameter';
 			
 			xbtnLoad = new Button();
 			btnLoad.label = 'select swf';
@@ -145,5 +147,13 @@ package
 		}
 
 
+		public function exiting():void
+		{
+			cookie.data.dataParameter =tfData.text;
+			cookie.data.compValue = tfCompVal.text;
+			cookie.data.memberId = tfMember.text;
+			cookie.flush();
+			U.log(this,'cooke saved');
+		}
 	}
 }

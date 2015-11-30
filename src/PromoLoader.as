@@ -98,6 +98,7 @@ package
 				NativeApplication.nativeApplication.menu.addEventListener(Event.SELECT, niKeyMac);
 			NativeApplication.nativeApplication.addEventListener(KeyboardEvent.KEY_DOWN, niKey);
 			NativeApplication.nativeApplication.addEventListener(InvokeEvent.INVOKE, onInvokeEvent);
+			NativeApplication.nativeApplication.addEventListener(Event.EXITING, exitingEvent);
 		}		
 		
 		private function buildBar():void
@@ -197,7 +198,11 @@ package
 		{
 			U.log(U.bin.structureToString(e));
 		}
-		
+		protected function exitingEvent(e:Event):void
+		{
+			if(bar != null)
+				bar.exiting();
+		}
 		
 		// __________________________________________________________________ LOADING AND PARSING
 		protected function loadContent():void
@@ -284,7 +289,6 @@ package
 			}
 			this.addChildAt(o,0);
 		}
-		
 		
 		private function pasteEventParse():void
 		{
