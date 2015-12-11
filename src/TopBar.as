@@ -9,8 +9,9 @@ package
 	import axl.utils.U;
 	
 	import fl.controls.Button;
-	import fl.controls.CheckBox;
+	import fl.controls.ComboBox;
 	import fl.controls.TextInput;
+	import fl.data.DataProvider;
 	
 	public class TopBar extends Sprite
 	{
@@ -24,7 +25,7 @@ package
 		
 		private var xdates:DateComponent;
 		private var xtfData:TextInput;
-		private var xcboxAutoSize:CheckBox;
+		private var xcboxAutoSize:ComboBox;
 		private var cookie:SharedObject;
 		
 		public function TopBar()
@@ -46,7 +47,7 @@ package
 			tfCompVal.text = cookie.data.compValue ||'compValue';
 			tfCompVal.width = 60;
 			tfCompVal.textField.restrict = '0-9';
-			
+			trace(cookie.data.autoSize,'cookie.data.autoSize');
 			xtfData = new TextInput();
 			tfData.text = cookie.data.dataParameter || 'dataParameter';
 			
@@ -70,12 +71,12 @@ package
 			btnRecent.width = btnRecent.height;
 			
 			
-			xcboxAutoSize = new CheckBox();
-			cboxAutoSize.label = '↔';
-			cboxAutoSize.labelPlacement ='left';
-			cboxAutoSize.width = 70;
-			cboxAutoSize.selected = true;
+			xcboxAutoSize = new ComboBox();
+			cboxAutoSize.dataProvider = new DataProvider([{label : "scale"}, {label : "auto"}, {label: "free"}]);
+			xcboxAutoSizeMode = cookie.data.autoSize || 'scale';
+			cboxAutoSize.width = 55;
 			cboxAutoSize.drawNow();
+			
 			this.addEventListener(Event.ADDED_TO_STAGE, ats);
 			
 			tfMember.addEventListener(MouseEvent.CLICK, fin);
@@ -84,6 +85,7 @@ package
 			
 			PromoLoader.addGrouop(this, btnLoad,btnRecent,tfMember,btnConsole,tfCompVal,dates,cboxAutoSize,tfData,btnReload);
 		}
+		public function set xcboxAutoSizeMode(v:String):void { xcboxAutoSize.selectedItem = {label : v} }
 		
 		protected function ats(event:Event):void { 	arangeBar()	}
 		private function fout(e:FocusEvent):void {  dates.timestampSec }
@@ -141,7 +143,7 @@ package
 			return xtfData;
 		}
 
-		public function get cboxAutoSize():CheckBox
+		public function get cboxAutoSize():ComboBox
 		{
 			return xcboxAutoSize;
 		}
@@ -152,6 +154,7 @@ package
 			cookie.data.dataParameter =tfData.text;
 			cookie.data.compValue = tfCompVal.text;
 			cookie.data.memberId = tfMember.text;
+			cookie.data.autoSize = cboxAutoSize.selectedLabel;
 			cookie.flush();
 			U.log(this,'cooke saved');
 		}

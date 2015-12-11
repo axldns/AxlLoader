@@ -12,6 +12,7 @@ package
 	import flash.events.InvokeEvent;
 	import flash.events.KeyboardEvent;
 	import flash.filesystem.File;
+	import flash.geom.Rectangle;
 	import flash.net.URLRequest;
 	import flash.system.Capabilities;
 	import flash.system.LoaderContext;
@@ -43,7 +44,10 @@ package
 		private var xmlPool:Array=[];
 		private var xconfig:XML;
 		private var configProcessor:ConfigProcessor;
+		
+		//flags
 		public var clearLogEveryLoad:Boolean = true;
+		public var changeConsoleContextToLoadedContent:Boolean=true;
 		
 		//windows
 		private var windowSync:WindowSync;
@@ -59,13 +63,16 @@ package
 		private var VERSION:String = '0.0.48';
 		private var trackingURL:String;
 		private var tracker:Tracking;
+		private var OBJECT:DisplayObject;
+		private var OBJECTREC:Rectangle = new Rectangle();;
+		private var lastScale:Number;
 		
 		public function PromoLoader()
 		{
 			super();
 			
 			U.fullScreen=false;
-			U.onResize = arangeBar;
+			U.onResize = onResize;
 			U.init(this, 800,600,function():void { liveAranger = new xLiveAranger() });
 			
 			buildBar();
@@ -73,6 +80,20 @@ package
 			buildWindows();
 			
 			this.addChild(bar);
+		}
+		
+		private function onResize():void
+		{
+			arangeBar();
+			if(OBJECT != null && this.bar.cboxAutoSize.selectedLabel == 'scale')
+			{
+				OBJECTREC.width = swfLoaderInfo.width;
+				OBJECTREC.height = swfLoaderInfo.height;
+				U.resolveSize(OBJECTREC, U.REC);
+				lastScale = OBJECTREC.width / swfLoaderInfo.width;
+				OBJECT.scaleX =lastScale;
+				OBJECT.scaleY = lastScale;
+			}
 		}
 		
 		//__________________________________________________________________ INSTANTIATION
@@ -212,6 +233,7 @@ package
 				U.msg("Nothing to load?");
 				return
 			}
+			OBJECT= null;
 			U.msg("loading: " +LOADABLEURL.url);
 			U.log("loading: " + LOADABLEURL.url);
 			var ts:Number = bar.dates.timestampSec;
@@ -219,6 +241,7 @@ package
 			Ldr.defaultPathPrefixes = [];
 			var contextParameters:Object = {};
 			Ldr.defaultPathPrefixes = [];
+			U.bin.parser.changeContext(this);
 			//var context:LoaderContext =new LoaderContext(Ldr.policyFileCheck, new ApplicationDomain(null));
 			//var context:LoaderContext =new LoaderContext(Ldr.policyFileCheck, ApplicationDomain.currentDomain);
 			var context:LoaderContext =new LoaderContext(Ldr.policyFileCheck);
@@ -270,21 +293,25 @@ package
 			swfLoaderInfo = Ldr.loaderInfos[v];
 			if(swfLoaderInfo != null)
 			{
+				OBJECT = o;
 				U.msg(LOADABLEURL.url + ' LOADED!');
 				windowRecent.registerLoaded(LOADABLEURL.url);
 				if(this.clearLogEveryLoad && U.bin != null)
 					U.bin.clear();
+				if(changeConsoleContextToLoadedContent && U.bin != null)
+					U.bin.parser.changeContext(o);
 				tracker.track_event('loaded',LOADABLEURL.url);
-				if(bar.cboxAutoSize.selected)
+				if(bar.cboxAutoSize.selectedLabel == 'auto')
 				{
 					this.stage.stageWidth = swfLoaderInfo.width;
 					this.stage.stageHeight = swfLoaderInfo.height;
 				}
-				
+				else if(bar.cboxAutoSize.selectedLabel == 'scale')
+				{
+					onResize();
+				}
 				if(swfLoaderInfo.contentType == 'application/x-shockwave-flash')
 				{
-					U.log("SWF LOADED, attaching sharedEvents listener.. not ready yet");
-					//swfLoaderInfo.sharedEvents.addEventListener(flash.events.SyncEvent.SYNC, syncEventReceived);
 				}
 			}
 			this.addChildAt(o,0);
