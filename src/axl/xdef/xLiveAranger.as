@@ -32,7 +32,7 @@ package axl.xdef
 		private function finishMovement():void
 		{
 			var v:Object = cTarget;
-			if((v == null) || v is Stage || !(v.hasOwnProperty('def') || !(v.def is XML)))
+			if((v == null) || v is Stage || !(v.hasOwnProperty('def')) || !(v.def is XML))
 				return;
 			for(var s:String in supportedProperties)
 			{

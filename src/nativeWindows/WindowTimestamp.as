@@ -47,7 +47,6 @@ package nativeWindows
 			
 			interval = new NumericStepper();
 			interval.minimum = 0;
-			interval.maximum = 59;
 			interval.value = 24;
 			interval.textField.restrict = '0-9';
 			interval.textField.maxChars = 4;
