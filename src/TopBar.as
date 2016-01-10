@@ -6,8 +6,6 @@ package
 	import flash.events.MouseEvent;
 	import flash.net.SharedObject;
 	
-	import axl.utils.U;
-	
 	import fl.controls.Button;
 	import fl.controls.ComboBox;
 	import fl.controls.TextInput;
@@ -96,8 +94,8 @@ package
 		{
 			if(btnReload == null)
 				return;
-			U.distribute(this,0);
-			U.align(btnReload, U.REC, 'right', 'top');
+			PromoLoader.classDict.U.distribute(this,0);
+			PromoLoader.classDict.U.align(btnReload, PromoLoader.classDict.U.REC, 'right', 'top');
 			if(cboxAutoSize == null)
 				return;
 			cboxAutoSize.x = btnReload.x - cboxAutoSize.width;
@@ -156,7 +154,7 @@ package
 			cookie.data.memberId = tfMember.text;
 			cookie.data.autoSize = cboxAutoSize.selectedLabel;
 			cookie.flush();
-			U.log(this,'cooke saved');
+			PromoLoader.classDict.U.log(this,'cooke saved');
 		}
 	}
 }

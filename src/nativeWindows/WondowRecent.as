@@ -9,8 +9,6 @@ package nativeWindows
 	import flash.net.SharedObject;
 	import flash.ui.Keyboard;
 	
-	import axl.utils.U;
-	
 	import fl.controls.List;
 	import fl.controls.TextInput;
 	import fl.controls.listClasses.CellRenderer;
@@ -59,7 +57,7 @@ package nativeWindows
 		
 		protected function listKeyUp(e:KeyboardEvent):void
 		{
-			U.log(e.keyCode == flash.ui.Keyboard.DELETE, list.selectedItem != null)
+			PromoLoader.classDict.U.log(e.keyCode == flash.ui.Keyboard.DELETE, list.selectedItem != null)
 			if(e.keyCode == flash.ui.Keyboard.DELETE && list.selectedItem != null)
 				this.removeRowContaining(list.selectedItem.label);
 		}

@@ -66,8 +66,6 @@ package nativeWindows
 import flash.display.Sprite;
 import flash.events.Event;
 
-import axl.utils.U;
-
 import fl.controls.Button;
 import fl.controls.ComboBox;
 import fl.controls.TextInput;
@@ -120,7 +118,7 @@ internal class SyncListElement extends Sprite
 		remove.width = remove.textField.width + 5;
 		
 		PromoLoader.addGrouop(this, type, listenerDispatcher, dispatchedOn, eventRelated, changesList, dispatchNow, remove);
-		U.distribute(this, 0);
+		PromoLoader.classDict.U.distribute(this, 0);
 		listenerDispatcher.selectedIndex = 0;
 		listenerDispatcherChange();
 	}

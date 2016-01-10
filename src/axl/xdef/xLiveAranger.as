@@ -2,11 +2,8 @@ package axl.xdef
 {
 	import flash.display.Sprite;
 	import flash.display.Stage;
-	import flash.events.MouseEvent;
 	
-	import axl.utils.LiveAranger;
-	
-	public class xLiveAranger extends LiveAranger
+	public class xLiveAranger extends Sprite
 	{
 		private var lockUnderMouseEvents:Boolean;
 		private var supportedProperties:Object =
@@ -31,7 +28,7 @@ package axl.xdef
 		
 		private function finishMovement():void
 		{
-			var v:Object = cTarget;
+			var v:Object;// = cTarget;
 			if((v == null) || v is Stage || !(v.hasOwnProperty('def')) || !(v.def is XML))
 				return;
 			for(var s:String in supportedProperties)
@@ -45,12 +42,11 @@ package axl.xdef
 			}
 		}
 		
-		override protected function mu(e:MouseEvent):void
-		{
-			finishMovement();
-			super.mu(e);
-			
-		}
+//		override protected function mu(e:MouseEvent):void
+//		{
+//			finishMovement();
+//			super.mu(e);
+//		}
 		
 	}
 }

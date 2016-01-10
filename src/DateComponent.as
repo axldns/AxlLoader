@@ -6,8 +6,6 @@ package
 	import flash.events.MouseEvent;
 	import flash.text.TextField;
 	
-	import axl.utils.U;
-	
 	import fl.controls.BaseButton;
 	import fl.controls.NumericStepper;
 	
@@ -89,7 +87,7 @@ package
 			this.addChild(min);
 			this.addChild(sec);
 			eventChange = new Event(flash.events.Event.CHANGE)
-			U.distribute(this,0);
+			PromoLoader.classDict.U.distribute(this,0);
 			this.addEventListener(MouseEvent.MOUSE_WHEEL, wheelEvent);
 		}
 		

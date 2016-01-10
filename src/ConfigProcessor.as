@@ -7,7 +7,6 @@ package {
 	import flash.filesystem.FileMode;
 	import flash.filesystem.FileStream;
 	
-	import axl.utils.U;
 	
 	public class ConfigProcessor {
 	    public var saveFile:File;
@@ -23,7 +22,10 @@ package {
 	    {
 	        var xml:XML = getConfigXML() as XML;
 	        if(xml == null)
-	            return U.msg("Nothing to save");
+			{
+				PromoLoader.classDict.U.msg("Nothing to save");
+				return;
+			}
 	        saveString = xml.toString();
 	        var replaced:String =  saveString.replace(/\"/g, "'");
 			saveString = replaced.replace(/\&quot;/g, '"');
@@ -36,7 +38,6 @@ package {
 	        }
 	        else
 	            saveFileSelected();
-	
 	    }
 		
 		protected function fileSavingCanceled(e:Event):void
@@ -48,15 +49,14 @@ package {
 		
 		protected function fileSelected(e:Event):void
 		{
-			U.log(e);
-			U.log(saveFile.nativePath);
-			U.log(e.target.url);
+			PromoLoader.classDict.U.log(e);
+			PromoLoader.classDict.U.log(saveFile.nativePath);
+			PromoLoader.classDict.U.log(e.target.url);
 			saveFileSelected();
 		}
 		
 	    protected function saveFileSelected(e:Event=null):void
 	    {
-	     
 			if(fs != null)
 			{
 				fs.close();
@@ -67,8 +67,8 @@ package {
 			try{ fs.open(saveFile, FileMode.WRITE);
 	        fs.writeUTFBytes(saveString);
 	        fs.close();
-			U.log('SAVED', saveFile.nativePath);
-			} catch(e:Error){U.log("ERROR WHILE SAVING")};
+			PromoLoader.classDict.U.log('SAVED', saveFile.nativePath);
+			} catch(e:Error){PromoLoader.classDict.U.log("ERROR WHILE SAVING")};
 	    }
 	}
 }

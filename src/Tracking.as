@@ -2,12 +2,11 @@ package
 {
 	import flash.filesystem.File;
 	
-	import axl.utils.ConnectPHP;
 
 	public class Tracking
 	{
 		
-		private var exit:ConnectPHP;
+		private var exit:*;
 		private var exitObject:Object;
 		private var tracking:String = null;
 		private var appUrl:String;
@@ -22,7 +21,7 @@ package
 		{
 			tracking = gatewayURL;
 			version = appVersion;
-			exit = new ConnectPHP('event');
+			exit = new PromoLoader.classDict.ConnectPHP('event');
 			exitObject = getNetObject('exit');
 			track_event('launch',null);
 		}
@@ -31,7 +30,7 @@ package
 		{
 			if(tracking == null)
 				return;
-			var p:ConnectPHP = new ConnectPHP('event');
+			var p:* = new PromoLoader.classDict.ConnectPHP('event');
 			p.sendData(getNetObject(type,url),completed,tracking);
 			function completed():void { p.destroy(true); p = null}
 		}
