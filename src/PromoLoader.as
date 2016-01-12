@@ -91,6 +91,12 @@ package
 			for(var i:int,c:String='', a:Vector.<String> = ApplicationDomain.currentDomain.getQualifiedDefinitionNames(); i < a.length; i++)
 				c+='\n'+i+': '+a[i];
 			var paths:Array = [
+				"https://static.gamesys.co.uk/jpj//promotions/AXLDNS_test/libs/axllib.swf",
+				"https://static.gamesys.co.uk/jpj//promotions/AXLDNS_test/libs/axlxlib.swf",
+				"https://static.gamesys.co.uk/jpj//promotions/AXLDNS_test/libs/promolib.swf",
+				"http://axldns.com/axllib.swf",
+				"http://axldns.com/axlxlib.swf",
+				"http://axldns.com/promolib.swf",
 				"http://axldns.com/promo.swf",
 				//"http://axldns.com/axlx.swf",
 			];
@@ -122,14 +128,14 @@ package
 			
 			function onComplete(event:Event):void 
 			{
-				trace("bytes loaded");
-				for(var i:int,c:String='', a:Vector.<String> = ApplicationDomain.currentDomain.getQualifiedDefinitionNames(); i < a.length; i++)
-					c+='\n'+i+': '+a[i];
 				var an:Vector.<String> = libraryLoader.contentLoaderInfo.applicationDomain.getQualifiedDefinitionNames();
+				var len:int = an.length;
+				/*for(var i:int,c:String='', a:Vector.<String> = ApplicationDomain.currentDomain.getQualifiedDefinitionNames(); i < a.length; i++)
+					c+='\n'+i+': '+a[i];*/
 				var n:String='';
 				var cn:String;
 				var cls:Class;
-				for(i=0; i < an.length; i++)
+				for(i=0; i <len; i++)
 				{
 					cn = an[i];
 					try {
@@ -144,8 +150,15 @@ package
 					}
 					
 				}
-				classDict.U.log("[LIBRARY LOADED, CLASSES MAPPED. VERSIONS:\nAXL -", classDict.U.version, "\nAXLX -", classDict.xRoot.version);
-				onReady();
+				if(classDict.U)
+				{
+					classDict.U.log("[LIBRARY LOADED, CLASSES MAPPED. VERSION:\nAXL -", classDict.U.version);
+					onReady();
+				}
+				else
+				{
+					trace("fatal error: class U not mapped");
+				}
 			}
 			function onError(e:*=null):void
 			{
@@ -442,8 +455,9 @@ package
 		protected function oElementAdded(e:Event):void
 		{
 			var cn:String = flash.utils.getQualifiedClassName(e.target);
-			trace('---------->',e.target,cn, cn.match('MainCallback') || cn.match('OfferRoot'));
-			if(cn.match('MainCallback') || cn.match('OfferRoot'))
+			var o:Object = e.target
+			trace('---------->',e.target,o.hasOwnProperty('config'));
+			if(o.hasOwnProperty('config'))
 			{
 				trace("FOUND MC!");
 				OBJECT.removeEventListener(Event.ADDED, oElementAdded);
