@@ -429,6 +429,7 @@ package
 			{
 				OBJECT = o;
 				OBJECT.addEventListener(Event.ADDED, oElementAdded);
+				
 				classDict.U.msg(LOADABLEURL.url + ' LOADED!');
 				windowRecent.registerLoaded(LOADABLEURL.url);
 				if(this.clearLogEveryLoad && classDict. U.bin != null)
