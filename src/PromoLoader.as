@@ -233,6 +233,8 @@ package
 				U.msg("Nothing to load?");
 				return
 			}
+			if(OBJECT && OBJECT.parent)
+				OBJECT.parent.removeChild(OBJECT);
 			OBJECT= null;
 			U.msg("loading: " +LOADABLEURL.url);
 			U.log("loading: " + LOADABLEURL.url);
