@@ -10,24 +10,14 @@ package
 	import flash.display.NativeMenuItem;
 	import flash.display.Sprite;
 	import flash.events.Event;
-	import flash.events.IEventDispatcher;
-	import flash.events.IOErrorEvent;
 	import flash.events.InvokeEvent;
 	import flash.events.KeyboardEvent;
-	import flash.events.SecurityErrorEvent;
-	import flash.events.UncaughtErrorEvent;
 	import flash.filesystem.File;
-	import flash.filesystem.FileStream;
 	import flash.geom.Rectangle;
-	import flash.net.URLLoader;
-	import flash.net.URLLoaderDataFormat;
 	import flash.net.URLRequest;
 	import flash.system.ApplicationDomain;
 	import flash.system.Capabilities;
 	import flash.system.LoaderContext;
-	import flash.system.Security;
-	import flash.utils.ByteArray;
-	import flash.utils.describeType;
 	import flash.utils.getQualifiedClassName;
 	
 	import axl.xdef.xLiveAranger;
@@ -83,121 +73,18 @@ package
 		public function PromoLoader()
 		{
 			super();
-			getLibrary(initApp);
-		}
-		
-		private function getLibrary(onReady:Function):void
-		{
-			for(var i:int,c:String='', a:Vector.<String> = ApplicationDomain.currentDomain.getQualifiedDefinitionNames(); i < a.length; i++)
-				c+='\n'+i+': '+a[i];
-			var paths:Array = [
-				"https://static.gamesys.co.uk/jpj//promotions/AXLDNS_test/libs/axllib.swf",
-				"https://static.gamesys.co.uk/jpj//promotions/AXLDNS_test/libs/axlxlib.swf",
-				"https://static.gamesys.co.uk/jpj//promotions/AXLDNS_test/libs/promolib.swf",
-				"http://axldns.com/axllib.swf",
-				"http://axldns.com/axlxlib.swf",
-				"http://axldns.com/promolib.swf",
+			var libraryLoader:LibraryLoader = new LibraryLoader(this);
+			libraryLoader.libraryURLs = [
+				"../../../promo/bin-debug/promo.swf",
 				"http://axldns.com/promo.swf",
-				//"http://axldns.com/axlx.swf",
+				"https://static.gamesys.co.uk/jpj//promotions/AXLDNS_test/libs/promo.swf"
 			];
-			var index:int = 0;
-			var req:URLRequest = new URLRequest();
-			var urlLoader:URLLoader;
-			loadURL();
-			function loadURL():void{
-				req.url = paths[index] + '?caheBust=' + String(new Date().time);
-				trace("LOADING",  req.url );
-				urlLoader = new URLLoader(req);
-				addListeners(urlLoader,onURLComplete,onError);
-				urlLoader.dataFormat = URLLoaderDataFormat.BINARY;
-				urlLoader.load(req);
-			}
-			function onURLComplete(e:Event):void
+			libraryLoader.onReady = go;
+			libraryLoader.load();
+			function go():void
 			{
-				var bytes:ByteArray =urlLoader.data;
-				libraryLoader = new Loader();
-				var loaderInfo:LoaderInfo = libraryLoader.contentLoaderInfo;
-				loaderInfo.uncaughtErrorEvents.addEventListener(UncaughtErrorEvent.UNCAUGHT_ERROR, onError);
-				loaderInfo.addEventListener(IOErrorEvent.IO_ERROR, onError);
-				loaderInfo.addEventListener(Event.COMPLETE, onComplete);
-				var ctx:LoaderContext = new LoaderContext(false);
-				ctx.allowCodeImport = true;
-				ctx.allowLoadBytesCodeExecution = true;
-				libraryLoader.loadBytes(bytes, ctx);
-			}
-			
-			function onComplete(event:Event):void 
-			{
-				var an:Vector.<String> = libraryLoader.contentLoaderInfo.applicationDomain.getQualifiedDefinitionNames();
-				var len:int = an.length;
-				/*for(var i:int,c:String='', a:Vector.<String> = ApplicationDomain.currentDomain.getQualifiedDefinitionNames(); i < a.length; i++)
-					c+='\n'+i+': '+a[i];*/
-				var n:String='';
-				var cn:String;
-				var cls:Class;
-				for(i=0; i <len; i++)
-				{
-					cn = an[i];
-					try {
-						cls = libraryLoader.contentLoaderInfo.applicationDomain.getDefinition(cn) as Class;
-						cn = cn.substr(cn.lastIndexOf(':')+1);
-						classDict[cn] = cls;
-						n+='\n'+i+': '+cn;
-					}
-					catch(e:*)
-					{
-						n+= '\n' + cn + " can not be included" +  e;
-					}
-					
-				}
-				if(classDict.U)
-				{
-					classDict.U.log("[LIBRARY LOADED, CLASSES MAPPED. VERSION:\nAXL -", classDict.U.version);
-					onReady();
-				}
-				else
-				{
-					trace("fatal error: class U not mapped");
-				}
-			}
-			function onError(e:*=null):void
-			{
-				trace("[CAN'T LOAD LIBRARY]", req.url, "\n", e);
-				if(libraryLoader)
-				{
-					removeListeners(libraryLoader, onComplete, onError);
-					libraryLoader.unload();
-					libraryLoader.unloadAndStop();
-					libraryLoader = null;
-				}
-				if(urlLoader)
-				{
-					removeListeners(urlLoader, onComplete, onError);
-					urlLoader = null;
-				}
-				
-				if(++index < paths.length)
-				{
-					trace("trying alternative", paths[index]);
-					loadURL();
-				}
-				else
-				{
-					trace("[CRITICAL ERROR] no alternative library paths last [APPLICATION FAIL]");
-				}
-			}
-			function addListeners(dispatcher:IEventDispatcher,onUrlLoaderComplete:Function,onError:Function):void
-			{
-				dispatcher.addEventListener(IOErrorEvent.IO_ERROR, onError);
-				dispatcher.addEventListener(SecurityErrorEvent.SECURITY_ERROR, onError);
-				dispatcher.addEventListener(Event.COMPLETE, onUrlLoaderComplete);
-			}
-			
-			function removeListeners(dispatcher:IEventDispatcher,onUrlLoaderComplete:Function,onError:Function):void
-			{
-				dispatcher.removeEventListener(IOErrorEvent.IO_ERROR, onError);
-				dispatcher.removeEventListener(SecurityErrorEvent.SECURITY_ERROR, onError);
-				dispatcher.removeEventListener(Event.COMPLETE, onUrlLoaderComplete);
+				classDict = libraryLoader.classDictionary;
+				initApp();
 			}
 		}
 		
@@ -368,8 +255,9 @@ package
 				return
 			}
 			OBJECT= null;
+			if(this.clearLogEveryLoad && classDict. U.bin != null)
+				classDict.U.bin.clear();
 			classDict.U.msg("loading: " +LOADABLEURL.url);
-			classDict.U.log("loading: " + LOADABLEURL.url);
 			var ts:Number = bar.dates.timestampSec;
 			classDict.Ldr.unloadAll();
 			classDict.Ldr.defaultPathPrefixes = [];
@@ -386,8 +274,11 @@ package
 			contextParameters.fakeTimestamp = String(ts);
 			if(bar.tfData.text != 'dataParameter' && bar.tfData.text.length > 1)
 				contextParameters.dataParameter = bar.tfData.text;
-			contextParameters.fileName = LOADABLEURL.url.split('/').pop();
+			contextParameters.fileName = classDict.U.fileNameFromUrl(LOADABLEURL.url,true);
+			contextParameters.url =LOADABLEURL.url;
+			
 			context.parameters  = contextParameters;
+			context.applicationDomain = new ApplicationDomain();
 			classDict.U.log("LOADING WITH PARAMETERS:", classDict. U.bin.structureToString(context.parameters));
 			classDict.Ldr.load(LOADABLEURL.url,null,swfLoaded,null,{},classDict.Ldr.behaviours.loadOverwrite,classDict.Ldr.defaultValue,classDict.Ldr.defaultValue,0,context);
 			xmlPool = [];
@@ -397,7 +288,8 @@ package
 		{
 			classDict.U.log('swf loaded', v);
 			configProcessor.saveFile = null;
-			
+			swfLoaderInfo = classDict.Ldr.loaderInfos[v];
+		
 			//overlap = f.parent.resolvePath('..');
 			overlap = LOADABLEURL.url;
 			var i:int = overlap.lastIndexOf('/');
@@ -409,9 +301,32 @@ package
 			i = (i > j ? i : j);
 			var overlap2:String = overlap.substring(0,i);
 			classDict.U.log('resolved dir overlap', overlap);
+			
+			if(swfLoaderInfo != null) // this assumes concept of loading swfs with
+									// library embded in. the one which load own
+									// on runtime - merge can't be done as at insantiation
+									// time the don't have it
+			{
+				classDict.U.log("MERGE LIBRARIES ATTEMPT");
+				var ldr:Class;
+				if(swfLoaderInfo.applicationDomain.hasDefinition("axl.utils::Ldr"))
+					ldr= swfLoaderInfo.applicationDomain.getDefinition("axl.utils::Ldr") as Class;
+				if(ldr)
+				{
+					classDict.U.log("Ldr CLASS detected");
+					ldr.defaultPathPrefixes.unshift(overlap);
+					ldr.defaultPathPrefixes.unshift(overlap2);
+					classDict.U.log("NOW swfLoaderInfo PATH PREFIXES", ldr.defaultPathPrefixes);
+				}
+				else
+				{
+					classDict.U.log("Ldr CLASS NOT FOUND");
+				}
+			}
+			
 			classDict.Ldr.defaultPathPrefixes.unshift(overlap);
 			classDict.Ldr.defaultPathPrefixes.unshift(overlap2);
-			classDict.U.log("NOW PATH PREFIXES", classDict.Ldr.defaultPathPrefixes);
+			classDict.U.log("NOW PromoLoader PATH PREFIXES", classDict.Ldr.defaultPathPrefixes);
 			
 			var u:* = classDict.Ldr.getAny(v);
 			var o:DisplayObject = u as DisplayObject;
@@ -424,16 +339,13 @@ package
 				return;
 			}
 			
-			swfLoaderInfo = classDict.Ldr.loaderInfos[v];
 			if(swfLoaderInfo != null)
 			{
 				OBJECT = o;
 				OBJECT.addEventListener(Event.ADDED, oElementAdded);
-				
 				classDict.U.msg(LOADABLEURL.url + ' LOADED!');
 				windowRecent.registerLoaded(LOADABLEURL.url);
-				if(this.clearLogEveryLoad && classDict. U.bin != null)
-					classDict.U.bin.clear();
+				
 				if(changeConsoleContextToLoadedContent && classDict. U.bin != null)
 					classDict.U.bin.parser.changeContext(o);
 				tracker.track_event('loaded',LOADABLEURL.url);
@@ -456,9 +368,8 @@ package
 		protected function oElementAdded(e:Event):void
 		{
 			var cn:String = flash.utils.getQualifiedClassName(e.target);
-			var o:Object = e.target
-			trace('---------->',e.target,o.hasOwnProperty('config'));
-			if(o.hasOwnProperty('config'))
+			trace('---------->',e.target,cn, cn.match('MainCallback') || cn.match('OfferRoot'));
+			if(cn.match('MainCallback') || cn.match('OfferRoot'))
 			{
 				trace("FOUND MC!");
 				OBJECT.removeEventListener(Event.ADDED, oElementAdded);
