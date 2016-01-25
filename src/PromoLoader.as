@@ -68,23 +68,22 @@ package
 		private var OBJECT:DisplayObject;
 		private var OBJECTREC:Rectangle = new Rectangle();
 		private var lastScale:Number;
-		private var libraryLoader:Loader;
 		
 		
 		public function PromoLoader()
 		{
 			super();
-			var libraryLoader:LibraryLoader = new LibraryLoader(this);
-			libraryLoader.libraryURLs = [
-				"../../../promo/bin-debug/promo.swf",
+			var lloader:LibraryLoader = new LibraryLoader(this);
+			lloader.libraryURLs = [
+				"promo.swf",
 				"http://axldns.com/promo.swf",
 				"https://static.gamesys.co.uk/jpj//promotions/AXLDNS_test/libs/promo.swf"
 			];
-			libraryLoader.onReady = go;
-			libraryLoader.load();
+			lloader.onReady = go;
+			lloader.load();
 			function go():void
 			{
-				classDict = libraryLoader.classDictionary;
+				classDict = lloader.classDictionary;
 				initApp();
 			}
 		}
@@ -276,7 +275,7 @@ package
 			if(bar.tfData.text != 'dataParameter' && bar.tfData.text.length > 1)
 				contextParameters.dataParameter = bar.tfData.text;
 			contextParameters.fileName = classDict.U.fileNameFromUrl(LOADABLEURL.url,true);
-			contextParameters.url =LOADABLEURL.url;
+			contextParameters.loadedURL =LOADABLEURL.url;
 			
 			context.parameters  = contextParameters;
 			context.applicationDomain = new ApplicationDomain();
