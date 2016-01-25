@@ -20,6 +20,7 @@ package
 	import flash.system.LoaderContext;
 	import flash.utils.getQualifiedClassName;
 	
+	import axl.utils.LibraryLoader;
 	import axl.xdef.xLiveAranger;
 	
 	import fl.events.ComponentEvent;
@@ -61,7 +62,7 @@ package
 		private var liveAranger:xLiveAranger;
 		
 		//tracking
-		private var VERSION:String = '0.0.49';
+		private var VERSION:String = '0.2.0';
 		private var trackingURL:String;
 		private var tracker:Tracking;
 		private var OBJECT:DisplayObject;
