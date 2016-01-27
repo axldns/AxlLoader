@@ -69,15 +69,32 @@ package
 		private var OBJECTREC:Rectangle = new Rectangle();
 		private var lastScale:Number;
 		
+		/** Loads library to specific application domain according the rule:
+		 * <ul>
+		 * <li><b>negative values</b> (default): new ApplicationDomain(ApplicationDomain.currentDomain) - This allows the loaded SWF file to use the parent's classes directly, 
+		 * for example by writing new MyClassDefinedInParent(). The parent, however, cannot use this syntax; if the parent wishes 
+		 * to use the child's classes, it must call ApplicationDomain.getDefinition() to retrieve them. The advantage of this choice is that, 
+		 * if the child defines a class with the same name as a class already defined by the parent, no error results; the child simply 
+		 * inherits the parent's definition of that class, and the child's conflicting definition goes unused unless either child or parent 
+		 * calls the ApplicationDomain.getDefinition() method to retrieve it.</li>
+		 * <li><b>0 value</b>: ApplicationDomain.currentDomain - When the load is complete, parent and child can use each other's classes directly.
+		 * If the child attempts to define a class with the same name as a class already defined by the parent, the parent class is used and the child class is ignored.
+		 * <li><b>positive values</b>: new ApplicationDomain(null) - This separates loader and loadee entirely, allowing them to define separate versions of classes 
+		 * with the same name without conflict or overshadowing. The only way either side sees the other's classes is by calling the ApplicationDomain.getDefinition() method.</li>
+		 * </ul>
+		 * */
+		public var domainType:int = -1;
 		
 		public function PromoLoader()
 		{
 			super();
 			var lloader:LibraryLoader = new LibraryLoader(this);
+			lloader.domainType = 1;
 			lloader.libraryURLs = [
-				"promo.swf",
-				"http://axldns.com/promo.swf",
-				"https://static.gamesys.co.uk/jpj//promotions/AXLDNS_test/libs/promo.swf"
+				"axl.swf",
+				"https://static.gamesys.co.uk/jpj//promotions/AXLDNS_test/libs/axl.swf",
+				"https://static.gamesys.co.uk/jpj//promotions/AXLDNS_test/libs/promo.swf",
+				"http://axldns.com/axl.swf"
 			];
 			lloader.onReady = go;
 			lloader.load();
@@ -254,6 +271,8 @@ package
 				classDict.U.msg("Nothing to load?");
 				return
 			}
+			if(OBJECT && OBJECT.parent)
+				OBJECT.parent.removeChild(OBJECT);
 			OBJECT= null;
 			if(this.clearLogEveryLoad && classDict. U.bin != null)
 				classDict.U.bin.clear();
@@ -264,9 +283,7 @@ package
 			var contextParameters:Object = {};
 			classDict.Ldr.defaultPathPrefixes = [];
 			classDict.U.bin.parser.changeContext(this);
-			//var context:LoaderContext =new LoaderContext(classDict.Ldr.policyFileCheck, new ApplicationDomain(null));
-			//var context:LoaderContext =new LoaderContext(classDict.Ldr.policyFileCheck, ApplicationDomain.currentDomain);
-			var context:LoaderContext =new LoaderContext(classDict.Ldr.policyFileCheck,ApplicationDomain.currentDomain);
+			var context:LoaderContext =new LoaderContext(classDict.Ldr.policyFileCheck);
 			if(bar.tfMember.text.match(/^\d+$/g).length > 0)
 				contextParameters.memberId = bar.tfMember.text;
 			if(bar.tfCompVal.text.match(/^\d+$/g).length > 0)
@@ -278,8 +295,22 @@ package
 			contextParameters.loadedURL =LOADABLEURL.url;
 			
 			context.parameters  = contextParameters;
-			context.applicationDomain = new ApplicationDomain();
-			classDict.U.log("LOADING WITH PARAMETERS:", classDict. U.bin.structureToString(context.parameters));
+			if(domainType < 0)
+			{
+				context.applicationDomain = new ApplicationDomain(ApplicationDomain.currentDomain);
+				classDict.U.log("[PL] LOADING TO COPY OF CURRENT APPLICATION DOMAIN (loaded content can use parent classes, parent can't use childs classes other way than via class dict)")
+			}
+			else if(domainType > 0)
+			{
+				context.applicationDomain = new ApplicationDomain(null);
+				classDict.U.log("[PL] LOADING TO BRAND NEW APPLICATION DOMAIN (loaded content can't use parent's classes, parent can't use childs classes other way than via class dict. Watch your fonts.")
+			}
+			else if(domainType == 0)
+			{
+				context.applicationDomain = ApplicationDomain.currentDomain;
+				classDict.U.log("[PL] LOADING TO CURRENT APPLICATION DOMAIN (all shared, conflicts may occur)")
+			}
+			classDict.U.log("[PL] LOADING WITH PARAMETERS:", classDict. U.bin.structureToString(context.parameters));
 			classDict.Ldr.load(LOADABLEURL.url,null,swfLoaded,null,{},classDict.Ldr.behaviours.loadOverwrite,classDict.Ldr.defaultValue,classDict.Ldr.defaultValue,0,context);
 			xmlPool = [];
 		}
