@@ -2,7 +2,7 @@
 <actionScriptProperties analytics="false" mainApplicationPath="PromoLoader.as" projectUUID="0527c68b-d6ea-4489-9991-a804a992c23e" version="11">
   <compiler additionalCompilerArguments="-locale en_US" advancedTelemetry="false" autoRSLOrdering="true" copyDependentFiles="true" fteInMXComponents="false" generateAccessible="false" htmlExpressInstall="true" htmlGenerate="false" htmlHistoryManagement="false" htmlPlayerVersionCheck="true" includeNetmonSwc="false" outputFolderPath="bin-debug" removeUnusedRSL="true" sourceFolderPath="src" strict="true" targetPlayerVersion="0.0.0" useApolloConfig="true" useDebugRSLSwfs="true" useFlashSDK="true" verifyDigests="true" warn="true">
     <compilerSourcePath>
-      <compilerSourcePathEntry kind="1" linkType="1" path="${AXL}"/>
+      <compilerSourcePathEntry kind="1" linkType="1" path="${RSLoader}"/>
     </compilerSourcePath>
     <libraryPath defaultLinkType="0">
       <libraryPathEntry kind="4" path="">
@@ -49,9 +49,9 @@
     <buildTarget buildTargetName="default" platformId="default">
       <airSettings airCertificatePath="/Users/denis.aleksandrowicz/Documents/Adobe Flash Builder 4.7/PromoLoader/cert.p12" airTimestamp="true" anePathSet="true" version="1">
         <airExcludes>
-          <pathEntry path=".DS_Store"/>
           <pathEntry path="axl"/>
           <pathEntry path=".idea"/>
+          <pathEntry path=".DS_Store"/>
         </airExcludes>
         <anePaths/>
         <newLaunchParams/>
