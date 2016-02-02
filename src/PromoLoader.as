@@ -5,7 +5,6 @@ package
 	import flash.desktop.NativeApplication;
 	import flash.display.DisplayObject;
 	import flash.display.DisplayObjectContainer;
-	import flash.display.Loader;
 	import flash.display.LoaderInfo;
 	import flash.display.NativeMenuItem;
 	import flash.display.Sprite;
@@ -21,7 +20,6 @@ package
 	import flash.utils.getQualifiedClassName;
 	
 	import axl.utils.LibraryLoader;
-	import axl.xdef.xLiveAranger;
 	
 	import fl.events.ComponentEvent;
 	
@@ -59,7 +57,7 @@ package
 		
 		//elements
 		private var bar:TopBar;
-		private var liveAranger:xLiveAranger;
+		//private var liveAranger:xLiveAranger;
 		
 		//tracking
 		private var VERSION:String = '0.2.0';
@@ -109,7 +107,7 @@ package
 		{
 			classDict.U.fullScreen=false;
 			classDict.U.onResize = onResize;
-			classDict.U.init(this, 800,600,function():void { liveAranger = new xLiveAranger() });
+			classDict.U.init(this, 800,600);
 			
 			buildBar();
 			setupApp();
@@ -400,9 +398,27 @@ package
 		{
 			var cn:String = flash.utils.getQualifiedClassName(e.target);
 			trace('---------->',e.target,cn, cn.match('MainCallback') || cn.match('OfferRoot'));
+			if(cn.match('BinAgent'))
+			{
+				trace("FOUND BIN AGENT", e.target);				
+			}
 			if(cn.match('MainCallback') || cn.match('OfferRoot'))
 			{
-				trace("FOUND MC!");
+				trace("FOUND MC! looking for bin", e.target);
+				try
+				{
+					trace(DisplayObject(e.target).loaderInfo.applicationDomain.getQualifiedDefinitionNames());
+					trace('parent domain', DisplayObject(e.target).loaderInfo.applicationDomain.parentDomain.getQualifiedDefinitionNames());
+					var bc:Class = DisplayObject(e.target).loaderInfo.applicationDomain.getDefinition('axl.utils.binAgent::BinAgent') as Class;
+					if(bc != null)
+					{
+						trace("FOUND BIN AGENT!!");
+					}
+				}
+				catch(e:*)
+				{
+					
+				}
 				OBJECT.removeEventListener(Event.ADDED, oElementAdded);
 				classDict.U.bin.parser.changeContext(e.target);
 			}
@@ -473,7 +489,6 @@ package
 				}
 			}
 		}
-		
 		
 		// __________________________________________________________________ helpers
 		public static function addGrouop(where:DisplayObjectContainer, ...args):void
