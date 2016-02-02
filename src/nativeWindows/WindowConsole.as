@@ -18,10 +18,17 @@ package nativeWindows
 		
 		override protected function onWindowCreated():void
 		{
-			window.stage.addChild(PromoLoader.classDict.BinAgent.instance);
 			window.addEventListener(NativeWindowBoundsEvent.RESIZE,consoleManualyResized);
 			window.stage.stageWidth = 800;
 			window.stage.stageHeight = 600;
+		}
+		
+		override public function wappear():void
+		{
+			super.wappear();
+			var bi:* = PromoLoader.classDict.BinAgent.instance;
+			if(bi && window && window.stage && !window.stage.contains(bi))
+				window.stage.addChild(PromoLoader.classDict.BinAgent.instance);
 		}
 		
 		protected function consoleManualyResized(e:NativeWindowBoundsEvent=null):void
