@@ -82,6 +82,7 @@ package
 		 * </ul>
 		 * */
 		public var domainType:int = -1;
+		private var context:LoaderContext;
 		
 		public function PromoLoader()
 		{
@@ -277,11 +278,15 @@ package
 			classDict.U.msg("loading: " +LOADABLEURL.url);
 			var ts:Number = bar.dates.timestampSec;
 			classDict.Ldr.unloadAll();
+			if(context && context.applicationDomain)
+			{ 
+				try { context.applicationDomain.domainMemory.clear() } catch(e:*) {}
+			}
 			classDict.Ldr.defaultPathPrefixes = [];
 			var contextParameters:Object = {};
 			classDict.Ldr.defaultPathPrefixes = [];
 			classDict.U.bin.parser.changeContext(this);
-			var context:LoaderContext =new LoaderContext(classDict.Ldr.policyFileCheck);
+			context =new LoaderContext(classDict.Ldr.policyFileCheck);
 			if(bar.tfMember.text.match(/^\d+$/g).length > 0)
 				contextParameters.memberId = bar.tfMember.text;
 			if(bar.tfCompVal.text.match(/^\d+$/g).length > 0)
@@ -397,28 +402,8 @@ package
 		protected function oElementAdded(e:Event):void
 		{
 			var cn:String = flash.utils.getQualifiedClassName(e.target);
-			trace('---------->',e.target,cn, cn.match('MainCallback') || cn.match('OfferRoot'));
-			if(cn.match('BinAgent'))
-			{
-				trace("FOUND BIN AGENT", e.target);				
-			}
 			if(cn.match('MainCallback') || cn.match('OfferRoot'))
 			{
-				trace("FOUND MC! looking for bin", e.target);
-				try
-				{
-					trace(DisplayObject(e.target).loaderInfo.applicationDomain.getQualifiedDefinitionNames());
-					trace('parent domain', DisplayObject(e.target).loaderInfo.applicationDomain.parentDomain.getQualifiedDefinitionNames());
-					var bc:Class = DisplayObject(e.target).loaderInfo.applicationDomain.getDefinition('axl.utils.binAgent::BinAgent') as Class;
-					if(bc != null)
-					{
-						trace("FOUND BIN AGENT!!");
-					}
-				}
-				catch(e:*)
-				{
-					
-				}
 				OBJECT.removeEventListener(Event.ADDED, oElementAdded);
 				classDict.U.bin.parser.changeContext(e.target);
 			}
