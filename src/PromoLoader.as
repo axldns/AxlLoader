@@ -14,8 +14,10 @@ package
 	import flash.filesystem.File;
 	import flash.geom.Rectangle;
 	import flash.net.URLRequest;
+	import flash.system.ApplicationDomain;
 	import flash.system.Capabilities;
 	import flash.system.LoaderContext;
+	import flash.utils.getQualifiedClassName;
 	
 	import axl.utils.Ldr;
 	import axl.utils.U;
@@ -60,12 +62,29 @@ package
 		private var liveAranger:xLiveAranger;
 		
 		//tracking
-		private var VERSION:String = '0.0.49';
+		private var VERSION:String = '0.2.0';
 		private var trackingURL:String;
 		private var tracker:Tracking;
 		private var OBJECT:DisplayObject;
 		private var OBJECTREC:Rectangle = new Rectangle();;
 		private var lastScale:Number;
+		
+		/** Loads library to specific application domain according the rule:
+		 * <ul>
+		 * <li><b>negative values</b> (default): new ApplicationDomain(ApplicationDomain.currentDomain) - This allows the loaded SWF file to use the parent's classes directly, 
+		 * for example by writing new MyClassDefinedInParent(). The parent, however, cannot use this syntax; if the parent wishes 
+		 * to use the child's classes, it must call ApplicationDomain.getDefinition() to retrieve them. The advantage of this choice is that, 
+		 * if the child defines a class with the same name as a class already defined by the parent, no error results; the child simply 
+		 * inherits the parent's definition of that class, and the child's conflicting definition goes unused unless either child or parent 
+		 * calls the ApplicationDomain.getDefinition() method to retrieve it.</li>
+		 * <li><b>0 value</b>: ApplicationDomain.currentDomain - When the load is complete, parent and child can use each other's classes directly.
+		 * If the child attempts to define a class with the same name as a class already defined by the parent, the parent class is used and the child class is ignored.
+		 * <li><b>positive values</b>: new ApplicationDomain(null) - This separates loader and loadee entirely, allowing them to define separate versions of classes 
+		 * with the same name without conflict or overshadowing. The only way either side sees the other's classes is by calling the ApplicationDomain.getDefinition() method.</li>
+		 * </ul>
+		 * */
+		public var domainType:int = -1;
+		private var context:LoaderContext;
 		
 		public function PromoLoader()
 		{
@@ -74,7 +93,7 @@ package
 			U.fullScreen=false;
 			U.onResize = onResize;
 			U.init(this, 800,600,function():void { liveAranger = new xLiveAranger() });
-			
+			U.log("[PromoLoader 0.2.0]");
 			buildBar();
 			setupApp();
 			buildWindows();
@@ -236,17 +255,20 @@ package
 			if(OBJECT && OBJECT.parent)
 				OBJECT.parent.removeChild(OBJECT);
 			OBJECT= null;
+			if(this.clearLogEveryLoad &&  U.bin != null)
+				U.bin.clear();
 			U.msg("loading: " +LOADABLEURL.url);
-			U.log("loading: " + LOADABLEURL.url);
 			var ts:Number = bar.dates.timestampSec;
 			Ldr.unloadAll();
+			if(context && context.applicationDomain)
+			{ 
+				try { context.applicationDomain.domainMemory.clear() } catch(e:*) {}
+			}
 			Ldr.defaultPathPrefixes = [];
 			var contextParameters:Object = {};
 			Ldr.defaultPathPrefixes = [];
 			U.bin.parser.changeContext(this);
-			//var context:LoaderContext =new LoaderContext(Ldr.policyFileCheck, new ApplicationDomain(null));
-			//var context:LoaderContext =new LoaderContext(Ldr.policyFileCheck, ApplicationDomain.currentDomain);
-			var context:LoaderContext =new LoaderContext(Ldr.policyFileCheck);
+			context =new LoaderContext(Ldr.policyFileCheck);
 			if(bar.tfMember.text.match(/^\d+$/g).length > 0)
 				contextParameters.memberId = bar.tfMember.text;
 			if(bar.tfCompVal.text.match(/^\d+$/g).length > 0)
@@ -254,17 +276,35 @@ package
 			contextParameters.fakeTimestamp = String(ts);
 			if(bar.tfData.text != 'dataParameter' && bar.tfData.text.length > 1)
 				contextParameters.dataParameter = bar.tfData.text;
-			contextParameters.fileName = LOADABLEURL.url.split('/').pop();
+			contextParameters.fileName = U.fileNameFromUrl(LOADABLEURL.url,true);
+			contextParameters.loadedURL =LOADABLEURL.url;
+			
 			context.parameters  = contextParameters;
-			U.log("LOADING WITH PARAMETERS:", U.bin.structureToString(context.parameters));
+			if(domainType < 0)
+			{
+				context.applicationDomain = new ApplicationDomain(ApplicationDomain.currentDomain);
+				U.log("[PL] LOADING TO COPY OF CURRENT APPLICATION DOMAIN (loaded content can use parent classes, parent can't use childs classes other way than via class dict)")
+			}
+			else if(domainType > 0)
+			{
+				context.applicationDomain = new ApplicationDomain(null);
+				U.log("[PL] LOADING TO BRAND NEW APPLICATION DOMAIN (loaded content can't use parent's classes, parent can't use childs classes other way than via class dict. Watch your fonts.")
+			}
+			else if(domainType == 0)
+			{
+				context.applicationDomain = ApplicationDomain.currentDomain;
+				U.log("[PL] LOADING TO CURRENT APPLICATION DOMAIN (all shared, conflicts may occur)")
+			}
+			U.log("[PL] LOADING WITH PARAMETERS:",  U.bin.structureToString(context.parameters));
 			Ldr.load(LOADABLEURL.url,null,swfLoaded,null,{},Ldr.behaviours.loadOverwrite,Ldr.defaultValue,Ldr.defaultValue,0,context);
 			xmlPool = [];
 		}
-	
+		
 		private function swfLoaded(v:String):void
 		{
 			U.log('swf loaded', v);
 			configProcessor.saveFile = null;
+			swfLoaderInfo = Ldr.loaderInfos[v];
 			
 			//overlap = f.parent.resolvePath('..');
 			overlap = LOADABLEURL.url;
@@ -277,9 +317,32 @@ package
 			i = (i > j ? i : j);
 			var overlap2:String = overlap.substring(0,i);
 			U.log('resolved dir overlap', overlap);
+			
+			if(swfLoaderInfo != null) // this assumes concept of loading swfs with
+				// library embded in. the one which load own
+				// on runtime - merge can't be done as at insantiation
+				// time the don't have it
+			{
+				U.log("MERGE LIBRARIES ATTEMPT");
+				var ldr:Class;
+				if(swfLoaderInfo.applicationDomain.hasDefinition("axl.utils::Ldr"))
+					ldr= swfLoaderInfo.applicationDomain.getDefinition("axl.utils::Ldr") as Class;
+				if(ldr)
+				{
+					U.log("Ldr CLASS detected");
+					ldr.defaultPathPrefixes.unshift(overlap);
+					ldr.defaultPathPrefixes.unshift(overlap2);
+					U.log("NOW swfLoaderInfo PATH PREFIXES", ldr.defaultPathPrefixes);
+				}
+				else
+				{
+					U.log("Ldr CLASS NOT FOUND");
+				}
+			}
+			
 			Ldr.defaultPathPrefixes.unshift(overlap);
 			Ldr.defaultPathPrefixes.unshift(overlap2);
-			U.log("NOW PATH PREFIXES", Ldr.defaultPathPrefixes);
+			U.log("NOW PromoLoader PATH PREFIXES", Ldr.defaultPathPrefixes);
 			
 			var u:* = Ldr.getAny(v);
 			var o:DisplayObject = u as DisplayObject;
@@ -292,15 +355,14 @@ package
 				return;
 			}
 			
-			swfLoaderInfo = Ldr.loaderInfos[v];
 			if(swfLoaderInfo != null)
 			{
 				OBJECT = o;
+				OBJECT.addEventListener(Event.ADDED, oElementAdded);
 				U.msg(LOADABLEURL.url + ' LOADED!');
 				windowRecent.registerLoaded(LOADABLEURL.url);
-				if(this.clearLogEveryLoad && U.bin != null)
-					U.bin.clear();
-				if(changeConsoleContextToLoadedContent && U.bin != null)
+				
+				if(changeConsoleContextToLoadedContent &&  U.bin != null)
 					U.bin.parser.changeContext(o);
 				tracker.track_event('loaded',LOADABLEURL.url);
 				if(bar.cboxAutoSize.selectedLabel == 'auto')
@@ -317,6 +379,16 @@ package
 				}
 			}
 			this.addChildAt(o,0);
+		}
+		
+		protected function oElementAdded(e:Event):void
+		{
+			var cn:String = flash.utils.getQualifiedClassName(e.target);
+			if(cn.match('MainCallback') || cn.match('OfferRoot'))
+			{
+				OBJECT.removeEventListener(Event.ADDED, oElementAdded);
+				U.bin.parser.changeContext(e.target);
+			}
 		}
 		
 		private function pasteEventParse():void
