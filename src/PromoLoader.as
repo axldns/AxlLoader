@@ -26,9 +26,8 @@ package
 	import fl.events.ComponentEvent;
 	
 	import nativeWindows.WindowConsole;
-	import nativeWindows.WindowSync;
+	import nativeWindows.WindowRecent;
 	import nativeWindows.WindowTimestamp;
-	import nativeWindows.WondowRecent;
 	
 	public class PromoLoader extends Sprite
 	{
@@ -56,17 +55,16 @@ package
 		public var changeConsoleContextToLoadedContent:Boolean=true;
 		
 		//windows
-		private var windowSync:WindowSync;
 		private var windowTimestamp:WindowTimestamp;
 		private var windowConsole:WindowConsole;
-		private var windowRecent:WondowRecent;
+		private var windowRecent:WindowRecent;
 		
 		//elements
 		private var bar:TopBar;
 		//private var liveAranger:xLiveAranger;
 		
 		//tracking
-		private var xVERSION:String = '0.2.3';
+		private var xVERSION:String = '0.2.0';
 		private var trackingURL:String;
 		private var tracker:Tracking;
 		private var OBJECT:DisplayObject;
@@ -197,9 +195,8 @@ package
 		private function buildWindows():void
 		{
 			windowConsole = new WindowConsole('console');
-			windowSync = new WindowSync('manage flash.events.SyncEvent');
 			windowTimestamp = new WindowTimestamp('timestamp generator');
-			windowRecent = new WondowRecent('recently loaded');
+			windowRecent = new WindowRecent('recently loaded');
 			windowRecent.addEventListener(Event.SELECT, recentSelectEvent);
 		}
 		
@@ -272,7 +269,6 @@ package
 		private function btnConsoleDown(e:*=null):void { windowConsole.wappear() }
 		private function btnRecentDown(e:*=null):void { windowRecent.wappear() }
 		private function btnTimestampDown(e:*=null):void { windowTimestamp.wappear() }
-		private function btnSyncDown(e:*=null):void { windowSync.wappear() }
 		private function btnReloadDown(e:*=null):void { loadContent() }
 		private function btnLoadDown(e:*=null):void { openFile.browseForOpen("select promo swf") }
 		
@@ -332,7 +328,6 @@ package
 					case 's': configProcessor.saveConfig(e.shiftKey); break;
 					case 'l': (bar.parent != null) ? bar.parent.removeChild(bar) : addChild(bar); break;
 					case 'r': btnReloadDown(); break;
-					case 'e': btnSyncDown(); break;
 					case 't': btnTimestampDown() ; break;
 					case 'h': btnRecentDown() ; break;
 					case 'c': e.shiftKey ? btnConsoleDown() : null ; break;

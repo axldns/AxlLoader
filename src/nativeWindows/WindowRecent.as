@@ -14,7 +14,7 @@ package nativeWindows
 	import fl.controls.listClasses.CellRenderer;
 	import fl.data.DataProvider;
 	
-	public class WondowRecent extends WindowOwner
+	public class WindowRecent extends WindowOwner
 	{
 		private var list:List;
 		private var dp:DataProvider;
@@ -23,7 +23,7 @@ package nativeWindows
 		private var ca:Array;
 		private var xselectedUrl:String;
 		private var cookie:SharedObject;
-		public function WondowRecent(windowTitle:String)
+		public function WindowRecent(windowTitle:String)
 		{
 			super(windowTitle);
 			cookie = SharedObject.getLocal('recent');
