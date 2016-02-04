@@ -8,7 +8,11 @@ package
 	import flash.display.DisplayObjectContainer;
 	import flash.display.LoaderInfo;
 	import flash.display.NativeMenuItem;
+	import flash.display.NativeWindow;
+	import flash.display.NativeWindowInitOptions;
+	import flash.display.NativeWindowType;
 	import flash.display.Sprite;
+	import flash.display.StageAlign;
 	import flash.events.Event;
 	import flash.events.InvokeEvent;
 	import flash.events.KeyboardEvent;
@@ -93,10 +97,10 @@ package
 		private var bg:Sprite;
 		private var delegatesLock:Boolean=true;
 		private var delegates:Vector.<Function>;
+		private var mainWindow:NativeWindow;
 		
 		public function PromoLoader()
 		{
-			super();
 			delegates = new Vector.<Function>();
 			var lloader:LibraryLoader = new LibraryLoader(this);
 			lloader.domainType = 1;
@@ -114,6 +118,7 @@ package
 				classDict = lloader.classDictionary;
 				initApp();
 			}
+			
 		}
 		
 		public function get VERSION():String { return xVERSION }
@@ -222,10 +227,7 @@ package
 		
 		protected function onDragDrop(e:NativeDragEvent):void
 		{
-			trace(e);
 			var arr:Array = e.clipboard.getData(ClipboardFormats.FILE_LIST_FORMAT) as Array;
-			
-			//grab the files file
 			if(arr && arr.length > 0)
 			{
 				LOADABLEURL = new URLRequest(arr.pop().url); 
@@ -235,18 +237,11 @@ package
 		
 		private function onDragIn(e:NativeDragEvent):void
 		{
-			trace(e);
-			//check and see if files are being drug in
 			if(e.clipboard.hasFormat(ClipboardFormats.FILE_LIST_FORMAT))
 			{
-				//get the array of files
 				var files:Array = e.clipboard.getData(ClipboardFormats.FILE_LIST_FORMAT) as Array;
-				
-				//make sure only one file is dragged in (i.e. this app doesn't
-				//support dragging in multiple files)
 				if(files.length == 1)
 				{
-					//accept the drag action
 					NativeDragManager.acceptDragDrop(this);
 				}
 			}
@@ -297,6 +292,35 @@ package
 		}
 		protected function onInvokeEvent(e:InvokeEvent):void
 		{
+			try { 
+				if(mainWindow == null)
+					mainWindow = this.stage.nativeWindow;
+				trace(mainWindow.closed)
+				if(mainWindow.closed)
+				{
+					var wop:NativeWindowInitOptions = new NativeWindowInitOptions();
+						wop.type = NativeWindowType.NORMAL;
+					mainWindow = new NativeWindow(wop);
+					/*n.stage.width = stage.width;
+					n.stage.height = stage.height;*/
+					mainWindow.stage.stageWidth = stage.stageWidth;
+					mainWindow.stage.stageHeight = stage.stageHeight;
+					mainWindow.stage.scaleMode = stage.scaleMode;
+					mainWindow.stage.align =stage.align;
+					mainWindow.stage.addChild(this);
+					classDict.U.init(this,800,600);
+				}
+				mainWindow.activate();
+				mainWindow.visible = true;
+				mainWindow.restore();
+				
+			} catch (e:*) { trace(e);}
+			
+			/*function onCloseCall(evt:Event):void
+			{
+				evt.preventDefault();
+				//Show dialogue here.
+			}*/
 			var uu:URLRequest, u:String
 			if(e.arguments.length > 0)
 			{
