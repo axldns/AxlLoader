@@ -25,6 +25,7 @@ package
 		private var xtfData:TextInput;
 		private var xcboxAutoSize:ComboBox;
 		private var cookie:SharedObject;
+		private var scaleModes:Array = [{label : "auto"}, {label : "scale"}, {label: "free"}];
 		
 		public function TopBar()
 		{
@@ -32,20 +33,20 @@ package
 			cookie = SharedObject.getLocal('bar');
 			xdates = new DateComponent();
 			
+			PromoLoader.classDict.U.STG.stageWidth = cookie.data.swid;
+			PromoLoader.classDict.U.STG.stageHeight = cookie.data.shei;
 			xtfMember = new TextInput();
 			tfMember.text =  cookie.data.memberId || 'memberId';
 			
-			
 			tfMember.textField.restrict = '0-9';
 			tfMember.width = 60;
+			tfMember.addEventListener(MouseEvent.MOUSE_WHEEL, tfMemberWheelEvent);
 			
 			xtfCompVal = new TextInput();
-			
 			
 			tfCompVal.text = cookie.data.compValue ||'compValue';
 			tfCompVal.width = 60;
 			tfCompVal.textField.restrict = '0-9';
-			trace(cookie.data.autoSize,'cookie.data.autoSize');
 			xtfData = new TextInput();
 			tfData.text = cookie.data.dataParameter || 'dataParameter';
 			
@@ -70,8 +71,9 @@ package
 			
 			
 			xcboxAutoSize = new ComboBox();
-			cboxAutoSize.dataProvider = new DataProvider([{label : "scale"}, {label : "auto"}, {label: "free"}]);
-			xcboxAutoSizeMode = cookie.data.autoSize || 'scale';
+			cboxAutoSize.dataProvider = new DataProvider(scaleModes);
+			xcboxAutoSizeMode = cookie.data.autoSize || 'auto';
+			
 			cboxAutoSize.width = 55;
 			cboxAutoSize.drawNow();
 			
@@ -83,7 +85,20 @@ package
 			
 			PromoLoader.addGrouop(this, btnLoad,btnRecent,tfMember,btnConsole,tfCompVal,dates,cboxAutoSize,tfData,btnReload);
 		}
-		public function set xcboxAutoSizeMode(v:String):void { xcboxAutoSize.selectedItem = {label : v} }
+		
+		protected function tfMemberWheelEvent(e:MouseEvent):void
+		{
+			var n:Number = Number(tfMember.text);
+			if(!isNaN(n))
+				tfMember.text = String(n += e.delta > 0 ? 1 : -1);
+			else
+				tfMember.text = '1';
+		}
+		public function set xcboxAutoSizeMode(v:String):void { 
+			for(var i:int = scaleModes.length;i-->0;)
+				if(scaleModes[i].label ==v)
+					xcboxAutoSize.selectedIndex = i;
+		}
 		
 		protected function ats(event:Event):void { 	arangeBar()	}
 		private function fout(e:FocusEvent):void {  dates.timestampSec }
@@ -146,13 +161,14 @@ package
 			return xcboxAutoSize;
 		}
 
-
 		public function exiting():void
 		{
 			cookie.data.dataParameter =tfData.text;
 			cookie.data.compValue = tfCompVal.text;
 			cookie.data.memberId = tfMember.text;
 			cookie.data.autoSize = cboxAutoSize.selectedLabel;
+			cookie.data.swid = PromoLoader.classDict.U.REC.width;
+			cookie.data.shei = PromoLoader.classDict.U.REC.height;
 			cookie.flush();
 			PromoLoader.classDict.U.log(this,'cooke saved');
 		}
