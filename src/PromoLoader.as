@@ -3,6 +3,7 @@ package
 	import flash.desktop.Clipboard;
 	import flash.desktop.ClipboardFormats;
 	import flash.desktop.NativeApplication;
+	import flash.desktop.NativeDragManager;
 	import flash.display.DisplayObject;
 	import flash.display.DisplayObjectContainer;
 	import flash.display.LoaderInfo;
@@ -11,6 +12,7 @@ package
 	import flash.events.Event;
 	import flash.events.InvokeEvent;
 	import flash.events.KeyboardEvent;
+	import flash.events.NativeDragEvent;
 	import flash.filesystem.File;
 	import flash.geom.Rectangle;
 	import flash.net.URLRequest;
@@ -30,6 +32,10 @@ package
 	
 	public class PromoLoader extends Sprite
 	{
+		
+		[Embed(source='../../promo-rsl/promo/bin-debug/axl.swf', mimeType='application/octet-stream')]
+		public var AXL_LIBRARY:Class;
+		
 		public static var classDict:Object = {};
 		//loading
 		private var openFile:File;
@@ -60,7 +66,7 @@ package
 		//private var liveAranger:xLiveAranger;
 		
 		//tracking
-		private var VERSION:String = '0.2.0';
+		private var xVERSION:String = '0.2.3';
 		private var trackingURL:String;
 		private var tracker:Tracking;
 		private var OBJECT:DisplayObject;
@@ -83,13 +89,21 @@ package
 		 * */
 		public var domainType:int = -1;
 		private var context:LoaderContext;
+		private var tname:String;
+		private var barDesiredHeight:Number = 22;
+		private var xbgColour:uint=0xeeeeee;
+		private var bg:Sprite;
+		private var delegatesLock:Boolean=true;
+		private var delegates:Vector.<Function>;
 		
 		public function PromoLoader()
 		{
 			super();
+			delegates = new Vector.<Function>();
 			var lloader:LibraryLoader = new LibraryLoader(this);
 			lloader.domainType = 1;
 			lloader.libraryURLs = [
+				AXL_LIBRARY,
 				"axl.swf",
 				"https://static.gamesys.co.uk/jpj//promotions/AXLDNS_test/libs/axl.swf",
 				"https://static.gamesys.co.uk/jpj//promotions/AXLDNS_test/libs/promo.swf",
@@ -104,30 +118,79 @@ package
 			}
 		}
 		
+		public function get VERSION():String { return xVERSION }
+
+		public function get bgColour():uint { return xbgColour; }
+		public function set bgColour(value:uint):void
+		{
+			xbgColour = value;
+			updateBg();
+		}
+
 		private function initApp():void
 		{
+			tname = '[PromoLoader ' + VERSION + ']';
 			classDict.U.fullScreen=false;
 			classDict.U.onResize = onResize;
 			classDict.U.init(this, 800,600);
+			classDict.U.log(tname);
 			
 			buildBar();
 			setupApp();
 			buildWindows();
 			this.addChild(bar);
+			delegatesEmpty();
 		}
+		
+		private function delegatesEmpty():void
+		{
+			classDict.U.log('delegatesEmpty');
+			delegatesLock = false;
+			while(delegates.length)
+				delegates.shift()();
+		}
+		
+		public function onVersionUpdate(oldVersion:String):void
+		{
+			delegate(function():void {classDict.U.msg("Your PromoLoader has been updated: " + oldVersion + ' --TO--> ' + VERSION ) });
+		}
+		
+		private function delegate(func:Function):void
+		{
+			if(delegatesLock)
+			{
+				if(delegates.indexOf(func) < 0)
+					delegates.push(func);
+			}
+			else
+				func();
+		}		
 		
 		private function onResize():void
 		{
 			arangeBar();
+			updateBg();
 			if(OBJECT != null && this.bar.cboxAutoSize.selectedLabel == 'scale')
 			{
 				OBJECTREC.width = swfLoaderInfo.width;
-				OBJECTREC.height = swfLoaderInfo.height;
+				OBJECTREC.height = swfLoaderInfo.height + barDesiredHeight;
 				classDict.U.resolveSize(OBJECTREC, classDict.U.REC);
 				lastScale = OBJECTREC.width / swfLoaderInfo.width;
 				OBJECT.scaleX =lastScale;
 				OBJECT.scaleY = lastScale;
 			}
+		}
+		
+		private function updateBg():void
+		{
+			if(!bg)
+			{
+				bg = new Sprite();
+				this.addChildAt(bg,0);
+			}
+			bg.graphics.clear();
+			bg.graphics.beginFill(bgColour);
+			bg.graphics.drawRect(0,0, stage.stageWidth, stage.stageHeight);
 		}
 		
 		//__________________________________________________________________ INSTANTIATION
@@ -154,7 +217,44 @@ package
 			NativeApplication.nativeApplication.addEventListener(KeyboardEvent.KEY_DOWN, niKey);
 			NativeApplication.nativeApplication.addEventListener(InvokeEvent.INVOKE, onInvokeEvent);
 			NativeApplication.nativeApplication.addEventListener(Event.EXITING, exitingEvent);
+			
+			stage.addEventListener(NativeDragEvent.NATIVE_DRAG_ENTER, onDragIn);
+			stage.addEventListener(NativeDragEvent.NATIVE_DRAG_DROP, onDragDrop);
+
 		}		
+		
+		
+		protected function onDragDrop(e:NativeDragEvent):void
+		{
+			trace(e);
+			var arr:Array = e.clipboard.getData(ClipboardFormats.FILE_LIST_FORMAT) as Array;
+			
+			//grab the files file
+			if(arr && arr.length > 0)
+			{
+				LOADABLEURL = new URLRequest(arr.pop().url); 
+				loadContent();
+			}
+		}
+		
+		private function onDragIn(e:NativeDragEvent):void
+		{
+			trace(e);
+			//check and see if files are being drug in
+			if(e.clipboard.hasFormat(ClipboardFormats.FILE_LIST_FORMAT))
+			{
+				//get the array of files
+				var files:Array = e.clipboard.getData(ClipboardFormats.FILE_LIST_FORMAT) as Array;
+				
+				//make sure only one file is dragged in (i.e. this app doesn't
+				//support dragging in multiple files)
+				if(files.length == 1)
+				{
+					//accept the drag action
+					NativeDragManager.acceptDragDrop(this);
+				}
+			}
+		}
 		
 		private function buildBar():void
 		{
@@ -376,6 +476,7 @@ package
 			if(swfLoaderInfo != null)
 			{
 				OBJECT = o;
+				OBJECT.y = barDesiredHeight;
 				OBJECT.addEventListener(Event.ADDED, oElementAdded);
 				classDict.U.msg(LOADABLEURL.url + ' LOADED!');
 				windowRecent.registerLoaded(LOADABLEURL.url);
@@ -386,7 +487,7 @@ package
 				if(bar.cboxAutoSize.selectedLabel == 'auto')
 				{
 					this.stage.stageWidth = swfLoaderInfo.width;
-					this.stage.stageHeight = swfLoaderInfo.height;
+					this.stage.stageHeight = swfLoaderInfo.height + barDesiredHeight;
 				}
 				else if(bar.cboxAutoSize.selectedLabel == 'scale')
 				{
@@ -396,7 +497,7 @@ package
 				{
 				}
 			}
-			this.addChildAt(o,0);
+			this.addChildAt(o,bg && bg.parent ? 1 : 0);
 		}
 		
 		protected function oElementAdded(e:Event):void
