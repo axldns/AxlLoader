@@ -149,7 +149,7 @@ package
 		
 		public function onVersionUpdate(oldVersion:String):void
 		{
-			delegate(function():void {classDict.U.msg("Your PromoLoader has been updated to:", VERSION ) });
+			delegate(function():void {classDict.U.msg("Your PromoLoader has been updated to: "+ VERSION ) });
 		}
 		
 		private function delegate(func:Function):void
