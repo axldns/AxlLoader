@@ -64,7 +64,7 @@ package
 		//private var liveAranger:xLiveAranger;
 		
 		//tracking
-		private var xVERSION:String = '0.2.0';
+		private var xVERSION:String = '0.2.2';
 		private var trackingURL:String;
 		private var tracker:Tracking;
 		private var OBJECT:DisplayObject;
@@ -142,7 +142,6 @@ package
 		
 		private function delegatesEmpty():void
 		{
-			classDict.U.log('delegatesEmpty');
 			delegatesLock = false;
 			while(delegates.length)
 				delegates.shift()();
@@ -150,7 +149,7 @@ package
 		
 		public function onVersionUpdate(oldVersion:String):void
 		{
-			delegate(function():void {classDict.U.msg("Your PromoLoader has been updated: " + oldVersion + ' --TO--> ' + VERSION ) });
+			delegate(function():void {classDict.U.msg("Your PromoLoader has been updated to:", VERSION ) });
 		}
 		
 		private function delegate(func:Function):void
