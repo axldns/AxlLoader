@@ -3,6 +3,7 @@
 	<name>PromoLoader</name>
 	<comment></comment>
 	<projects>
+		<project>RSLGen</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

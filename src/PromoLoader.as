@@ -12,7 +12,6 @@ package
 	import flash.display.NativeWindowInitOptions;
 	import flash.display.NativeWindowType;
 	import flash.display.Sprite;
-	import flash.display.StageAlign;
 	import flash.events.Event;
 	import flash.events.InvokeEvent;
 	import flash.events.KeyboardEvent;
@@ -23,7 +22,6 @@ package
 	import flash.system.ApplicationDomain;
 	import flash.system.Capabilities;
 	import flash.system.LoaderContext;
-	import flash.utils.getQualifiedClassName;
 	
 	import axl.utils.LibraryLoader;
 	
@@ -68,7 +66,7 @@ package
 		//private var liveAranger:xLiveAranger;
 		
 		//tracking
-		private var xVERSION:String = '0.2.2';
+		private var xVERSION:String = '0.2.4';
 		private var trackingURL:String;
 		private var tracker:Tracking;
 		private var OBJECT:DisplayObject;
@@ -98,10 +96,12 @@ package
 		private var delegatesLock:Boolean=true;
 		private var delegates:Vector.<Function>;
 		private var mainWindow:NativeWindow;
+		private var legacyController:LegacyController;
 		
 		public function PromoLoader()
 		{
 			delegates = new Vector.<Function>();
+			legacyController = new LegacyController();
 			var lloader:LibraryLoader = new LibraryLoader(this);
 			lloader.domainType = 1;
 			lloader.libraryURLs = [
@@ -118,8 +118,7 @@ package
 				classDict = lloader.classDictionary;
 				initApp();
 			}
-			
-		}
+		}	
 		
 		public function get VERSION():String { return xVERSION }
 
@@ -192,7 +191,7 @@ package
 			}
 			bg.graphics.clear();
 			bg.graphics.beginFill(bgColour);
-			bg.graphics.drawRect(0,0, stage.stageWidth, stage.stageHeight);
+			bg.graphics.drawRect(0,0, this.stage.stageWidth, this.stage.stageHeight);
 		}
 		
 		//__________________________________________________________________ INSTANTIATION
@@ -219,8 +218,8 @@ package
 			NativeApplication.nativeApplication.addEventListener(InvokeEvent.INVOKE, onInvokeEvent);
 			NativeApplication.nativeApplication.addEventListener(Event.EXITING, exitingEvent);
 			
-			stage.addEventListener(NativeDragEvent.NATIVE_DRAG_ENTER, onDragIn);
-			stage.addEventListener(NativeDragEvent.NATIVE_DRAG_DROP, onDragDrop);
+			this.addEventListener(NativeDragEvent.NATIVE_DRAG_ENTER, onDragIn);
+			this.addEventListener(NativeDragEvent.NATIVE_DRAG_DROP, onDragDrop);
 
 		}		
 		
@@ -295,16 +294,13 @@ package
 			try { 
 				if(mainWindow == null)
 					mainWindow = this.stage.nativeWindow;
-				trace(mainWindow.closed)
 				if(mainWindow.closed)
 				{
 					var wop:NativeWindowInitOptions = new NativeWindowInitOptions();
 						wop.type = NativeWindowType.NORMAL;
 					mainWindow = new NativeWindow(wop);
-					/*n.stage.width = stage.width;
-					n.stage.height = stage.height;*/
-					mainWindow.stage.stageWidth = stage.stageWidth;
-					mainWindow.stage.stageHeight = stage.stageHeight;
+					mainWindow.stage.stageWidth = classDict.U.REC.width;
+					mainWindow.stage.stageHeight = classDict.U.REC.height;
 					mainWindow.stage.scaleMode = stage.scaleMode;
 					mainWindow.stage.align =stage.align;
 					mainWindow.stage.addChild(this);
@@ -316,11 +312,6 @@ package
 				
 			} catch (e:*) { trace(e);}
 			
-			/*function onCloseCall(evt:Event):void
-			{
-				evt.preventDefault();
-				//Show dialogue here.
-			}*/
 			var uu:URLRequest, u:String
 			if(e.arguments.length > 0)
 			{
@@ -393,6 +384,7 @@ package
 			OBJECT= null;
 			if(this.clearLogEveryLoad && classDict. U.bin != null)
 				classDict.U.bin.clear();
+			legacyController.onSwfUnload()
 			classDict.U.msg("loading: " +LOADABLEURL.url);
 			var ts:Number = bar.dates.timestampSec;
 			classDict.Ldr.unloadAll();
@@ -419,19 +411,19 @@ package
 			if(domainType < 0)
 			{
 				context.applicationDomain = new ApplicationDomain(ApplicationDomain.currentDomain);
-				classDict.U.log("[PL] LOADING TO COPY OF CURRENT APPLICATION DOMAIN (loaded content can use parent classes, parent can't use childs classes other way than via class dict)")
+				classDict.U.log(tname," LOADING TO COPY OF CURRENT APPLICATION DOMAIN (loaded content can use parent classes, parent can't use childs classes other way than via class dict)")
 			}
 			else if(domainType > 0)
 			{
 				context.applicationDomain = new ApplicationDomain(null);
-				classDict.U.log("[PL] LOADING TO BRAND NEW APPLICATION DOMAIN (loaded content can't use parent's classes, parent can't use childs classes other way than via class dict. Watch your fonts.")
+				classDict.U.log(tname,"LOADING TO BRAND NEW APPLICATION DOMAIN (loaded content can't use parent's classes, parent can't use childs classes other way than via class dict. Watch your fonts.")
 			}
 			else if(domainType == 0)
 			{
 				context.applicationDomain = ApplicationDomain.currentDomain;
-				classDict.U.log("[PL] LOADING TO CURRENT APPLICATION DOMAIN (all shared, conflicts may occur)")
+				classDict.U.log(tname," LOADING TO CURRENT APPLICATION DOMAIN (all shared, conflicts may occur)")
 			}
-			classDict.U.log("[PL] LOADING WITH PARAMETERS:", classDict. U.bin.structureToString(context.parameters));
+			classDict.U.log(tname," LOADING WITH PARAMETERS:", classDict. U.bin.structureToString(context.parameters));
 			classDict.Ldr.load(LOADABLEURL.url,null,swfLoaded,null,{},classDict.Ldr.behaviours.loadOverwrite,classDict.Ldr.defaultValue,classDict.Ldr.defaultValue,0,context);
 			xmlPool = [];
 		}
@@ -452,33 +444,14 @@ package
 			j = overlap.lastIndexOf("\\");
 			i = (i > j ? i : j);
 			var overlap2:String = overlap.substring(0,i);
-			classDict.U.log('resolved dir overlap', overlap);
+			classDict.U.log(tname,'resolved dir overlap:\n#1:', overlap,'\n#2:', overlap2);
 			
-			if(swfLoaderInfo != null) // this assumes concept of loading swfs with
-									// library embded in. the one which load own
-									// on runtime - merge can't be done as at insantiation
-									// time the don't have it
+			if(swfLoaderInfo != null)
 			{
-				classDict.U.log("MERGE LIBRARIES ATTEMPT");
-				var ldr:Class;
-				if(swfLoaderInfo.applicationDomain.hasDefinition("axl.utils::Ldr"))
-					ldr= swfLoaderInfo.applicationDomain.getDefinition("axl.utils::Ldr") as Class;
-				if(ldr)
-				{
-					classDict.U.log("Ldr CLASS detected");
-					ldr.defaultPathPrefixes.unshift(overlap);
-					ldr.defaultPathPrefixes.unshift(overlap2);
-					classDict.U.log("NOW swfLoaderInfo PATH PREFIXES", ldr.defaultPathPrefixes);
-				}
-				else
-				{
-					classDict.U.log("Ldr CLASS NOT FOUND");
-				}
+				if(legacyController)
+					legacyController.onSwfLoaded(swfLoaderInfo, overlap, overlap2)
 			}
 			
-			classDict.Ldr.defaultPathPrefixes.unshift(overlap);
-			classDict.Ldr.defaultPathPrefixes.unshift(overlap2);
-			classDict.U.log("NOW PromoLoader PATH PREFIXES", classDict.Ldr.defaultPathPrefixes);
 			
 			var u:* = classDict.Ldr.getAny(v);
 			var o:DisplayObject = u as DisplayObject;
@@ -495,7 +468,6 @@ package
 			{
 				OBJECT = o;
 				OBJECT.y = barDesiredHeight;
-				OBJECT.addEventListener(Event.ADDED, oElementAdded);
 				classDict.U.msg(LOADABLEURL.url + ' LOADED!');
 				windowRecent.registerLoaded(LOADABLEURL.url);
 				
@@ -513,20 +485,12 @@ package
 				}
 				if(swfLoaderInfo.contentType == 'application/x-shockwave-flash')
 				{
+					//indicates swf
 				}
 			}
 			this.addChildAt(o,bg && bg.parent ? 1 : 0);
 		}
 		
-		protected function oElementAdded(e:Event):void
-		{
-			var cn:String = flash.utils.getQualifiedClassName(e.target);
-			if(cn.match('MainCallback') || cn.match('OfferRoot'))
-			{
-				OBJECT.removeEventListener(Event.ADDED, oElementAdded);
-				classDict.U.bin.parser.changeContext(e.target);
-			}
-		}		
 		
 		private function pasteEventParse():void
 		{
