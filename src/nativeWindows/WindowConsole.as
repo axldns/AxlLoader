@@ -28,7 +28,11 @@ package nativeWindows
 			super.wappear();
 			var bi:* = PromoLoader.classDict.BinAgent.instance;
 			if(bi && window && window.stage && !window.stage.contains(bi))
+			{
+				bi.allowKeyboardOpen = false;
+				bi.allowGestureOpen = false;
 				window.stage.addChild(PromoLoader.classDict.BinAgent.instance);
+			}
 		}
 		
 		protected function consoleManualyResized(e:NativeWindowBoundsEvent=null):void
