@@ -7,11 +7,16 @@ package
 	import flash.text.TextField;
 	import flash.utils.clearInterval;
 	import flash.utils.setInterval;
+	
+	import axl.utils.LiveAranger;
 
 	public class LegacyController
 	{
 		private var tname:String;
-		private var legacyDetectorID:uint;
+		private var binAgentDetectorID:uint;
+		private var classLoader:String = "axl.utils::Ldr"
+		private var classBinAgent:String="axl.utils.binAgent::BinAgent";
+		private var classAranger:String="axl.utils::LiveAranger";
 		public function LegacyController()
 		{
 			tname = '[PromoLoader - LegacyController]';
@@ -21,8 +26,8 @@ package
 		{
 			PromoLoader.classDict.U.log(tname,"MERGE LIBRARIES ATTEMPT");
 			var ldr:Class;
-			if(swfLoaderInfo.applicationDomain.hasDefinition("axl.utils::Ldr"))
-				ldr= swfLoaderInfo.applicationDomain.getDefinition("axl.utils::Ldr") as Class;
+			if(swfLoaderInfo.applicationDomain.hasDefinition(classLoader))
+				ldr= swfLoaderInfo.applicationDomain.getDefinition(classLoader) as Class;
 			if(ldr)
 			{
 				PromoLoader.classDict.U.log(tname,"Ldr CLASS detected");
@@ -36,8 +41,8 @@ package
 			}
 			
 			var bac:Class;
-			if(swfLoaderInfo.applicationDomain.hasDefinition("axl.utils.binAgent::BinAgent"))
-				bac= swfLoaderInfo.applicationDomain.getDefinition("axl.utils.binAgent::BinAgent") as Class;
+			if(swfLoaderInfo.applicationDomain.hasDefinition(classBinAgent))
+				bac= swfLoaderInfo.applicationDomain.getDefinition(classBinAgent) as Class;
 			
 			if(bac)
 			{
@@ -50,15 +55,36 @@ package
 				else
 				{
 					PromoLoader.classDict.U.log(tname,"BinAgent instance DOES NOT exists, legacy detector interval");
-					legacyDetectorID = setInterval(legacyDetectorTICK,500,bac);
+					binAgentDetectorID = setInterval(binAgentDetectorTICK,500,bac);
 				}
 			}
 			else
 			{
 				PromoLoader.classDict.U.log(tname,"BinAgent CLASS NOT FOUND");
 			}
+			var arang:Class;
+			if(swfLoaderInfo.applicationDomain.hasDefinition(classAranger))
+				arang= swfLoaderInfo.applicationDomain.getDefinition(classAranger) as Class;
+			
+			if(arang)
+			{
+				PromoLoader.classDict.U.log(tname, classAranger, "CLASS detected", arang, arang.instance);
+				if(arang.instance)
+				{
+					PromoLoader.classDict.U.log(tname,classAranger,"instance exists, too late to kill it");
+				}
+				else
+				{
+					PromoLoader.classDict.U.log(tname,classAranger, "instance DOES NOT exists, TRY TU STUFF IT");
+					arang.instance = new LiveAranger();
+				}
+			}
+			else
+			{
+				PromoLoader.classDict.U.log(tname,classAranger,"CLASS NOT FOUND");
+			}
 		}
-		
+	
 		private function mergeBinAgent(ba:Object):void
 		{
 			if(ba.hasOwnProperty('VERSION'))
@@ -96,12 +122,12 @@ package
 			}
 		}
 		
-		private function legacyDetectorTICK(bac:Class):void
+		private function binAgentDetectorTICK(bac:Class):void
 		{
 			PromoLoader.classDict.U.log(tname, bac.instance);
 			if(bac.instance)
 			{
-				clearInterval(this.legacyDetectorID);
+				clearInterval(this.binAgentDetectorID);
 				//dump on stage to get stack trace;
 				bac.instance.addEventListener(Event.ADDED_TO_STAGE, iats);
 				PromoLoader.classDict.U.STG.addChild(bac.instance as DisplayObject);
@@ -114,7 +140,7 @@ package
 		
 		public function onSwfUnload():void
 		{
-			flash.utils.clearInterval(this.legacyDetectorID);
+			flash.utils.clearInterval(this.binAgentDetectorID);
 		}
 	}
 }

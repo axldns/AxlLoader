@@ -66,7 +66,7 @@ package
 		//private var liveAranger:xLiveAranger;
 		
 		//tracking
-		private var xVERSION:String = '0.2.4';
+		private var xVERSION:String = '0.2.6';
 		private var trackingURL:String;
 		private var tracker:Tracking;
 		private var OBJECT:DisplayObject;
@@ -134,7 +134,7 @@ package
 			tname = '[PromoLoader ' + VERSION + ']';
 			classDict.U.fullScreen=false;
 			classDict.U.onResize = onResize;
-			classDict.U.init(this, 800,600);
+			classDict.U.init(this, 800,600,ready);
 			classDict.U.log(tname);
 			
 			buildBar();
@@ -142,6 +142,11 @@ package
 			buildWindows();
 			this.addChild(bar);
 			delegatesEmpty();
+		}
+		
+		private function ready():void
+		{
+			new classDict.LiveAranger();
 		}
 		
 		private function delegatesEmpty():void
