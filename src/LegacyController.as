@@ -130,8 +130,11 @@ package
 			{
 				clearInterval(this.binAgentDetectorID);
 				//dump on stage to get stack trace;
-				bac.instance.addEventListener(Event.ADDED_TO_STAGE, iats);
-				PromoLoader.classDict.U.STG.addChild(bac.instance as DisplayObject);
+				if(bac.instance)
+				{
+					bac.instance.addEventListener(Event.ADDED_TO_STAGE, iats);
+					PromoLoader.classDict.U.STG.addChild(bac.instance as DisplayObject);
+				}
 			}
 			function iats(e:Event):void {
 				bac.instance.removeEventListener(Event.ADDED_TO_STAGE, iats);
