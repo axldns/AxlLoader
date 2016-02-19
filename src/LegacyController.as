@@ -17,66 +17,73 @@ package
 		private var classLoader:String = "axl.utils::Ldr"
 		private var classBinAgent:String="axl.utils.binAgent::BinAgent";
 		private var classAranger:String="axl.utils::LiveAranger";
+		private var loaderClass:Class;
+		private var binAgentClass:Class;
+		private var liveArangerClass:Class;
+		private var tickLimit:int=4
 		public function LegacyController()
 		{
-			tname = '[PromoLoader - LegacyController]';
+			tname = '[PromoLoader - LegacyController 0.0.2]';
 		}
 		
 		public function onSwfLoaded(swfLoaderInfo:LoaderInfo, overlap:String, overlap2:String):void
 		{
 			PromoLoader.classDict.U.log(tname,"MERGE LIBRARIES ATTEMPT");
-			var ldr:Class;
 			if(swfLoaderInfo.applicationDomain.hasDefinition(classLoader))
-				ldr= swfLoaderInfo.applicationDomain.getDefinition(classLoader) as Class;
-			if(ldr)
+				loaderClass= swfLoaderInfo.applicationDomain.getDefinition(classLoader) as Class;
+			if(loaderClass)
 			{
 				PromoLoader.classDict.U.log(tname,"Ldr CLASS detected");
-				ldr.defaultPathPrefixes.unshift(overlap);
-				ldr.defaultPathPrefixes.unshift(overlap2);
-				PromoLoader.classDict.U.log(tname,"NOW swfLoaderInfo PATH PREFIXES:\n# ", ldr.defaultPathPrefixes.join('\n# '));
+				loaderClass.defaultPathPrefixes.unshift(overlap);
+				loaderClass.defaultPathPrefixes.unshift(overlap2);
+				PromoLoader.classDict.U.log(tname,"NOW swfLoaderInfo PATH PREFIXES:\n# ", loaderClass.defaultPathPrefixes.join('\n# '));
 			}
 			else
 			{
 				PromoLoader.classDict.U.log(tname,"Ldr CLASS NOT FOUND");
 			}
 			
-			var bac:Class;
 			if(swfLoaderInfo.applicationDomain.hasDefinition(classBinAgent))
-				bac= swfLoaderInfo.applicationDomain.getDefinition(classBinAgent) as Class;
+				binAgentClass= swfLoaderInfo.applicationDomain.getDefinition(classBinAgent) as Class;
 			
-			if(bac)
+			if(binAgentClass)
 			{
-				PromoLoader.classDict.U.log(tname,"BinAgent CLASS detected", bac, bac.instance);
-				if(bac.instance)
+				PromoLoader.classDict.U.log(binAgentClass,'BinAgent class detected.VERSION?', 'VERSION' in binAgentClass ? binAgentClass : undefined);
+				if('VERSION' in binAgentClass)
+					return
+				PromoLoader.classDict.U.log(tname,"Legacy BinAgent CLASS detected", binAgentClass, binAgentClass.instance);
+				if(binAgentClass.instance)
 				{
-					PromoLoader.classDict.U.log(tname,"BinAgent instance exists, merge attempt");
-					mergeBinAgent(bac.instance);
+					PromoLoader.classDict.U.log(tname,"Legacy BinAgent instance exists, merge attempt");
+					mergeBinAgent(binAgentClass.instance);
 				}
 				else
 				{
-					PromoLoader.classDict.U.log(tname,"BinAgent instance DOES NOT exists, legacy detector interval");
-					binAgentDetectorID = setInterval(binAgentDetectorTICK,500,bac);
+					PromoLoader.classDict.U.log(tname,"Legacy BinAgent class exist BUT instance DOES NOT exists, legacy detector interval");
+					tickLimit = 4;
+					binAgentDetectorID = setInterval(binAgentDetectorTICK,500,binAgentClass);
 				}
 			}
 			else
 			{
 				PromoLoader.classDict.U.log(tname,"BinAgent CLASS NOT FOUND");
 			}
-			var arang:Class;
-			if(swfLoaderInfo.applicationDomain.hasDefinition(classAranger))
-				arang= swfLoaderInfo.applicationDomain.getDefinition(classAranger) as Class;
 			
-			if(arang)
+			if(swfLoaderInfo.applicationDomain.hasDefinition(classAranger))
+				liveArangerClass= swfLoaderInfo.applicationDomain.getDefinition(classAranger) as Class;
+			
+			if(liveArangerClass && !liveArangerClass.hasOwnProperty('VERSION'))
 			{
-				PromoLoader.classDict.U.log(tname, classAranger, "CLASS detected", arang, arang.instance);
-				if(arang.instance)
+				PromoLoader.classDict.U.log(tname, classAranger, "CLASS detected", liveArangerClass, liveArangerClass.instance);
+				if(liveArangerClass.instance)
 				{
 					PromoLoader.classDict.U.log(tname,classAranger,"instance exists, too late to kill it");
 				}
 				else
 				{
-					PromoLoader.classDict.U.log(tname,classAranger, "instance DOES NOT exists, TRY TU STUFF IT");
-					arang.instance = new LiveAranger();
+					PromoLoader.classDict.U.log(tname,classAranger, "instance DOES NOT exists, TRY TO STUFF IT");
+					try { liveArangerClass.instance = new LiveAranger() }
+					catch(e:*) {PromoLoader.classDict.U.log('stuffing failed')}
 				}
 			}
 			else
@@ -87,12 +94,7 @@ package
 	
 		private function mergeBinAgent(ba:Object):void
 		{
-			if(ba.hasOwnProperty('VERSION'))
-			{
-				//trace('found new one, nothing to ddo');
-			}
-			else
-			{
+			
 				if(ba.hasOwnProperty('allowGestureOpen'))
 					ba.allowGestureOpen = false;
 				if(ba.hasOwnProperty('allowKeyboardOpen'))
@@ -119,13 +121,12 @@ package
 					ba.isOpen = false;
 				if(ba.parent)
 					ba.parent.removeChild(ba);
-			}
 		}
 		
 		private function binAgentDetectorTICK(bac:Class):void
 		{
-			PromoLoader.classDict.U.log(tname, bac.instance);
-			if(bac.instance)
+			PromoLoader.classDict.U.log(tname,'detectd bin agent instance:', bac.instance);
+			if(bac.instance|| this.tickLimit-- < 0)
 			{
 				clearInterval(this.binAgentDetectorID);
 				//dump on stage to get stack trace;
@@ -140,6 +141,11 @@ package
 		
 		public function onSwfUnload():void
 		{
+			binAgentClass = null;
+			loaderClass = null;
+			liveArangerClass = null;
+			if(loaderClass != null)
+				loaderClass.defaultPathPrefixes = [];
 			flash.utils.clearInterval(this.binAgentDetectorID);
 		}
 	}

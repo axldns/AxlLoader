@@ -66,7 +66,7 @@ package
 		//private var liveAranger:xLiveAranger;
 		
 		//tracking
-		private var xVERSION:String = '0.2.6';
+		private var xVERSION:String = '0.2.9';
 		private var trackingURL:String;
 		private var tracker:Tracking;
 		private var OBJECT:DisplayObject;
