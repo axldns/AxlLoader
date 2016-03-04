@@ -66,7 +66,7 @@ package
 		//private var liveAranger:xLiveAranger;
 		
 		//tracking
-		private var xVERSION:String = '0.2.9';
+		private var xVERSION:String = '0.2.10';
 		private var trackingURL:String;
 		private var tracker:Tracking;
 		private var OBJECT:DisplayObject;
@@ -382,7 +382,7 @@ package
 			if(LOADABLEURL == null)
 			{
 				classDict.U.msg("Nothing to load?");
-				return
+				return;
 			}
 			if(OBJECT && OBJECT.parent)
 				OBJECT.parent.removeChild(OBJECT);
@@ -390,7 +390,6 @@ package
 			if(this.clearLogEveryLoad && classDict. U.bin != null)
 				classDict.U.bin.clear();
 			legacyController.onSwfUnload()
-			classDict.U.msg("loading: " +LOADABLEURL.url);
 			var ts:Number = bar.dates.timestampSec;
 			classDict.Ldr.unloadAll();
 			if(context && context.applicationDomain)
@@ -473,7 +472,7 @@ package
 			{
 				OBJECT = o;
 				OBJECT.y = barDesiredHeight;
-				classDict.U.msg(LOADABLEURL.url + ' LOADED!');
+				classDict.U.log(LOADABLEURL.url + ' LOADED!');
 				windowRecent.registerLoaded(LOADABLEURL.url);
 				
 				if(changeConsoleContextToLoadedContent && classDict. U.bin != null)
@@ -493,7 +492,18 @@ package
 					//indicates swf
 				}
 			}
-			this.addChildAt(o,bg && bg.parent ? 1 : 0);
+			try { 
+				this.addChildAt(o,bg && bg.parent ? 1 : 0);
+			}
+			catch(e:*)
+			{
+				classDict.U.log("AS2.0?", e);
+				o.y = 0;
+				o = swfLoaderInfo.loader;
+				OBJECT = o;
+				OBJECT.y = barDesiredHeight;
+				this.addChildAt(o,bg && bg.parent ? 1 : 0);
+			}
 		}
 		
 		
