@@ -33,8 +33,8 @@ package
 			cookie = SharedObject.getLocal('bar');
 			xdates = new DateComponent();
 			
-			PromoLoader.classDict.U.STG.stageWidth = cookie.data.swid;
-			PromoLoader.classDict.U.STG.stageHeight = cookie.data.shei;
+		/*	PromoLoader.classDict.U.STG.stageWidth = cookie.data.swid;
+			PromoLoader.classDict.U.STG.stageHeight = cookie.data.shei;*/
 			xtfMember = new TextInput();
 			tfMember.text =  cookie.data.memberId || 'memberId';
 			
@@ -167,8 +167,8 @@ package
 			cookie.data.compValue = tfCompVal.text;
 			cookie.data.memberId = tfMember.text;
 			cookie.data.autoSize = cboxAutoSize.selectedLabel;
-			cookie.data.swid = PromoLoader.classDict.U.REC.width;
-			cookie.data.shei = PromoLoader.classDict.U.REC.height;
+			/*cookie.data.swid = PromoLoader.classDict.U.REC.width;
+			cookie.data.shei = PromoLoader.classDict.U.REC.height;*/
 			cookie.flush();
 			PromoLoader.classDict.U.log(this,'cooke saved');
 		}

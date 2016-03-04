@@ -4,6 +4,7 @@ package
 	import flash.desktop.ClipboardFormats;
 	import flash.desktop.NativeApplication;
 	import flash.desktop.NativeDragManager;
+	import flash.display.Bitmap;
 	import flash.display.DisplayObject;
 	import flash.display.DisplayObjectContainer;
 	import flash.display.LoaderInfo;
@@ -37,6 +38,9 @@ package
 		[Embed(source='../../promo-rsl/promo/bin-debug/axl.swf', mimeType='application/octet-stream')]
 		public var AXL_LIBRARY:Class;
 		
+		[Embed(source='../assets/bg-logo.png', mimeType='image/png')]
+		public var bgImage:Class;
+		
 		public static var classDict:Object = {};
 		//loading
 		private var openFile:File;
@@ -63,15 +67,17 @@ package
 		
 		//elements
 		private var bar:TopBar;
+		private var bgLogo:Bitmap;
 		//private var liveAranger:xLiveAranger;
 		
 		//tracking
-		private var xVERSION:String = '0.2.10';
+		private var xVERSION:String = '0.2.11';
 		private var trackingURL:String;
 		private var tracker:Tracking;
 		private var OBJECT:DisplayObject;
 		private var OBJECTREC:Rectangle = new Rectangle();
 		private var lastScale:Number;
+		
 		
 		/** Loads library to specific application domain according the rule:
 		 * <ul>
@@ -104,13 +110,7 @@ package
 			legacyController = new LegacyController();
 			var lloader:LibraryLoader = new LibraryLoader(this);
 			lloader.domainType = 1;
-			lloader.libraryURLs = [
-				AXL_LIBRARY,
-				"axl.swf",
-				"https://static.gamesys.co.uk/jpj//promotions/AXLDNS_test/libs/axl.swf",
-				"https://static.gamesys.co.uk/jpj//promotions/AXLDNS_test/libs/promo.swf",
-				"http://axldns.com/axl.swf"
-			];
+			lloader.libraryURLs = [AXL_LIBRARY];
 			lloader.onReady = go;
 			lloader.load();
 			function go():void
@@ -185,6 +185,14 @@ package
 				OBJECT.scaleX =lastScale;
 				OBJECT.scaleY = lastScale;
 			}
+			if(bgLogo)
+			{
+				var ls:Number = (this.stage.stageWidth > this.stage.stageHeight ? this.stage.stageHeight : this.stage.stageWidth) * 0.20;
+				bgLogo.width = ls;
+				bgLogo.scaleY = bgLogo.scaleX;
+				classDict.U.center(bgLogo, classDict.U.REC);
+			}
+			
 		}
 		
 		private function updateBg():void
@@ -193,7 +201,13 @@ package
 			{
 				bg = new Sprite();
 				this.addChildAt(bg,0);
+				if(!bgLogo)
+				{
+					bgLogo = new bgImage();
+					bg.addChild(bgLogo)
+				}
 			}
+			
 			bg.graphics.clear();
 			bg.graphics.beginFill(bgColour);
 			bg.graphics.drawRect(0,0, this.stage.stageWidth, this.stage.stageHeight);
