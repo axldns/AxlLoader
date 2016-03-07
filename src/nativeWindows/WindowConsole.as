@@ -37,7 +37,7 @@ package nativeWindows
 		
 		protected function consoleManualyResized(e:NativeWindowBoundsEvent=null):void
 		{
-			PromoLoader.classDict.U.bin.resize(e.afterBounds.width-1, e.afterBounds.height-22);
+			PromoLoader.classDict.U.bin.resize( window.stage.stageWidth-1,window.stage.stageHeight-1);
 		}
 	}
 }
