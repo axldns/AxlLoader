@@ -1,0 +1,99 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!-- saved from url=(0014)about:internet -->
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"> 
+   
+    <head>
+      
+        <script type="text/javascript">
+
+        var oldConsole = console;
+        var console = {};
+        var dims = {w : 0, h : 0};
+       
+
+        setInterval(function()
+          {
+            var f = document.getElementById('flash');
+            if(f != undefined)
+            {
+              var fwidth = f.TGetProperty("/", 8);
+              var fheight= f.TGetProperty("/", 9);
+              if(dims.w != fwidth || dims.h != fheight)
+              {
+                  dims.w = fwidth;
+                  dims.h = fheight;
+                  promoloaderAPI.log("The current dimensions for the Flash Object ("+f+") are "+fwidth+" in width and "+fheight+" in height.");
+                  promoloaderAPI.setDimensions(dims.w, dims.h);
+              }
+             
+            }
+          },200);
+
+
+         window.onresize = function(e) {
+           promoloaderAPI.log("window resize",e)
+        };
+        function init()
+        {
+          promoloaderAPI.log("INIT");
+          console.log = promoloaderAPI.log;
+        }
+        function loadswf(swfurl,params)
+        {
+           
+           //  document.getElementById('flash').setAttribute("data", url);
+           // var f = document.getElementById('flash');
+           // var fp = f.parentNode;
+           // fp.removeChild(f);
+           // if(typeof(callback) == "function")
+           // {
+           //   helloFromJS(fp);
+           // }
+          
+           // fp.appendChild(f);
+           if(console.log != undefined)
+            {
+              console.log("loading", swfurl,params);
+            }
+            else
+            {
+              oldConsole.log("loading", swfurl, params);
+            }
+           var f = document.getElementById('flash');
+           f.bridgeAPI("loadSwf", swfurl,params);
+        }
+
+       
+        function getParam(param)
+        {
+          promoloaderAPI.log("NIMBER OF ARGS", arguments.length);
+          return promoloaderAPI.getParam(param);
+        }
+
+        function actFunc()
+        {
+          var f = document.getElementById('flash');
+          if(this['promoloaderAPI'] != undefined)
+          {
+            promoloaderAPI.log("GOT", f);
+          }
+          f.bridgeAPI("openAgent", true);
+        }
+        </script>
+    </head>
+    <body>
+  <button onClick="as3Reload()">relo</button> 
+      
+     <button onClick="actFunc()">openAgent</button> 
+     
+      <button onClick="loadswf('file:///C:/Users/ddd/Desktop/Lobby-welcome-as3.swf')">loadSwf</button> 
+      <div name='content'>
+        <object  type="application/x-shockwave-flash" id="flash" name="flash" align="middle" data="file:///C:/Users/ddd/Desktop/Bridge.swf" width="910" height="610">
+            <param name="quality" value="high"/>
+            <param name="bgcolor" value="#000000"/>
+            <param name="allowscriptaccess" value="always"/>
+            <param name="allowfullscreen" value="true"/>
+        </object>
+      </div>
+   </body>
+</html>

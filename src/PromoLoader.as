@@ -19,10 +19,12 @@ package
 	import flash.events.NativeDragEvent;
 	import flash.filesystem.File;
 	import flash.geom.Rectangle;
+	import flash.html.HTMLLoader;
 	import flash.net.URLRequest;
 	import flash.system.ApplicationDomain;
 	import flash.system.Capabilities;
 	import flash.system.LoaderContext;
+	import flash.utils.describeType;
 	
 	import axl.utils.LibraryLoader;
 	
@@ -71,7 +73,7 @@ package
 		//private var liveAranger:xLiveAranger;
 		
 		//tracking
-		private var xVERSION:String = '0.2.11';
+		private var xVERSION:String = '0.2.12';
 		private var trackingURL:String;
 		private var tracker:Tracking;
 		private var OBJECT:DisplayObject;
@@ -103,6 +105,8 @@ package
 		private var delegates:Vector.<Function>;
 		private var mainWindow:NativeWindow;
 		private var legacyController:LegacyController;
+		private var htmlContent:HtmlEmbeder;
+		private var xcontextParameters:Object;
 		
 		public function PromoLoader()
 		{
@@ -120,6 +124,7 @@ package
 			}
 		}	
 		
+		public function get contextParameters():Object { return xcontextParameters }
 		public function get VERSION():String { return xVERSION }
 
 		public function get bgColour():uint { return xbgColour; }
@@ -239,7 +244,7 @@ package
 			
 			this.addEventListener(NativeDragEvent.NATIVE_DRAG_ENTER, onDragIn);
 			this.addEventListener(NativeDragEvent.NATIVE_DRAG_DROP, onDragDrop);
-
+			
 		}		
 		
 		
@@ -410,8 +415,12 @@ package
 			{ 
 				try { context.applicationDomain.domainMemory.clear() } catch(e:*) {}
 			}
+			if(htmlContent)
+			{
+				htmlContent.unload();
+			}
 			classDict.Ldr.defaultPathPrefixes = [];
-			var contextParameters:Object = {};
+			xcontextParameters = {};
 			classDict.Ldr.defaultPathPrefixes = [];
 			classDict.U.bin.parser.changeContext(this);
 			context =new LoaderContext(classDict.Ldr.policyFileCheck);
@@ -479,6 +488,13 @@ package
 				classDict.Ldr.unload(v);
 				tracker.track_event('fail',LOADABLEURL.url);
 				windowRecent.removeRowContaining(LOADABLEURL.url);
+				classDict.U.log("trying htmlloaderzz");
+				if(!htmlContent)
+					htmlContent = new HtmlEmbeder(this);
+				htmlContent.load(LOADABLEURL.url);
+				htmlContent.htmlloader.y =barDesiredHeight;
+				this.addChild(htmlContent.htmlloader)
+				
 				return;
 			}
 			
@@ -520,6 +536,18 @@ package
 			}
 		}
 		
+		public function resizeWithRules(w:Number,h:Number):void
+		{
+			if(bar.cboxAutoSize.selectedLabel == 'auto')
+			{
+				this.stage.stageWidth = w;
+				this.stage.stageHeight =h;
+			}
+			else if(bar.cboxAutoSize.selectedLabel == 'scale')
+			{
+				onResize();
+			}
+		}
 		
 		private function pasteEventParse():void
 		{
