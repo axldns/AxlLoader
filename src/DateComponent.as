@@ -122,8 +122,7 @@ package
 		{
 			var d:Date = new Date();
 				d.setTime(v * 1000);
-				d.time += ((d.timezoneOffset * -1) * 60 * 1000);
-			
+				//d.time += ((d.timezoneOffset * -1) * 60 * 1000);
 			yyyy.value = d.getUTCFullYear();
 			mm.value = d.getUTCMonth() +1;
 			dd.value =d.getUTCDate();
