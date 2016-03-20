@@ -1,7 +1,8 @@
-package nativeWindows
+package com.promoloader.nativeWindows
 {
 	import flash.display.DisplayObject;
 	import flash.events.NativeWindowBoundsEvent;
+	import com.promoloader.core.PromoLoader;
 	
 
 	public class WindowConsole extends WindowOwner

@@ -1,7 +1,7 @@
 /**
  * Created by ddd on 26/07/2015.
  */
-package {
+package com.promoloader.core {
 	import flash.events.Event;
 	import flash.filesystem.File;
 	import flash.filesystem.FileMode;

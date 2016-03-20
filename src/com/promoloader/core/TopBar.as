@@ -1,4 +1,4 @@
-package
+package com.promoloader.core
 {
 	import flash.display.Sprite;
 	import flash.events.Event;

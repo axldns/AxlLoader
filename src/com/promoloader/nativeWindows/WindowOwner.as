@@ -1,4 +1,4 @@
-package nativeWindows
+package com.promoloader.nativeWindows
 {
 	import flash.display.DisplayObject;
 	import flash.display.NativeWindow;

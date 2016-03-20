@@ -1,5 +1,5 @@
 
-package
+package com.promoloader.core
 {
 	import flash.display.DisplayObject;
 	import flash.display.LoaderInfo;
