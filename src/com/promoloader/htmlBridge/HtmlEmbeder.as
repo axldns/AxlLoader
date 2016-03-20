@@ -73,8 +73,6 @@ package com.promoloader.htmlBridge
 		{
 		}
 		
-		
-		
 
 		protected function onHtmlComplete(e:Event):void
 		{
@@ -85,19 +83,9 @@ package com.promoloader.htmlBridge
 			hloader.window.as3Reload = as3Reload;
 			
 			PromoLoader.classDict.U.log(e);
-			if('init' in hloader.window || hloader.window.hasOwnProperty('init'))
-				hloader.window.init();
-			else
-				PromoLoader.classDict.U.log("init out of scope");	
-		
 			this.hloader.width = this.hloader.contentWidth;
 			this.hloader.height = this.hloader.contentHeight;
 		}
-		
-		
-		
-		
-		
 		
 		public function get htmlloader():HTMLLoader {return hloader }
 		

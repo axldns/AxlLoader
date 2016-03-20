@@ -34,6 +34,7 @@ package com.promoloader.htmlBridge
 		public function Bridge()
 		{
 			super();
+			U.bin =  new BinAgent(this);
 			setup();
 			U.init(this,800,600,onBridgeReady);
 			
@@ -45,13 +46,7 @@ package com.promoloader.htmlBridge
 			//project
 			NetworkSettings.defaultTimeout = 20000;
 			axl.ui.controllers.BoundBox;
-			var b:BinAgent = new BinAgent(this);
-			b.externalTrace = function(s:String):void { 
-				if(ExternalInterface.available)
-				{
-					ExternalInterface.call("console.log", s);
-				}
-			}
+			
 			//graphics
 			t= new TextField();
 			t.text = tname;
@@ -64,10 +59,24 @@ package com.promoloader.htmlBridge
 			//api
 			if(ExternalInterface.available)
 			{
+				
+				U.log(tname, "Setting bridgeAPI");
 				ExternalInterface.addCallback('bridgeAPI', onIncomingMessage);
+				ExternalInterface.call("init");
 				ExternalInterface.marshallExceptions = true;
-				U.log(tname, "LOADING PARAMS", b.structureToString(loadParamsFromJS));
+				U.bin.externalTrace = function(s:String):void { 
+					if(ExternalInterface.available)
+					{
+						ExternalInterface.call("console.log", s);
+					}
+				}
 			}
+			else
+			{
+				U.log(tname, "ExternalInterface not available");
+			}
+			
+			
 		}
 		private function onBridgeReady():void
 		{
@@ -119,11 +128,15 @@ package com.promoloader.htmlBridge
 		
 		
 		
-		private function setupLoader(url:String,params:Object):void
+		private function setupLoader(url:String,params:Object=null):void
 		{
-			U.log(tname,"[setupLoader]:",url);
+			U.log(tname,"[setupLoader]:",url, params);
 			loadParamsFromJS = ExternalInterface.call('getBridgeLoadingParams');
-			
+			if(params && params is String)
+			{
+				U.log(tname, "converting string params to object");
+				params = JSON.parse(params as String);
+			}
 			ll.contextParameters = params;
 			ll.libraryURLs = [url];
 			
@@ -138,7 +151,6 @@ package com.promoloader.htmlBridge
 				ll.unloadOnErrors = false;
 				ll.stopErrorPropagation = false;
 				ll.preventErrorDefaults = false;
-				U.asignProperties(ll.contextParameters, this.loaderInfo.parameters);
 			}
 			U.log(tname,"[setupLoader][CONTEXT]:",U.bin.structureToString(ll.contextParameters));
 		}
@@ -189,7 +201,7 @@ package com.promoloader.htmlBridge
 			U.bin.isOpen = !U.bin.isOpen;
 		}
 		
-		public function bridge_load(v:String, params:Object):void
+		public function bridge_load(v:String, params:Object=null):void
 		{
 			setupLoader(v,params);
 			load(v);
