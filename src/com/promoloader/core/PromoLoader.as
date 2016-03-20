@@ -1,5 +1,6 @@
 package com.promoloader.core
 {
+	import com.promoloader.htmlBridge.HtmlEmbeder;
 	import com.promoloader.nativeWindows.WindowConsole;
 	import com.promoloader.nativeWindows.WindowRecent;
 	import com.promoloader.nativeWindows.WindowTimestamp;
@@ -10,7 +11,6 @@ package com.promoloader.core
 	import flash.desktop.NativeDragManager;
 	import flash.display.Bitmap;
 	import flash.display.DisplayObject;
-	import flash.display.DisplayObjectContainer;
 	import flash.display.LoaderInfo;
 	import flash.display.NativeMenuItem;
 	import flash.display.NativeWindow;
@@ -28,7 +28,6 @@ package com.promoloader.core
 	import flash.system.Capabilities;
 	import flash.system.LoaderContext;
 	import flash.utils.ByteArray;
-	import flash.utils.describeType;
 	
 	import axl.utils.LibraryLoader;
 	
@@ -38,10 +37,10 @@ package com.promoloader.core
 	{
 		
 		[Embed(source='../../../../../promo-rsl/promo/bin-debug/axl.swf', mimeType='application/octet-stream')]
-		public var AXL_LIBRARY:Class;
+		private var AXL_LIBRARY:Class;
 		
 		[Embed(source='../../../../assets/bg-logo.png', mimeType='image/png')]
-		public var bgImage:Class;
+		private var bgImage:Class;
 		
 		public static var classDict:Object = {};
 		//loading
@@ -51,12 +50,12 @@ package com.promoloader.core
 		private var currentUrl:String;
 		private var swfLoaderInfo:LoaderInfo;
 		private var overlap:String;
+		private var overlap2:String;
 		private var LOADABLEURL:URLRequest;
-		
-		//parsing
-		private var xmlPool:Array=[];
-		private var xconfig:XML;
-		private var configProcessor:ConfigProcessor;
+		private var xcontextParameters:Object;
+		private var context:LoaderContext;
+		private var delegatesLock:Boolean=true;
+		private var delegates:Vector.<Function>;
 		
 		//flags
 		public var clearLogEveryLoad:Boolean = true;
@@ -66,14 +65,22 @@ package com.promoloader.core
 		private var windowTimestamp:WindowTimestamp;
 		private var windowConsole:WindowConsole;
 		private var windowRecent:WindowRecent;
+		private var mainWindow:NativeWindow;
 		
 		//elements
 		private var bar:TopBar;
+		private var bg:Sprite;
 		private var bgLogo:Bitmap;
-		//private var liveAranger:xLiveAranger;
+		private var legacyController:LegacyController;
+		public var htmlContent:HtmlEmbeder;
+		
+		private var barDesiredHeight:Number = 22;
+		private var xbgColour:uint=0xeeeeee;
+		
 		
 		//tracking
-		private var xVERSION:String = '0.2.12';
+		private var xVERSION:String = '0.2.13';
+		private var tname:String = '[PromoLoader ' + xVERSION + ']';
 		private var trackingURL:String;
 		private var tracker:Tracking;
 		private var OBJECT:DisplayObject;
@@ -96,18 +103,8 @@ package com.promoloader.core
 		 * </ul>
 		 * */
 		public var domainType:int = -1;
-		private var context:LoaderContext;
-		private var tname:String;
-		private var barDesiredHeight:Number = 22;
-		private var xbgColour:uint=0xeeeeee;
-		private var bg:Sprite;
-		private var delegatesLock:Boolean=true;
-		private var delegates:Vector.<Function>;
-		private var mainWindow:NativeWindow;
-		private var legacyController:LegacyController;
-		public var htmlContent:HtmlEmbeder;
-		private var xcontextParameters:Object;
-		
+
+
 		public function PromoLoader()
 		{
 			delegates = new Vector.<Function>();
@@ -127,16 +124,9 @@ package com.promoloader.core
 		public function get contextParameters():Object { return xcontextParameters }
 		public function get VERSION():String { return xVERSION }
 
-		public function get bgColour():uint { return xbgColour; }
-		public function set bgColour(value:uint):void
-		{
-			xbgColour = value;
-			updateBg();
-		}
 
 		private function initApp():void
 		{
-			tname = '[PromoLoader ' + VERSION + ']';
 			classDict.U.fullScreen=false;
 			classDict.U.onResize = onResize;
 			classDict.U.init(this, 800,600,ready);
@@ -214,7 +204,7 @@ package com.promoloader.core
 			}
 			
 			bg.graphics.clear();
-			bg.graphics.beginFill(bgColour);
+			bg.graphics.beginFill(xbgColour);
 			bg.graphics.drawRect(0,0, this.stage.stageWidth, this.stage.stageHeight);
 		}
 		
@@ -224,29 +214,83 @@ package com.promoloader.core
 			windowConsole = new WindowConsole('console');
 			windowTimestamp = new WindowTimestamp('timestamp generator');
 			windowRecent = new WindowRecent('recently loaded');
-			windowRecent.addEventListener(Event.SELECT, recentSelectEvent);
+			windowRecent.addEventListener(Event.SELECT, onHistoryElementSelected);
 		}
 		
 		private function setupApp():void
 		{
 			openFile = new File();
-			openFile.addEventListener(Event.SELECT, fileSelected);
-			configProcessor = new ConfigProcessor(getConfigXML);
-			classDict.Ldr.addExternalProgressListener(somethingLoaded);
+			openFile.addEventListener(Event.SELECT, onFileSelected);
 			
 			tracker = new Tracking(trackingURL, VERSION);
 			
 			if(Capabilities.version.substr(0,3).toLowerCase() == "mac")
-				NativeApplication.nativeApplication.menu.addEventListener(Event.SELECT, niKeyMac);
-			NativeApplication.nativeApplication.addEventListener(KeyboardEvent.KEY_DOWN, niKey);
+				NativeApplication.nativeApplication.menu.addEventListener(Event.SELECT, onNativeKeyDownMac);
+			NativeApplication.nativeApplication.addEventListener(KeyboardEvent.KEY_DOWN, onNativeKeyDown);
 			NativeApplication.nativeApplication.addEventListener(InvokeEvent.INVOKE, onInvokeEvent);
 			NativeApplication.nativeApplication.addEventListener(Event.EXITING, exitingEvent);
 			
 			this.addEventListener(NativeDragEvent.NATIVE_DRAG_ENTER, onDragIn);
 			this.addEventListener(NativeDragEvent.NATIVE_DRAG_DROP, onDragDrop);
-			
 		}		
 		
+		private function buildBar():void
+		{
+			bar = new TopBar();
+			bar.dates.addEventListener(KeyboardEvent.KEY_UP, onTopBarKeyUp);
+			bar.tfCompVal.textField.addEventListener(KeyboardEvent.KEY_UP, onTopBarKeyUp);
+			bar.tfData.textField.addEventListener(KeyboardEvent.KEY_UP, onTopBarKeyUp);
+			bar.tfMember.textField.addEventListener(KeyboardEvent.KEY_UP, onTopBarKeyUp);
+			bar.btnLoad.addEventListener(ComponentEvent.BUTTON_DOWN, btnLoadDown);
+			bar.btnConsole.addEventListener(ComponentEvent.BUTTON_DOWN, btnConsoleDown);
+			bar.btnRecent.addEventListener(ComponentEvent.BUTTON_DOWN, btnRecentDown);
+			bar.btnReload.addEventListener(ComponentEvent.BUTTON_DOWN, btnReloadDown);
+		}
+		
+		private function btnConsoleDown(e:*=null):void { windowConsole.wappear() }
+		private function btnRecentDown(e:*=null):void { windowRecent.wappear() }
+		private function btnTimestampDown(e:*=null):void { windowTimestamp.wappear() }
+		private function btnReloadDown(e:*=null):void { loadContent() }
+		private function btnLoadDown(e:*=null):void { openFile.browseForOpen("select promo swf") }
+		
+		
+		//__________________________________________________________________  events handling
+		// NATIVE
+		protected function onNativeKeyDown(e:KeyboardEvent):void
+		{
+			if(e.ctrlKey || e.commandKey)
+			{
+				var keyp:String = String.fromCharCode(e.charCode).toLowerCase();
+				switch(keyp)
+				{
+					case 'v': pasteEventParse(); break;
+					case 'l': (bar.parent != null) ? bar.parent.removeChild(bar) : addChild(bar); break;
+					case 'r': btnReloadDown(); break;
+					case 't': btnTimestampDown() ; break;
+					case 'h': btnRecentDown() ; break;
+					case 'c': e.shiftKey ? btnConsoleDown() : null ; break;
+					default:
+						var n:Number = Number(keyp);
+						if(!isNaN(n))
+							windowRecent.selectListItemUrlAt(n-1);
+						break;
+				}
+			}
+		}
+		protected function onNativeKeyDownMac(e:Event):void
+		{
+			var menuItem:NativeMenuItem = e.target as NativeMenuItem; 
+			switch(menuItem.label.toLowerCase())
+			{
+				case "paste": pasteEventParse();break;
+			}
+		}
+		
+		protected function exitingEvent(e:Event):void
+		{
+			if(bar != null)
+				bar.exiting();
+		}
 		
 		protected function onDragDrop(e:NativeDragEvent):void
 		{
@@ -270,49 +314,6 @@ package com.promoloader.core
 			}
 		}
 		
-		private function buildBar():void
-		{
-			bar = new TopBar();
-			bar.dates.addEventListener(KeyboardEvent.KEY_UP, keyUp);
-			bar.tfCompVal.textField.addEventListener(KeyboardEvent.KEY_UP, keyUp);
-			bar.tfData.textField.addEventListener(KeyboardEvent.KEY_UP, keyUp);
-			bar.tfMember.textField.addEventListener(KeyboardEvent.KEY_UP, keyUp);
-			bar.btnLoad.addEventListener(ComponentEvent.BUTTON_DOWN, btnLoadDown);
-			bar.btnConsole.addEventListener(ComponentEvent.BUTTON_DOWN, btnConsoleDown);
-			bar.btnRecent.addEventListener(ComponentEvent.BUTTON_DOWN, btnRecentDown);
-			bar.btnReload.addEventListener(ComponentEvent.BUTTON_DOWN, btnReloadDown);
-		}
-		
-		private function btnConsoleDown(e:*=null):void { windowConsole.wappear() }
-		private function btnRecentDown(e:*=null):void { windowRecent.wappear() }
-		private function btnTimestampDown(e:*=null):void { windowTimestamp.wappear() }
-		private function btnReloadDown(e:*=null):void { loadContent() }
-		private function btnLoadDown(e:*=null):void { openFile.browseForOpen("select promo swf") }
-		
-		
-		//__________________________________________________________________  events handling
-		protected function fileSelected(e:Event):void
-		{
-			classDict.U.log("DIRECTORY", openFile ?  openFile.parent.url : null);
-			LOADABLEURL = new URLRequest(openFile.url); 
-			loadContent();
-		}
-		protected function asyncError(e:Event):void
-		{
-			classDict.U.msg("Async error occured: " + e.toString());
-			e.preventDefault();
-		}
-		
-		protected function keyUp(e:KeyboardEvent):void
-		{
-			if(e.charCode == 13)
-				btnReloadDown()
-		}
-		private function recentSelectEvent(e:Event):void
-		{
-			LOADABLEURL = new URLRequest(windowRecent.selectedURL); 
-			btnReloadDown();
-		}
 		protected function onInvokeEvent(e:InvokeEvent):void
 		{
 			try { 
@@ -321,7 +322,7 @@ package com.promoloader.core
 				if(mainWindow.closed)
 				{
 					var wop:NativeWindowInitOptions = new NativeWindowInitOptions();
-						wop.type = NativeWindowType.NORMAL;
+					wop.type = NativeWindowType.NORMAL;
 					mainWindow = new NativeWindow(wop);
 					mainWindow.stage.stageWidth = classDict.U.REC.width;
 					mainWindow.stage.stageHeight = classDict.U.REC.height;
@@ -354,46 +355,30 @@ package com.promoloader.core
 				btnReloadDown();
 			}
 		}
+		//------ Functional
+		protected function onFileSelected(e:Event):void
+		{
+			classDict.U.log("DIRECTORY", openFile ?  openFile.parent.url : null);
+			LOADABLEURL = new URLRequest(openFile.url); 
+			loadContent();
+		}
 		
-		protected function niKey(e:KeyboardEvent):void
+		protected function onTopBarKeyUp(e:KeyboardEvent):void
 		{
-			if(e.ctrlKey || e.commandKey)
-			{
-				var keyp:String = String.fromCharCode(e.charCode).toLowerCase();
-				switch(keyp)
-				{
-					case 'v': pasteEventParse(); break;
-					case 's': configProcessor.saveConfig(e.shiftKey); break;
-					case 'l': (bar.parent != null) ? bar.parent.removeChild(bar) : addChild(bar); break;
-					case 'r': btnReloadDown(); break;
-					case 't': btnTimestampDown() ; break;
-					case 'h': btnRecentDown() ; break;
-					case 'c': e.shiftKey ? btnConsoleDown() : null ; break;
-					default:
-						var n:Number = Number(keyp);
-						if(!isNaN(n))
-							windowRecent.selectListItemUrlAt(n-1);
-						break;
-				}
-			}
+			if(e.charCode == 13)
+				btnReloadDown()
 		}
-		protected function niKeyMac(e:Event):void
+		private function onHistoryElementSelected(e:Event):void
 		{
-			var menuItem:NativeMenuItem = e.target as NativeMenuItem; 
-			switch(menuItem.label.toLowerCase())
-			{
-				case "paste": pasteEventParse();break;
-			}
+			LOADABLEURL = new URLRequest(windowRecent.selectedURL); 
+			btnReloadDown();
 		}
-		protected function syncEventReceived(e:Event):void
+		protected function asyncError(e:Event):void
 		{
-			classDict.U.log(classDict.U.bin.structureToString(e));
+			classDict.U.msg("Async error occured: " + e.toString());
+			e.preventDefault();
 		}
-		protected function exitingEvent(e:Event):void
-		{
-			if(bar != null)
-				bar.exiting();
-		}
+		
 		
 		// __________________________________________________________________ LOADING AND PARSING
 		protected function loadContent():void
@@ -403,38 +388,16 @@ package com.promoloader.core
 				classDict.U.msg("Nothing to load?");
 				return;
 			}
-			if(OBJECT && OBJECT.parent)
-				OBJECT.parent.removeChild(OBJECT);
-			OBJECT= null;
-			if(this.clearLogEveryLoad && classDict. U.bin != null)
-				classDict.U.bin.clear();
-			legacyController.onSwfUnload()
-			var ts:Number = bar.dates.timestampSec;
-			classDict.Ldr.unloadAll();
-			if(context && context.applicationDomain)
-			{ 
-				try { context.applicationDomain.domainMemory.clear() } catch(e:*) {}
-			}
-			if(htmlContent)
-			{
-				htmlContent.unload();
-			}
-			classDict.Ldr.defaultPathPrefixes = [];
-			xcontextParameters = {};
-			classDict.Ldr.defaultPathPrefixes = [];
-			classDict.U.bin.parser.changeContext(this);
-			context =new LoaderContext(classDict.Ldr.policyFileCheck);
-			if(bar.tfMember.text.match(/^\d+$/g).length > 0)
-				contextParameters.memberId = bar.tfMember.text;
-			if(bar.tfCompVal.text.match(/^\d+$/g).length > 0)
-				contextParameters.fakeComp = bar.tfCompVal.text;
-			contextParameters.fakeTimestamp = String(ts);
-			if(bar.tfData.text != 'dataParameter' && bar.tfData.text.length > 1)
-				contextParameters.dataParameter = bar.tfData.text;
-			contextParameters.fileName = classDict.U.fileNameFromUrl(LOADABLEURL.url,true);
-			contextParameters.loadedURL =LOADABLEURL.url;
-			contextParameters.allowscriptaccess = "always";
-			context.parameters = contextParameters;
+			unloadAndReset();
+			setupContext();
+			setupDomain();
+			classDict.U.log(tname," LOADING WITH PARAMETERS:", classDict. U.bin.structureToString(context.parameters));
+			classDict.Ldr.load(LOADABLEURL.url,null,swfLoaded,null,{},classDict.Ldr.behaviours.loadOverwrite,classDict.Ldr.defaultValue,classDict.Ldr.defaultValue,0,context);
+			//this.loadWithHTMLBridge();
+		}
+		
+		private function setupDomain():void
+		{
 			if(domainType < 0)
 			{
 				context.applicationDomain = new ApplicationDomain(ApplicationDomain.currentDomain);
@@ -450,36 +413,57 @@ package com.promoloader.core
 				context.applicationDomain = ApplicationDomain.currentDomain;
 				classDict.U.log(tname," LOADING TO CURRENT APPLICATION DOMAIN (all shared, conflicts may occur)")
 			}
-			classDict.U.log(tname," LOADING WITH PARAMETERS:", classDict. U.bin.structureToString(context.parameters));
-			classDict.Ldr.load(LOADABLEURL.url,null,swfLoaded,null,{},classDict.Ldr.behaviours.loadOverwrite,classDict.Ldr.defaultValue,classDict.Ldr.defaultValue,0,context);
-			//xmlPool = [];
-			//this.loadWithHTMLBridge();
+		}
+		
+		private function setupContext():void
+		{
+			context =new LoaderContext(classDict.Ldr.policyFileCheck);
+			if(bar.tfMember.text.match(/^\d+$/g).length > 0)
+				contextParameters.memberId = bar.tfMember.text;
+			if(bar.tfCompVal.text.match(/^\d+$/g).length > 0)
+				contextParameters.fakeComp = bar.tfCompVal.text;
+			contextParameters.fakeTimestamp = String(bar.dates.timestampSec);
+			if(bar.tfData.text != 'dataParameter' && bar.tfData.text.length > 1)
+				contextParameters.dataParameter = bar.tfData.text;
+			contextParameters.fileName = classDict.U.fileNameFromUrl(LOADABLEURL.url,true);
+			contextParameters.loadedURL =LOADABLEURL.url;
+			contextParameters.allowscriptaccess = "always";
+			context.parameters = contextParameters;
+		}
+		
+		private function unloadAndReset():void
+		{
+			if(OBJECT && OBJECT.parent)
+				OBJECT.parent.removeChild(OBJECT);
+			OBJECT= null;
+			if(this.clearLogEveryLoad && classDict. U.bin != null)
+				classDict.U.bin.clear();
+			legacyController.onSwfUnload()
+			classDict.Ldr.unloadAll();
+			if(context && context.applicationDomain)
+			{ 
+				try { context.applicationDomain.domainMemory.clear() } catch(e:*) {}
+			}
+			if(htmlContent)
+			{
+				htmlContent.unload();
+			}
+			classDict.Ldr.defaultPathPrefixes = [];
+			xcontextParameters = {};
+			classDict.U.bin.parser.changeContext(this);
 		}
 		
 		private function swfLoaded(v:String):void
 		{
 			classDict.U.log('swf loaded', v);
-			configProcessor.saveFile = null;
 			swfLoaderInfo = classDict.Ldr.loaderInfos[v];
-		
-			//overlap = f.parent.resolvePath('..');
-			overlap = LOADABLEURL.url;
-			var i:int = overlap.lastIndexOf('/');
-			var j:int = overlap.lastIndexOf("\\");
-			i = (i > j ? i : j);
-			overlap = overlap.substring(0,i);
-			i = overlap.lastIndexOf('/');
-			j = overlap.lastIndexOf("\\");
-			i = (i > j ? i : j);
-			var overlap2:String = overlap.substring(0,i);
-			classDict.U.log(tname,'resolved dir overlap:\n#1:', overlap,'\n#2:', overlap2);
 			
+			resolveDirOverlap();
 			if(swfLoaderInfo != null)
 			{
 				if(legacyController)
 					legacyController.onSwfLoaded(swfLoaderInfo, overlap, overlap2)
 			}
-			
 			
 			var u:* = classDict.Ldr.getAny(v);
 			var o:DisplayObject = u as DisplayObject;
@@ -534,6 +518,21 @@ package com.promoloader.core
 				OBJECT.y = barDesiredHeight;
 				this.addChildAt(o,bg && bg.parent ? 1 : 0);
 			}
+		}
+		
+		private function resolveDirOverlap():void
+		{
+			overlap = LOADABLEURL.url;
+			var i:int = overlap.lastIndexOf('/');
+			var j:int = overlap.lastIndexOf("\\");
+			i = (i > j ? i : j);
+			overlap = overlap.substring(0,i);
+			i = overlap.lastIndexOf('/');
+			j = overlap.lastIndexOf("\\");
+			i = (i > j ? i : j);
+			overlap2 = overlap.substring(0,i);
+			classDict.U.log(tname,'resolved dir overlap:\n#1:', overlap,'\n#2:', overlap2);
+			
 		}
 		
 		private function loadWithHTMLBridge():void
@@ -603,34 +602,6 @@ package com.promoloader.core
 			} 
 		}
 		
-		private function getConfigXML():XML { return xconfig }
-		private function somethingLoaded():void
-		{
-			var xmls:Vector.<String> = classDict.Ldr.getNames(/\.xml/);
-			for(var i:int = 0; i < xmls.length; i++)
-			{
-				var xn:String = xmls[i];
-				var j:int = xmlPool.indexOf(xn);
-				if(j < 0) // if its new
-				{
-					xmlPool.push(xn);
-					var pt:XML = classDict.Ldr.getXML(xn);
-					if(pt is XML && pt.hasOwnProperty('root') && pt.hasOwnProperty('additions'))
-					{
-						classDict.U.log(this, "NEW CONFIG DETECTED");
-						xconfig = pt;
-						break;
-					}
-				}
-			}
-		}
-		
-		// __________________________________________________________________ helpers
-		public static function addGrouop(where:DisplayObjectContainer, ...args):void
-		{
-			while(args.length)
-				where.addChild(args.shift());
-		}
 		private function arangeBar():void
 		{
 			if(bar != null && bar.parent != null)

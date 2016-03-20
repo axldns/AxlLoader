@@ -1,4 +1,4 @@
-package com.promoloader.core
+package com.promoloader.htmlBridge
 {
 	import flash.events.Event;
 	import flash.filesystem.File;
@@ -6,6 +6,7 @@ package com.promoloader.core
 	import flash.filesystem.FileStream;
 	import flash.html.HTMLLoader;
 	import flash.utils.describeType;
+	import com.promoloader.core.PromoLoader;
 
 	public class HtmlEmbeder
 	{

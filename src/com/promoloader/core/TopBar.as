@@ -83,9 +83,20 @@ package com.promoloader.core
 			tfCompVal.addEventListener(MouseEvent.CLICK, fin);
 			this.addEventListener(FocusEvent.FOCUS_OUT, fout);
 			
-			PromoLoader.addGrouop(this, btnLoad,btnRecent,tfMember,btnConsole,tfCompVal,dates,cboxAutoSize,tfData,btnReload);
+			PromoLoader.classDict.U.addChildGroup(this, btnLoad,btnRecent,tfMember,btnConsole,tfCompVal,dates,cboxAutoSize,tfData,btnReload);
 		}
 		
+		protected function set xcboxAutoSizeMode(v:String):void { 
+			for(var i:int = scaleModes.length;i-->0;)
+				if(scaleModes[i].label ==v)
+					xcboxAutoSize.selectedIndex = i;
+		}
+		
+		// --------------------- EVENTS --------------------- //
+		private function fout(e:FocusEvent):void {  dates.timestampSec }
+		private function fin(e:MouseEvent):void {	e.target.setSelection(0, e.target.text.length) }
+		protected function ats(event:Event):void { 	arangeBar()	}
+
 		protected function tfMemberWheelEvent(e:MouseEvent):void
 		{
 			var n:Number = Number(tfMember.text);
@@ -94,17 +105,8 @@ package com.promoloader.core
 			else
 				tfMember.text = '1';
 		}
-		public function set xcboxAutoSizeMode(v:String):void { 
-			for(var i:int = scaleModes.length;i-->0;)
-				if(scaleModes[i].label ==v)
-					xcboxAutoSize.selectedIndex = i;
-		}
 		
-		protected function ats(event:Event):void { 	arangeBar()	}
-		private function fout(e:FocusEvent):void {  dates.timestampSec }
-		private function fin(e:MouseEvent):void {	e.target.setSelection(0, e.target.text.length) }
-
-		
+		// --------------------- public api --------------------- //
 		public function arangeBar():void
 		{
 			if(btnReload == null)
@@ -116,50 +118,23 @@ package com.promoloader.core
 			cboxAutoSize.x = btnReload.x - cboxAutoSize.width;
 		}
 
-		public function get tfMember():TextInput
-		{
-			return xtfMember;
-		}
+		public function get tfMember():TextInput { return xtfMember }
 
-		public function get tfCompVal():TextInput
-		{
-			return xtfCompVal;
-		}
+		public function get tfCompVal():TextInput { return xtfCompVal }
 
-		public function get btnConsole():Button
-		{
-			return xbtnConsole;
-		}
+		public function get btnConsole():Button { return xbtnConsole }
 
-		public function get btnRecent():Button
-		{
-			return xbtnRecent;
-		}
+		public function get btnRecent():Button { return xbtnRecent }
 
-		public function get btnReload():Button
-		{
-			return xbtnReload;
-		}
+		public function get btnReload():Button { return xbtnReload }
 
-		public function get btnLoad():Button
-		{
-			return xbtnLoad;
-		}
+		public function get btnLoad():Button { return xbtnLoad }
 
-		public function get dates():DateComponent
-		{
-			return xdates;
-		}
+		public function get dates():DateComponent {	return xdates }
 
-		public function get tfData():TextInput
-		{
-			return xtfData;
-		}
+		public function get tfData():TextInput { return xtfData }
 
-		public function get cboxAutoSize():ComboBox
-		{
-			return xcboxAutoSize;
-		}
+		public function get cboxAutoSize():ComboBox	{ return xcboxAutoSize }
 
 		public function exiting():void
 		{

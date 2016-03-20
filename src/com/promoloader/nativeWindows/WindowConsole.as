@@ -32,6 +32,7 @@ package com.promoloader.nativeWindows
 			{
 				bi.allowKeyboardOpen = false;
 				bi.allowGestureOpen = false;
+				bi.autoResize = false;
 				window.stage.addChild(PromoLoader.classDict.BinAgent.instance);
 			}
 		}
