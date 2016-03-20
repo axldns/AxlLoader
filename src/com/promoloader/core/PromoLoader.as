@@ -21,6 +21,7 @@ package com.promoloader.core
 	import flash.events.InvokeEvent;
 	import flash.events.KeyboardEvent;
 	import flash.events.NativeDragEvent;
+	import flash.events.UncaughtErrorEvent;
 	import flash.filesystem.File;
 	import flash.geom.Rectangle;
 	import flash.net.URLRequest;
@@ -43,6 +44,7 @@ package com.promoloader.core
 		private var bgImage:Class;
 		
 		public static var classDict:Object = {};
+		private static var xinstance:PromoLoader;
 		//loading
 		private var openFile:File;
 		private var clickFile:File;
@@ -107,6 +109,7 @@ package com.promoloader.core
 
 		public function PromoLoader()
 		{
+			xinstance = this;
 			delegates = new Vector.<Function>();
 			legacyController = new LegacyController();
 			var lloader:LibraryLoader = new LibraryLoader(this);
@@ -137,6 +140,7 @@ package com.promoloader.core
 			buildWindows();
 			this.addChild(bar);
 			delegatesEmpty();
+			Updater.updateFunction();
 		}
 		
 		private function ready():void
@@ -153,7 +157,7 @@ package com.promoloader.core
 		
 		public function onVersionUpdate(oldVersion:String):void
 		{
-			delegate(function():void {classDict.U.msg("Your PromoLoader has been updated to: "+ VERSION ) });
+			delegate(Updater.updateFunction);
 		}
 		
 		private function delegate(func:Function):void
@@ -427,7 +431,6 @@ package com.promoloader.core
 				contextParameters.dataParameter = bar.tfData.text;
 			contextParameters.fileName = classDict.U.fileNameFromUrl(LOADABLEURL.url,true);
 			contextParameters.loadedURL =LOADABLEURL.url;
-			contextParameters.allowscriptaccess = "always";
 			context.parameters = contextParameters;
 		}
 		
@@ -440,6 +443,8 @@ package com.promoloader.core
 				classDict.U.bin.clear();
 			legacyController.onSwfUnload()
 			classDict.Ldr.unloadAll();
+			if(swfLoaderInfo)
+				swfLoaderInfo.uncaughtErrorEvents.removeEventListener(UncaughtErrorEvent.UNCAUGHT_ERROR, onLoaderError);
 			if(context && context.applicationDomain)
 			{ 
 				try { context.applicationDomain.domainMemory.clear() } catch(e:*) {}
@@ -453,17 +458,49 @@ package com.promoloader.core
 			classDict.U.bin.parser.changeContext(this);
 		}
 		
+		private function onLoaderError(e:UncaughtErrorEvent=null):void{
+			var err:Error = e.error;
+			log('onLoaderError',e, e.errorID, err.errorID);
+			if(e && e.error && e.error is Error && e.error.errorID == 2067)
+			{
+				insde();
+			}
+			else
+			{
+				classDict.U.msg("Problems with loaded content.<br>" +
+					"<ul><li>Click on this bar to try alternative loader</li>" +
+					"<li>Click outside to stay where you are </li><ul>", trace, insde);
+			}
+			
+			function insde():void{
+				log("SWITCHING TO HTMLLOADER");
+				legacyController.onSwfUnload()
+				classDict.Ldr.unloadAll();
+				if(OBJECT && OBJECT.parent)
+					OBJECT.parent.removeChild(OBJECT);
+				OBJECT= null;
+				classDict.Ldr.defaultPathPrefixes = [];
+				classDict.U.bin.parser.changeContext(this);
+				if(swfLoaderInfo)
+					swfLoaderInfo.uncaughtErrorEvents.removeEventListener(UncaughtErrorEvent.UNCAUGHT_ERROR, onLoaderError);
+				loadWithHTMLBridge();
+			}
+		}
+		
 		private function swfLoaded(v:String):void
 		{
-			classDict.U.log('swf loaded', v);
+			log('swf loaded', v, classDict.Ldr.getAny(v));
 			swfLoaderInfo = classDict.Ldr.loaderInfos[v];
-			
-			resolveDirOverlap();
 			if(swfLoaderInfo != null)
 			{
+				log("attaching uncaught");
+				swfLoaderInfo.uncaughtErrorEvents.addEventListener(UncaughtErrorEvent.UNCAUGHT_ERROR, onLoaderError);
 				if(legacyController)
 					legacyController.onSwfLoaded(swfLoaderInfo, overlap, overlap2)
 			}
+			else
+				log("SWFLOADERINFO UNAVAILAVBLE");
+			resolveDirOverlap();
 			
 			var u:* = classDict.Ldr.getAny(v);
 			var o:DisplayObject = u as DisplayObject;
@@ -607,5 +644,10 @@ package com.promoloader.core
 			if(bar != null && bar.parent != null)
 				bar.arangeBar();
 		}
+		private function log(...args):void
+		{
+			classDict.U.log.apply(null,args);
+		}
+		public static function get instance():PromoLoader { return xinstance }
 	}
 }
