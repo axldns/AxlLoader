@@ -1,11 +1,14 @@
-package
+package com.promoloader.htmlBridge
 {
+	
+	import flash.display.Loader;
 	import flash.display.LoaderInfo;
 	import flash.display.Sprite;
 	import flash.external.ExternalInterface;
 	import flash.text.TextField;
 	import flash.utils.clearInterval;
 	import flash.utils.clearTimeout;
+	import flash.utils.setInterval;
 	import flash.utils.setTimeout;
 	
 	import axl.ui.controllers.BoundBox;
@@ -14,7 +17,6 @@ package
 	import axl.utils.NetworkSettings;
 	import axl.utils.U;
 	import axl.utils.binAgent.BinAgent;
-	import flash.display.Loader;
 	
 	public class Bridge extends Sprite
 	{
@@ -115,7 +117,7 @@ package
 		}
 		// ---------------------------------------- SWF LOADING ---------------------------- //
 		
-	
+		
 		
 		private function setupLoader(url:String,params:Object):void
 		{
