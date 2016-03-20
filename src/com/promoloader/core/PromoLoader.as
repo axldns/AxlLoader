@@ -1,5 +1,9 @@
 package com.promoloader.core
 {
+	import com.promoloader.nativeWindows.WindowConsole;
+	import com.promoloader.nativeWindows.WindowRecent;
+	import com.promoloader.nativeWindows.WindowTimestamp;
+	
 	import flash.desktop.Clipboard;
 	import flash.desktop.ClipboardFormats;
 	import flash.desktop.NativeApplication;
@@ -23,14 +27,12 @@ package com.promoloader.core
 	import flash.system.ApplicationDomain;
 	import flash.system.Capabilities;
 	import flash.system.LoaderContext;
+	import flash.utils.ByteArray;
+	import flash.utils.describeType;
 	
 	import axl.utils.LibraryLoader;
 	
 	import fl.events.ComponentEvent;
-	
-	import com.promoloader.nativeWindows.WindowConsole;
-	import com.promoloader.nativeWindows.WindowRecent;
-	import com.promoloader.nativeWindows.WindowTimestamp;
 	
 	public class PromoLoader extends Sprite
 	{
@@ -431,7 +433,7 @@ package com.promoloader.core
 				contextParameters.dataParameter = bar.tfData.text;
 			contextParameters.fileName = classDict.U.fileNameFromUrl(LOADABLEURL.url,true);
 			contextParameters.loadedURL =LOADABLEURL.url;
-			contextParameters.allowscriptaccess = "true";
+			contextParameters.allowscriptaccess = "always";
 			context.parameters = contextParameters;
 			if(domainType < 0)
 			{
@@ -483,12 +485,16 @@ package com.promoloader.core
 			var o:DisplayObject = u as DisplayObject;
 			if(o == null)
 			{
-				classDict.U.msg("Loaded content is not displayable",u);
+				
 				classDict.Ldr.unload(v);
 				tracker.track_event('fail',LOADABLEURL.url);
-				windowRecent.removeRowContaining(LOADABLEURL.url);
-				loadWithHTMLBridge();
-				
+				if(u is ByteArray)
+				{
+					classDict.U.msg("Loaded content is not displayable");
+					windowRecent.removeRowContaining(LOADABLEURL.url);
+				}
+				else
+					loadWithHTMLBridge();
 				return;
 			}
 			
