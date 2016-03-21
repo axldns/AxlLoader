@@ -140,7 +140,7 @@ package com.promoloader.core
 			buildWindows();
 			this.addChild(bar);
 			delegatesEmpty();
-			Updater.updateFunction();
+			//Updater.updateFunction();
 		}
 		
 		private function ready():void
@@ -206,7 +206,6 @@ package com.promoloader.core
 					bg.addChild(bgLogo)
 				}
 			}
-			
 			bg.graphics.clear();
 			bg.graphics.beginFill(xbgColour);
 			bg.graphics.drawRect(0,0, this.stage.stageWidth, this.stage.stageHeight);
