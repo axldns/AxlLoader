@@ -1,6 +1,5 @@
 package com.promoloader.htmlBridge
 {
-	
 	import flash.display.Loader;
 	import flash.display.LoaderInfo;
 	import flash.display.Sprite;
@@ -111,7 +110,7 @@ package com.promoloader.htmlBridge
 				s += (args[i] != null ? args[i].toString() : 'null');
 			if(ExternalInterface.available)
 			{
-				ExternalInterface.call('promoloaderAPI.message', s);
+				ExternalInterface.call('api_promoloader.message', s);
 			}
 		}
 		
@@ -208,3 +207,4 @@ package com.promoloader.htmlBridge
 		}
 	}
 }
+

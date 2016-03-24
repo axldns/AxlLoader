@@ -1,8 +1,8 @@
 package com.promoloader.htmlBridge
 {
 	import com.promoloader.core.PromoLoader;
-	
 	import flash.events.Event;
+	import flash.events.HTMLUncaughtScriptExceptionEvent;
 	import flash.filesystem.File;
 	import flash.filesystem.FileMode;
 	import flash.filesystem.FileStream;
@@ -11,9 +11,12 @@ package com.promoloader.htmlBridge
 
 	public class HtmlEmbeder
 	{
+		private var tname:String = '[HTMLLoader'+version+']';
+		public const version:String='0.1'
+			
 		private var hloader:HTMLLoader;
 		private var template:String;
-		private var cururl:String;
+		private var requestedAssetToEmbedURL:String;
 		private var artefactsAddress:String = "http://axldns.com/test/";
 		private var htmlFileName:String = 'htmlTemplate.html';
 		private var bridgeFileName:String = 'Bridge.swf';
@@ -28,29 +31,76 @@ package com.promoloader.htmlBridge
 		public function HtmlEmbeder(instance:PromoLoader)
 		{
 			pl = instance;
-			hloader = new HTMLLoader();
-			hloader.placeLoadStringContentInApplicationSandbox = true;
-			hloader.addEventListener(Event.COMPLETE, onHtmlComplete);
-			api.getParam = getParamApi;
-			api.setDimensions = setDimensions;
-			api.message = onIncommingMessage;
-			api.log = log;
+			setupAPI();
+			setupHTMLLoader();
 		}
 		
-		private function onIncommingMessage(...args):void
+		private function setupAPI():void
 		{
-			log2("[PromoLoader][html][api][message]:", args);
+			log2(tname,"setupAPI");
+			api.getParam = api_getParam;
+			api.message = api_message;
+			api.log = api_log;
+			api.reload = api_reload;
+		}
+		
+		private function setupHTMLLoader():void
+		{
+			log2(tname,"setupHTMLLoader");
+			hloader = new HTMLLoader();
+			hloader.placeLoadStringContentInApplicationSandbox = true;
+			hloader.useCache = false;
+			hloader.addEventListener(Event.COMPLETE, onHtmlComplete);
+			hloader.addEventListener(Event.HTML_BOUNDS_CHANGE, onHtmlBoundsChange);
+			hloader.addEventListener(Event.HTML_DOM_INITIALIZE, onHTMLDOMInitialize);
+			hloader.addEventListener(HTMLUncaughtScriptExceptionEvent.UNCAUGHT_SCRIPT_EXCEPTION, onJSException);
+		}
+		
+		
+		protected function onHtmlComplete(e:Event):void
+		{
+			log2(tname,"onHtmlComplete",e);
+			
+			hloader.window.api_promoloader = api; 
+			
+			this.hloader.width = this.hloader.contentWidth;
+			this.hloader.height = this.hloader.contentHeight;
+			hloader.window.console = {log : api_log};
+			//hloader.window.loadBridge(JSON.stringify(pl.contextParameters));
+		}
+		
+		protected function onHTMLDOMInitialize(e:Event):void
+		{
+			log2(tname,"onHTMLDOMInitialize",e);
+		}
+		
+		protected function onHtmlBoundsChange(e:Event):void
+		{
+			log2(tname,"onHtmlBoundsChange",e, hloader.contentWidth, 'x', hloader.contentHeight);
+			this.hloader.width = this.hloader.contentWidth;
+			this.hloader.height = this.hloader.contentHeight;
+		}
+		
+		protected function onJSException(e:HTMLUncaughtScriptExceptionEvent):void
+		{
+			log2(tname,"onJSException", e, e.exceptionValue, PromoLoader.classDict.U.bin.structureToString(e.stackTrace));
+		}
+		
+		private function api_message(...args):void
+		{
+			log2(tname,"[API][message]:", args);
 			var type:String = args.shift();
 			switch(type)
 			{
 				case "[Bridge][ready]":
 					if('loadswf' in hloader.window || hloader.window.hasOwnProperty('loadswf'))
 					{
-						hloader.window.loadswf(cururl,JSON.stringify(pl.contextParameters));
+						log2(".window.loadswf");
+						hloader.window.loadswf(requestedAssetToEmbedURL,JSON.stringify(pl.contextParameters));
 					}
 					else
 					{
-						log("loadswf is not a function?");
+						log2("loadswf is not a function?");
 					}
 					break;
 				case "[Bridge][dimensions]":
@@ -60,51 +110,32 @@ package com.promoloader.htmlBridge
 			}
 		}
 		
-		private function getParamApi(p:String):Object
+		private function api_getParam(p:String):Object
 		{
+			log2(tname,"[api_getParam]", p);
 			var f:Object = pl.contextParameters[p];
-			log2("GET PARAM IN AS3",p, 'found in context as', p);
 			return f;
 		}
 		
-		private function as3Reload():void
+		private function api_reload():void
 		{
-			log2("RELOAD FROM JS");
-			PromoLoader.classDict.Ldr.unload(htmlFileName);
-			load(cururl);
+			log2(tname,"[api_reload]");
+			hloader.reload();
+			
 		}
-		private function log(...args):void
+		private function api_log(...args):void
 		{
-			log2("[PromoLoader][html-LOG]:", args);
+			log2(tname,"[api_log]:", args);
 		}
+		
 		private function log2(...args):void
 		{
 			PromoLoader.classDict.U.log.apply(null, args)
 		}
 		
-		
-		private function setDimensions(w:Number, h:Number):void
-		{
-		}
-
-		protected function onHtmlComplete(e:Event):void
-		{
-			template = template.replace(/data=".+"/, 'data="'+cururl+'"');
-			log2("htmltemplated");
-			
-			hloader.window.promoloaderAPI = api; 
-			hloader.window.as3Reload = as3Reload;
-			
-			log2(e);
-			this.hloader.width = this.hloader.contentWidth;
-			this.hloader.height = this.hloader.contentHeight;
-		}
-		
-		public function get htmlloader():HTMLLoader {return hloader }
-		
 		public function load(url:String):void
 		{
-			cururl = url;
+			requestedAssetToEmbedURL = url;
 			PromoLoader.classDict.Ldr.load();
 			//var cbs:String = '?cb=' + String(new Date().time);
 			
@@ -149,5 +180,7 @@ package com.promoloader.htmlBridge
 			if(hloader.parent)
 				hloader.parent.removeChild(hloader);
 		}
+		
+		public function get htmlloader():HTMLLoader {return hloader }
 	}
 }
