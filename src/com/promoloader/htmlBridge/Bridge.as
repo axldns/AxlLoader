@@ -1,14 +1,13 @@
 package com.promoloader.htmlBridge
 {
+	
 	import flash.display.Loader;
 	import flash.display.LoaderInfo;
 	import flash.display.Sprite;
 	import flash.external.ExternalInterface;
 	import flash.text.TextField;
 	import flash.utils.clearInterval;
-	import flash.utils.clearTimeout;
 	import flash.utils.setInterval;
-	import flash.utils.setTimeout;
 	
 	import axl.ui.controllers.BoundBox;
 	import axl.utils.LibraryLoader;
@@ -19,7 +18,7 @@ package com.promoloader.htmlBridge
 	
 	public class Bridge extends Sprite
 	{
-		public static const version:String = '0.10';
+		public static const version:String = '0.11';
 		private var tname:String = '[Bridge ' + version +']';
 		private var t:TextField;
 		private var swfLoaderInfo:LoaderInfo;
@@ -58,24 +57,23 @@ package com.promoloader.htmlBridge
 			//api
 			if(ExternalInterface.available)
 			{
-				
-				U.log(tname, "Setting bridgeAPI");
+				U.bin.externalTrace = logToConsole;
 				ExternalInterface.addCallback('bridgeAPI', onIncomingMessage);
 				ExternalInterface.call("init");
-				ExternalInterface.marshallExceptions = true;
-				U.bin.externalTrace = function(s:String):void { 
-					if(ExternalInterface.available)
-					{
-						ExternalInterface.call("console.log", s);
-					}
-				}
 			}
 			else
 			{
 				U.log(tname, "ExternalInterface not available");
 			}
-			
-			
+		}
+		
+		private function logToConsole(v:String):void
+		{
+			try { ExternalInterface.call("console.log", v); }
+			catch(e:*)
+			{
+				
+			}
 		}
 		private function onBridgeReady():void
 		{
@@ -207,4 +205,3 @@ package com.promoloader.htmlBridge
 		}
 	}
 }
-

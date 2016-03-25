@@ -42,6 +42,7 @@ package com.promoloader.htmlBridge
 			api.message = api_message;
 			api.log = api_log;
 			api.reload = api_reload;
+			
 		}
 		
 		private function setupHTMLLoader():void
@@ -61,17 +62,18 @@ package com.promoloader.htmlBridge
 		{
 			log2(tname,"onHtmlComplete",e);
 			
-			hloader.window.api_promoloader = api; 
 			
 			this.hloader.width = this.hloader.contentWidth;
 			this.hloader.height = this.hloader.contentHeight;
 			hloader.window.console = {log : api_log};
+			hloader.window.getParam = api_getParam;
 			//hloader.window.loadBridge(JSON.stringify(pl.contextParameters));
 		}
 		
 		protected function onHTMLDOMInitialize(e:Event):void
 		{
 			log2(tname,"onHTMLDOMInitialize",e);
+			hloader.window.api_promoloader = api; 
 		}
 		
 		protected function onHtmlBoundsChange(e:Event):void
@@ -120,7 +122,8 @@ package com.promoloader.htmlBridge
 		private function api_reload():void
 		{
 			log2(tname,"[api_reload]");
-			hloader.reload();
+			load(requestedAssetToEmbedURL);
+			//hloader.reload();
 			
 		}
 		private function api_log(...args):void
@@ -137,8 +140,6 @@ package com.promoloader.htmlBridge
 		{
 			requestedAssetToEmbedURL = url;
 			PromoLoader.classDict.Ldr.load();
-			//var cbs:String = '?cb=' + String(new Date().time);
-			
 			
 			var f:File = File.applicationStorageDirectory.resolvePath(htmlFileName);
 			var f2:File = File.applicationStorageDirectory.resolvePath(bridgeFileName);
@@ -158,9 +159,7 @@ package com.promoloader.htmlBridge
 				try {
 					fs.open(f, FileMode.READ);
 					template = fs.readUTFBytes(fs.bytesAvailable);
-					log2("template file read", template.length);
-					//template = template.replace(/data=".+"/, 'data="'+f2.nativePath+'"');
-					//log2("now template:\n", template);
+					log2("template file read", f.nativePath);
 					hloader.loadString(template); 
 				}
 				catch(e:Object) {
