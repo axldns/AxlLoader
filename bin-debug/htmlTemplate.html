@@ -51,11 +51,11 @@
           bridgeContent = document.getElementById("bridge-content");
           flashParent = bridgeContent.parentNode;
 
-         if(this['promoloaderAPI'])
+         if(this['api_promoloader'])
           {
-            promoloaderAPI.log("INIT");
+            api_promoloader.log("INIT");
             console = {};
-            console.log = promoloaderAPI.log;
+            console.log = api_promoloader.log;
           }
           else
           {
@@ -72,16 +72,58 @@
             console.log("converting parameters to string");
             stringifiedContextParameters = JSON.stringify(stringifiedContextParameters);
           }
-           bridge.bridgeAPI("bridge_load", swfurl,stringifiedContextParameters);
+          bridge.api_bridge("bridge_load", swfurl,stringifiedContextParameters);
+        }
+
+        function resize(w,h)
+        {
+        	if(swfnobridge)
+        	{
+        		document.getElementById('swfnobridge').setAttribute("width",w);
+        		document.getElementById('swfnobridge').setAttribute("height",h);
+        	}
+        	else
+        	{
+        		document.getElementById('bridge').setAttribute("width",w);
+        		document.getElementById('bridge').setAttribute("height",h);
+        	}
+        }
+
+        function resizeToBridgeLoaderInfo(w,h)
+        {
+        	if(swfnobridge)
+        	{
+        		document.getElementById('swfnobridge').setAttribute("width",w);
+        		document.getElementById('swfnobridge').setAttribute("height",h);
+        	}
+        	else
+        	{
+        		document.getElementById('bridge').setAttribute("width",w);
+        		document.getElementById('bridge').setAttribute("height",h);
+        	}
+        }
+
+        function promoloaderResize(w,h)
+        {
+        	if(swfnobridge)
+        	{
+        		document.getElementById('swfnobridge').setAttribute("width",w);
+        		document.getElementById('swfnobridge').setAttribute("height",h);
+        	}
+        	else if(bridge)
+        	{
+        		bridge.api_bridge("resize", w,h -document.getElementById('buttons').offsetHeight);
+        	}
         }
 
          // FROM BRIDGE TO JS
         function bridgeCantTakeIt(url,params)
         {
-            console.log("bridgeCantTakeIt");
-            addAttribute(document.getElementById('btn-console'), 'disabled', 'true');
+            console.log("bridgeCantTakeIt2");
+            document.getElementById('btn-console').setAttribute('disabled', 'true');
             // create new 
             swfnobridge = createSwfNoBridge(url,params);
+
             //REPLACE
             flashParent.replaceChild(swfnobridge,bridgeContent);
         }
@@ -94,7 +136,7 @@
         // FROM HTML TO BRIDGE
         function toggleBridgeConsole()
         {
-            bridge.bridgeAPI("bridge_toggleConsole");
+            bridge.api_bridge("bridge_toggleConsole");
         }
         
         // FROM HTML TO JS
@@ -113,17 +155,49 @@
           }      
         }
 
+        function getPromoLoaderDimensions()
+        {
+        	if(this['api_promoloader'])
+          	{
+          		var ar = api_promoloader.dimensions();
+          		console.log("promo api avail",ar, document.getElementById('buttons').offsetHeight);
+          		ar[2] += document.getElementById('buttons').offsetHeight;
+          		return JSON.stringify(ar);
+
+          	}
+          	else return [];
+        }
+
         function createSwfNoBridge(url,flashVars)
         {
+        	var wid="100%";
+        	var hei="100%";
+        	if(this['api_promoloader'])
+          	{
+          		var ar = api_promoloader.dimensions();
+          		if(ar && ar.length == 3)
+          		{
+          			if( ar[0] == 'scale')
+          			{	
+	          			wid=ar[1];
+	          			hei=ar[2];
+	          		}
+	          		/*else
+	          		{
+	          			wid= "100%";
+	          			hei = "100%";
+	          		}*/
+          		}
+          	}
             var div = createWithAttributes("div", ["name","swf-no-bridge"]);
-            var obj = createWithAttributes("object", ["type","application/x-shockwave-flash","id","swfnobridge","align","middle","width",910,"height",610]);
+            var obj = createWithAttributes("object", ["type","application/x-shockwave-flash","id","swfnobridge","align","left","width",wid,"height",hei]);
             if(typeof flashVars == "string")
             {
               flashVars = JSON.parse(flashVars);
             }
             var params = {};
             params.quality = "high";
-            params.bgcolor = "#111111";
+            params.bgcolor = "#aa1111";
             params.allowscriptaccess = "always";
             params.allowfullscreen = "true";
             params.wmode = "direct";
@@ -148,7 +222,7 @@
               obj.appendChild(par);
             }
 
-            addAttribute(obj,'data',url + '?' + fw);
+            obj.setAttribute("data", url + '?' + fw);
             div.appendChild(obj);
 
             return div;
@@ -156,12 +230,7 @@
 
 
         // ----------------------- LIB ------------------- //
-        function addAttribute(target, key, val)
-        {
-          var atrib = document.createAttribute(key);
-          atrib.value = val;
-          target.setAttributeNode(atrib);
-        }
+      
         function createWithAttributes(ele, arr)
         {
           var elem = document.createElement(ele);
@@ -171,7 +240,7 @@
           {
             atrname = arr[i++];
             atrval = arr[i++];
-            addAttribute(elem, atrname, atrval);
+            elem.setAttribute(atrname, atrval);
           }
           return elem;
         }
@@ -179,15 +248,14 @@
     </head>
     <body>
       <!-- HTML TO JS -->
-      <button onClick="quickReoload()">quick reload</button> 
-      <!-- HTML TO BRIDGE -->
-      <button id='btn-console' onClick="toggleBridgeConsole()">console</button> 
-     
+      <div name='buttons' id='buttons'>
+	      <button onClick="quickReoload()">quick reload</button> 
+	      <button id='btn-console' onClick="toggleBridgeConsole()">console</button> 
+     </div>
      <!-- BRIDGE OBJECT -->
       <div id='bridge-content'>
-        <object  type="application/x-shockwave-flash" id="bridge" name="bridge" align="middle" data="file:///C:/Users/ddd/Desktop/Bridge.swf" width="910" height="610">
+        <object  type="application/x-shockwave-flash" id="bridge" name="bridge" align="left" data="Bridge.swf" width="910" height="610">
             <param name="quality" value="high"/>
-            <param name="bgcolor" value="#000000"/>
             <param name="allowscriptaccess" value="always"/>
             <param name="allowfullscreen" value="true"/>
             <param name="wmode" value="direct"/>

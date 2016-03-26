@@ -5,9 +5,12 @@ package com.promoloader.htmlBridge
 	import flash.display.LoaderInfo;
 	import flash.display.Sprite;
 	import flash.external.ExternalInterface;
+	import flash.geom.Rectangle;
 	import flash.text.TextField;
 	import flash.utils.clearInterval;
+	import flash.utils.clearTimeout;
 	import flash.utils.setInterval;
+	import flash.utils.setTimeout;
 	
 	import axl.ui.controllers.BoundBox;
 	import axl.utils.LibraryLoader;
@@ -18,7 +21,7 @@ package com.promoloader.htmlBridge
 	
 	public class Bridge extends Sprite
 	{
-		public static const version:String = '0.11';
+		public static const version:String = '0.14';
 		private var tname:String = '[Bridge ' + version +']';
 		private var t:TextField;
 		private var swfLoaderInfo:LoaderInfo;
@@ -27,6 +30,7 @@ package com.promoloader.htmlBridge
 		public var ll:LibraryLoader;
 		private var loaderInfoIntervalId:uint;
 		private var content:Loader;
+		private var rec:Rectangle;
 		
 		
 		public function Bridge()
@@ -58,7 +62,7 @@ package com.promoloader.htmlBridge
 			if(ExternalInterface.available)
 			{
 				U.bin.externalTrace = logToConsole;
-				ExternalInterface.addCallback('bridgeAPI', onIncomingMessage);
+				ExternalInterface.addCallback('api_bridge', onIncomingMessage);
 				ExternalInterface.call("init");
 			}
 			else
@@ -108,7 +112,18 @@ package com.promoloader.htmlBridge
 				s += (args[i] != null ? args[i].toString() : 'null');
 			if(ExternalInterface.available)
 			{
-				ExternalInterface.call('api_promoloader.message', s);
+				try { 
+					ExternalInterface.call('api_promoloader.message', s); 
+					U.log("SENT"); 
+				}
+				catch(e:*)
+				{
+					U.log('sending failed');
+				}
+			}
+			else
+			{
+				U.log("EI not available");
 			}
 		}
 		
@@ -169,26 +184,48 @@ package com.promoloader.htmlBridge
 			{
 				U.log(tname,"[LOADED!]", ll.libraryURLs);
 				content = ll.libraryLoader;
-				if(content.loaderInfo == null)
+				if(content.contentLoaderInfo == null)
 					loaderInfoIntervalId = flash.utils.setInterval(tickForLoaderInfo,20);
 				else
 					tickForLoaderInfo();
+				getContentScale();
 				addChild(content);
+				U.bin.parser.changeContext(content.content);
+			}
+		}
+		
+		private function getContentScale():void
+		{
+			if(ExternalInterface.available)
+			{
+				try { 
+					var ar:Array = ExternalInterface.call('getPromoLoaderDimensions') as Array;
+					if(ar is Array && ar.length == 3)
+					{
+						if(ar[0] == 'scale')
+						{
+							resize(ar[1],ar[2]);
+						}
+					}
+				}
+				catch(e:*)
+				{
+				}
 			}
 		}
 		
 		private function tickForLoaderInfo():void
 		{
-			if(content.loaderInfo != null)
+			if(content.contentLoaderInfo != null)
 			{
 				U.log(tname,"[LOADER INFO AVAILABLE!]");
 				flash.utils.clearInterval(loaderInfoIntervalId)
-				swfLoaderInfo = content.loaderInfo;
+				swfLoaderInfo = content.contentLoaderInfo;
 				var dims:Object = {w:swfLoaderInfo.width, h:swfLoaderInfo.height};
 				
 				stage.stageWidth = dims.w;
 				stage.stageHeight = dims.h;
-				sendToPromoLoader("dimensions", JSON.stringify(dims))
+				sendToJS('resize', dims.w, dims.h);
 			}
 		}
 		
@@ -203,5 +240,20 @@ package com.promoloader.htmlBridge
 			setupLoader(v,params);
 			load(v);
 		}
+		
+		public function resize(w:Number,h:Number):void
+		{
+			U.log(tname, "[resize]", width, height);
+			if(swfLoaderInfo)
+			{
+				if(!rec)
+					rec = new Rectangle();
+				rec.width = w;
+				rec.height = h;
+				U.resolveSize(content, rec);
+				sendToJS('resize',w,h);
+			}
+		}
 	}
 }
+

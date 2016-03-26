@@ -24,6 +24,7 @@ package com.promoloader.core
 	import flash.events.UncaughtErrorEvent;
 	import flash.filesystem.File;
 	import flash.geom.Rectangle;
+	import flash.html.HTMLLoader;
 	import flash.net.URLRequest;
 	import flash.system.ApplicationDomain;
 	import flash.system.Capabilities;
@@ -70,13 +71,13 @@ package com.promoloader.core
 		private var mainWindow:NativeWindow;
 		
 		//elements
-		private var bar:TopBar;
+		private var xbar:TopBar;
 		private var bg:Sprite;
 		private var bgLogo:Bitmap;
 		private var legacyController:LegacyController;
 		public var htmlContent:HtmlEmbeder;
 		
-		private var barDesiredHeight:Number = 22;
+		private var xbarDesiredHeight:Number = 22;
 		private var xbgColour:uint=0xeeeeee;
 		
 		
@@ -123,10 +124,6 @@ package com.promoloader.core
 				initApp();
 			}
 		}	
-		
-		public function get contextParameters():Object { return xcontextParameters }
-		public function get VERSION():String { return xVERSION }
-
 
 		private function initApp():void
 		{
@@ -171,18 +168,28 @@ package com.promoloader.core
 				func();
 		}		
 		
-		private function onResize():void
+		public function onResize():void
 		{
 			arangeBar();
 			updateBg();
+			classDict.U.log("SIZING HTMLLOADER?",OBJECT);
 			if(OBJECT != null && this.bar.cboxAutoSize.selectedLabel == 'scale')
 			{
-				OBJECTREC.width = swfLoaderInfo.width;
-				OBJECTREC.height = swfLoaderInfo.height + barDesiredHeight;
-				classDict.U.resolveSize(OBJECTREC, classDict.U.REC);
-				lastScale = OBJECTREC.width / swfLoaderInfo.width;
-				OBJECT.scaleX =lastScale;
-				OBJECT.scaleY = lastScale;
+				if(OBJECT is HTMLLoader)
+				{
+				
+					this.htmlContent.size(this.stage.stageWidth,this.stage.stageHeight);
+				}
+				else
+				{
+					OBJECTREC.width = swfLoaderInfo.width;
+					OBJECTREC.height = swfLoaderInfo.height + barDesiredHeight;
+					classDict.U.resolveSize(OBJECTREC, classDict.U.REC);
+					lastScale = OBJECTREC.width / swfLoaderInfo.width;
+					OBJECT.scaleX =lastScale;
+					OBJECT.scaleY = lastScale;
+				}
+			
 			}
 			if(bgLogo)
 			{
@@ -194,22 +201,6 @@ package com.promoloader.core
 			
 		}
 		
-		private function updateBg():void
-		{
-			if(!bg)
-			{
-				bg = new Sprite();
-				this.addChildAt(bg,0);
-				if(!bgLogo)
-				{
-					bgLogo = new bgImage();
-					bg.addChild(bgLogo)
-				}
-			}
-			bg.graphics.clear();
-			bg.graphics.beginFill(xbgColour);
-			bg.graphics.drawRect(0,0, this.stage.stageWidth, this.stage.stageHeight);
-		}
 		
 		//__________________________________________________________________ INSTANTIATION
 		private function buildWindows():void
@@ -239,7 +230,7 @@ package com.promoloader.core
 		
 		private function buildBar():void
 		{
-			bar = new TopBar();
+			xbar = new TopBar();
 			bar.dates.addEventListener(KeyboardEvent.KEY_UP, onTopBarKeyUp);
 			bar.tfCompVal.textField.addEventListener(KeyboardEvent.KEY_UP, onTopBarKeyUp);
 			bar.tfData.textField.addEventListener(KeyboardEvent.KEY_UP, onTopBarKeyUp);
@@ -578,7 +569,8 @@ package com.promoloader.core
 				htmlContent = new HtmlEmbeder(this);
 			htmlContent.load(LOADABLEURL.url);
 			htmlContent.htmlloader.y =barDesiredHeight;
-			this.addChild(htmlContent.htmlloader)
+			OBJECT = htmlContent.htmlloader;
+			this.addChildAt(htmlContent.htmlloader,bg && bg.parent ? 1 : 0);
 		}
 		
 		public function resizeWithRules(w:Number,h:Number):void
@@ -638,15 +630,34 @@ package com.promoloader.core
 			} 
 		}
 		
-		private function arangeBar():void
+		public function arangeBar():void
 		{
 			if(bar != null && bar.parent != null)
 				bar.arangeBar();
 		}
-		private function log(...args):void
+		
+		public function updateBg():void
 		{
-			classDict.U.log.apply(null,args);
+			if(!bg)
+			{
+				bg = new Sprite();
+				this.addChildAt(bg,0);
+				if(!bgLogo)
+				{
+					bgLogo = new bgImage();
+					bg.addChild(bgLogo)
+				}
+			}
+			bg.graphics.clear();
+			bg.graphics.beginFill(xbgColour);
+			bg.graphics.drawRect(0,0, this.stage.stageWidth, this.stage.stageHeight);
 		}
+		
+		public function log(...args):void {	classDict.U.log.apply(null,args) }
+		public function get bar():TopBar { return xbar }
+		public function get contextParameters():Object { return xcontextParameters }
+		public function get VERSION():String { return xVERSION }
+		public function get barDesiredHeight():Number {	return xbarDesiredHeight }
 		public static function get instance():PromoLoader { return xinstance }
 	}
 }

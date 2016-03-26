@@ -1,6 +1,7 @@
 package com.promoloader.htmlBridge
 {
 	import com.promoloader.core.PromoLoader;
+	
 	import flash.events.Event;
 	import flash.events.HTMLUncaughtScriptExceptionEvent;
 	import flash.filesystem.File;
@@ -42,6 +43,7 @@ package com.promoloader.htmlBridge
 			api.message = api_message;
 			api.log = api_log;
 			api.reload = api_reload;
+			api.dimensions = api_dimensions;
 			
 		}
 		
@@ -51,6 +53,8 @@ package com.promoloader.htmlBridge
 			hloader = new HTMLLoader();
 			hloader.placeLoadStringContentInApplicationSandbox = true;
 			hloader.useCache = false;
+			hloader.cacheResponse = false;
+			hloader.paintsDefaultBackground = false;
 			hloader.addEventListener(Event.COMPLETE, onHtmlComplete);
 			hloader.addEventListener(Event.HTML_BOUNDS_CHANGE, onHtmlBoundsChange);
 			hloader.addEventListener(Event.HTML_DOM_INITIALIZE, onHTMLDOMInitialize);
@@ -61,7 +65,6 @@ package com.promoloader.htmlBridge
 		protected function onHtmlComplete(e:Event):void
 		{
 			log2(tname,"onHtmlComplete",e);
-			
 			
 			this.hloader.width = this.hloader.contentWidth;
 			this.hloader.height = this.hloader.contentHeight;
@@ -79,8 +82,17 @@ package com.promoloader.htmlBridge
 		protected function onHtmlBoundsChange(e:Event):void
 		{
 			log2(tname,"onHtmlBoundsChange",e, hloader.contentWidth, 'x', hloader.contentHeight);
-			this.hloader.width = this.hloader.contentWidth;
-			this.hloader.height = this.hloader.contentHeight;
+			if(pl.bar.cboxAutoSize.selectedLabel == 'auto')
+			{
+				this.hloader.width = this.hloader.contentWidth;
+				this.hloader.height = this.hloader.contentHeight;
+				pl.stage.stageWidth = hloader.x + hloader.width;
+				pl.stage.stageHeight = hloader.y + hloader.height + pl.barDesiredHeight;
+			}
+			else if(pl.bar.cboxAutoSize.selectedLabel == 'scale')
+			{
+				pl.onResize();
+			}
 		}
 		
 		protected function onJSException(e:HTMLUncaughtScriptExceptionEvent):void
@@ -105,10 +117,6 @@ package com.promoloader.htmlBridge
 						log2("loadswf is not a function?");
 					}
 					break;
-				case "[Bridge][dimensions]":
-					var o:Object = JSON.parse(args.pop());
-					pl.resizeWithRules(o.w, o.h);
-					break;
 			}
 		}
 		
@@ -129,6 +137,13 @@ package com.promoloader.htmlBridge
 		private function api_log(...args):void
 		{
 			log2(tname,"[api_log]:", args);
+		}
+		
+		private function api_dimensions():Array
+		{
+			var res:Array = [pl.bar.cboxAutoSize.selectedLabel, pl.stage.stageWidth, pl.stage.stageHeight - pl.barDesiredHeight];
+			log2(tname,"[api_dimensions]",res);
+			return res;
 		}
 		
 		private function log2(...args):void
@@ -159,6 +174,7 @@ package com.promoloader.htmlBridge
 				try {
 					fs.open(f, FileMode.READ);
 					template = fs.readUTFBytes(fs.bytesAvailable);
+					template = template.replace('data="Bridge.swf"', 'data="app-storage:/Bridge.swf"');
 					log2("template file read", f.nativePath);
 					hloader.loadString(template); 
 				}
@@ -181,5 +197,13 @@ package com.promoloader.htmlBridge
 		}
 		
 		public function get htmlloader():HTMLLoader {return hloader }
+		
+		public function size(w:Number, h:Number):void
+		{
+			if(hloader.window && 'promoloaderResize' in hloader.window)
+			{
+				hloader.window.promoloaderResize(w,h);
+			}
+		}
 	}
 }
