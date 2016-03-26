@@ -3,6 +3,7 @@ package com.promoloader.core
 	import flash.display.Sprite;
 	import flash.events.Event;
 	import flash.events.FocusEvent;
+	import flash.events.KeyboardEvent;
 	import flash.events.MouseEvent;
 	import flash.net.SharedObject;
 	
@@ -10,6 +11,7 @@ package com.promoloader.core
 	import fl.controls.ComboBox;
 	import fl.controls.TextInput;
 	import fl.data.DataProvider;
+	import fl.events.ComponentEvent;
 	
 	public class TopBar extends Sprite
 	{
@@ -33,8 +35,6 @@ package com.promoloader.core
 			cookie = SharedObject.getLocal('bar');
 			xdates = new DateComponent();
 			
-		/*	PromoLoader.classDict.U.STG.stageWidth = cookie.data.swid;
-			PromoLoader.classDict.U.STG.stageHeight = cookie.data.shei;*/
 			xtfMember = new TextInput();
 			tfMember.text =  cookie.data.memberId || 'memberId';
 			
@@ -77,13 +77,26 @@ package com.promoloader.core
 			cboxAutoSize.width = 55;
 			cboxAutoSize.drawNow();
 			
-			this.addEventListener(Event.ADDED_TO_STAGE, ats);
+			addEventListeners();
 			
+			PromoLoader.classDict.U.addChildGroup(this, btnLoad,btnRecent,tfMember,btnConsole,tfCompVal,dates,cboxAutoSize,tfData,btnReload);
+		}
+		
+		private function addEventListeners():void
+		{
+			this.addEventListener(Event.ADDED_TO_STAGE, ats);
 			tfMember.addEventListener(MouseEvent.CLICK, fin);
 			tfCompVal.addEventListener(MouseEvent.CLICK, fin);
 			this.addEventListener(FocusEvent.FOCUS_OUT, fout);
 			
-			PromoLoader.classDict.U.addChildGroup(this, btnLoad,btnRecent,tfMember,btnConsole,tfCompVal,dates,cboxAutoSize,tfData,btnReload);
+			dates.addEventListener(KeyboardEvent.KEY_UP, onTopBarKeyUp);
+			tfCompVal.textField.addEventListener(KeyboardEvent.KEY_UP, onTopBarKeyUp);
+			tfData.textField.addEventListener(KeyboardEvent.KEY_UP, onTopBarKeyUp);
+			tfMember.textField.addEventListener(KeyboardEvent.KEY_UP, onTopBarKeyUp);
+			btnLoad.addEventListener(ComponentEvent.BUTTON_DOWN, btnLoadDown);
+			btnConsole.addEventListener(ComponentEvent.BUTTON_DOWN, btnConsoleDown);
+			btnRecent.addEventListener(ComponentEvent.BUTTON_DOWN, btnRecentDown);
+			btnReload.addEventListener(ComponentEvent.BUTTON_DOWN, btnReloadDown);
 		}
 		
 		protected function set xcboxAutoSizeMode(v:String):void { 
@@ -106,6 +119,18 @@ package com.promoloader.core
 				tfMember.text = '1';
 		}
 		
+		protected function onTopBarKeyUp(e:KeyboardEvent):void
+		{
+			if(e.charCode == 13)
+				PromoLoader.instance.loadContent();
+		}
+		
+		public function btnConsoleDown(e:*=null):void { PromoLoader.instance.windowConsole.wappear() }
+		public function btnRecentDown(e:*=null):void { PromoLoader.instance.windowRecent.wappear() }
+		public function btnTimestampDown(e:*=null):void { PromoLoader.instance.windowTimestamp.wappear() }
+		public function btnReloadDown(e:*=null):void { PromoLoader.instance.loadContent() }
+		public function btnLoadDown(e:*=null):void { PromoLoader.instance.browseForFile(); }
+		
 		// --------------------- public api --------------------- //
 		public function arangeBar():void
 		{
@@ -119,21 +144,13 @@ package com.promoloader.core
 		}
 
 		public function get tfMember():TextInput { return xtfMember }
-
 		public function get tfCompVal():TextInput { return xtfCompVal }
-
 		public function get btnConsole():Button { return xbtnConsole }
-
 		public function get btnRecent():Button { return xbtnRecent }
-
 		public function get btnReload():Button { return xbtnReload }
-
 		public function get btnLoad():Button { return xbtnLoad }
-
 		public function get dates():DateComponent {	return xdates }
-
 		public function get tfData():TextInput { return xtfData }
-
 		public function get cboxAutoSize():ComboBox	{ return xcboxAutoSize }
 
 		public function exiting():void
@@ -142,8 +159,6 @@ package com.promoloader.core
 			cookie.data.compValue = tfCompVal.text;
 			cookie.data.memberId = tfMember.text;
 			cookie.data.autoSize = cboxAutoSize.selectedLabel;
-			/*cookie.data.swid = PromoLoader.classDict.U.REC.width;
-			cookie.data.shei = PromoLoader.classDict.U.REC.height;*/
 			cookie.flush();
 			PromoLoader.classDict.U.log(this,'cooke saved');
 		}

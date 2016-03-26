@@ -28,12 +28,12 @@ package com.promoloader.core
 		
 		public function onSwfLoaded(swfLoaderInfo:LoaderInfo, overlap:String, overlap2:String):void
 		{
-			PromoLoader.classDict.U.log(tname,"MERGE LIBRARIES ATTEMPT");
+			PromoLoader.classDict.U.log(tname,"MERGE LIBRARIES ATTEMPT", swfLoaderInfo.applicationDomain.hasDefinition(classLoader),swfLoaderInfo.applicationDomain.getQualifiedDefinitionNames());
 			if(swfLoaderInfo.applicationDomain.hasDefinition(classLoader))
 				loaderClass= swfLoaderInfo.applicationDomain.getDefinition(classLoader) as Class;
-			if(loaderClass)
+			if(loaderClass && 'defaultPathPrefixes' in loaderClass)
 			{
-				PromoLoader.classDict.U.log(tname,"Ldr CLASS detected");
+				PromoLoader.classDict.U.log(tname,"Ldr CLASS detected", loaderClass, overlap, overlap2);
 				loaderClass.defaultPathPrefixes.unshift(overlap);
 				loaderClass.defaultPathPrefixes.unshift(overlap2);
 				PromoLoader.classDict.U.log(tname,"NOW swfLoaderInfo PATH PREFIXES:\n# ", loaderClass.defaultPathPrefixes.join('\n# '));
