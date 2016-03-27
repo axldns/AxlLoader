@@ -41,6 +41,24 @@ package com.promoloader.core
 			mainWindow = pl.mainWindow;
 			U = PromoLoader.classDict.U;
 			addNativeAppListeners();
+			setDefaultApp();
+		}
+		
+		private function setDefaultApp():void
+		{
+			try {
+				U.log("SETTING AS DEFAULT SWF APP");
+				if(NativeApplication.supportsDefaultApplication())
+				{
+					NativeApplication.nativeApplication.setAsDefaultApplication("swf");
+					U.log("SETTING AS DEFAULT SW APP DONE");
+				}
+				else
+				{
+					U.log("default app not supported");
+				}
+			}
+			catch(e:*){U.log(e);}
 		}
 		
 		private function addNativeAppListeners():void

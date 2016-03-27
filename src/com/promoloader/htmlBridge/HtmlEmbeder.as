@@ -68,8 +68,8 @@ package com.promoloader.htmlBridge
 		protected function onHtmlComplete(e:Event):void
 		{
 			U.log(tname,"onHtmlComplete",e);
-			//this.hloader.width = this.hloader.contentWidth;
-			//this.hloader.height = this.hloader.contentHeight;
+			this.hloader.width = this.hloader.contentWidth;
+			this.hloader.height = this.hloader.contentHeight;
 			hloader.window.console = {log : api_log};
 			hloader.window.getParam = api_getParam;
 			//hloader.window.loadBridge(JSON.stringify(pl.contextParameters));

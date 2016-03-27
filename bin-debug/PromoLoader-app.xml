@@ -196,7 +196,7 @@
 			<!-- <name></name> -->
 
 			<!-- The extension to register. Required. -->
-			<!-- <extension></extension> -->
+			<extension>swf</extension>
 			
 			<!-- The description of the file type. Optional. -->
 			<!-- <description></description> -->

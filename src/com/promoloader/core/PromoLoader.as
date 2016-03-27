@@ -53,6 +53,8 @@ package com.promoloader.core
 		//flags
 		public var clearLogEveryLoad:Boolean = true;
 		public var changeConsoleContextToLoadedContent:Boolean=true;
+		public var limitUnrecognizedFilesLength:uint=80000;
+		public var preferHTMLLoader:Boolean;
 		
 		//windows
 		private var xwindowTimestamp:WindowTimestamp;
@@ -68,6 +70,7 @@ package com.promoloader.core
 		public var htmlContent:HtmlEmbeder;
 		private var eventsManager:EventsManager;
 		private var openFile:File;
+		private var displayableText:TextField;
 		
 		private var xbarDesiredHeight:Number = 22;
 		private var xbgColour:uint=0xeeeeee;
@@ -99,10 +102,6 @@ package com.promoloader.core
 		 * </ul>
 		 * */
 		public var domainType:int = -1;
-		public var limitUnrecognizedFilesLength:uint=80000;
-		private var displayableText:TextField;
-	
-
 
 		public function PromoLoader()
 		{
@@ -261,8 +260,8 @@ package com.promoloader.core
 				
 				U.resolveSize(OBJECTREC, rec);
 				lastScale = OBJECTREC.width / swfLoaderInfo.width;
-				OBJECT.width =OBJECTREC.width;
-				OBJECT.height = OBJECTREC.height;
+				OBJECT.scaleX =lastScale;
+				OBJECT.scaleY = lastScale;
 			}
 			else if(OBJECT is TextField)
 			{
@@ -289,12 +288,21 @@ package com.promoloader.core
 				U.msg("Nothing to load?");
 				return;
 			}
+			var f:File = new  File(LOADABLEURL.url);
+			if(!f.exists)
+			{
+				U.msg("File doesn't exist");
+				return;
+			}
 			unloadAndReset();
 			setupContext();
 			setupDomain();
 			U.log(tname," LOADING WITH PARAMETERS:", classDict. U.bin.structureToString(context.parameters));
-			classDict.Ldr.load(LOADABLEURL.url,null,contentLoaded,null,{},classDict.Ldr.behaviours.loadOverwrite,classDict.Ldr.defaultValue,classDict.Ldr.defaultValue,0,context);
-			//this.loadWithHTMLBridge();
+			if(preferHTMLLoader)
+				this.loadWithHTMLBridge();
+			else
+				classDict.Ldr.load(LOADABLEURL.url,null,contentLoaded,null,{},classDict.Ldr.behaviours.loadOverwrite,classDict.Ldr.defaultValue,classDict.Ldr.defaultValue,0,context);
+			
 		}
 		
 		private function setupDomain():void
