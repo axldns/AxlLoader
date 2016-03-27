@@ -10,18 +10,14 @@ package com.promoloader.core
 	import flash.desktop.NativeDragManager;
 	import flash.display.NativeMenuItem;
 	import flash.display.NativeWindow;
-	import flash.display.NativeWindowInitOptions;
-	import flash.display.NativeWindowType;
 	import flash.events.Event;
 	import flash.events.InvokeEvent;
 	import flash.events.KeyboardEvent;
 	import flash.events.NativeDragEvent;
+	import flash.events.UncaughtErrorEvent;
 	import flash.filesystem.File;
 	import flash.net.URLRequest;
 	import flash.system.Capabilities;
-	
-	import fl.events.ComponentEvent;
-	import flash.events.UncaughtErrorEvent;
 
 	public class EventsManager
 	{
@@ -45,8 +41,6 @@ package com.promoloader.core
 			mainWindow = pl.mainWindow;
 			U = PromoLoader.classDict.U;
 			addNativeAppListeners();
-			
-			
 		}
 		
 		private function addNativeAppListeners():void
@@ -91,8 +85,6 @@ package com.promoloader.core
 			}
 		}
 		
-		
-		
 		protected function onNativeKeyDown(e:KeyboardEvent):void
 		{
 			if(e.ctrlKey || e.commandKey)
@@ -128,7 +120,6 @@ package com.promoloader.core
 		protected function onInvokeEvent(e:InvokeEvent):void
 		{
 			try { pl.setupMainWindow();} catch (e:*) { trace(e);}
-			
 			parseInvokeArguments(e);
 		}
 		
@@ -170,12 +161,14 @@ package com.promoloader.core
 			var text:String = Clipboard.generalClipboard.getData(ClipboardFormats.TEXT_FORMAT) as String; 
 			U.log('link paste', text);
 			text = text.replace(/^\s*/i,'').replace(/\s*$/i,'');
+			if(text.match(/[:\/|:\\]/))
+			{
 				try {
 					pl.setLoadableURL(new URLRequest(text))
 					pl.loadContent()
 				}
 				catch (e:Error) { U.msg(e.message) };
-				
+			}
 		}
 		
 		private function parseFilePaste():void

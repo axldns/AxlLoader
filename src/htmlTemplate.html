@@ -3,6 +3,19 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"> 
    
     <head>
+    <style type="text/css">
+		.label {
+		    display: inline-block;
+		    height: auto;    
+		    width: auto;
+		}
+		body {
+		    display: inline;
+		    height: auto;    
+		    width: auto;
+		}
+
+	</style>
         <script type="text/javascript">
         //var oldConsole = console;
         //var console = {};
@@ -79,28 +92,53 @@
         {
         	if(swfnobridge)
         	{
+        		console.log("RESIZING SWF NO BRIDGE");
         		document.getElementById('swfnobridge').setAttribute("width",w);
         		document.getElementById('swfnobridge').setAttribute("height",h);
         	}
         	else
         	{
+        		console.log("RESIZING BRIDGE");
         		document.getElementById('bridge').setAttribute("width",w);
         		document.getElementById('bridge').setAttribute("height",h);
+     
+        		if(this['api_promoloader'])
+        		{
+        			api_promoloader.resizeToBridge(w,h+document.getElementById('buttons').offsetHeight);
+        		}
         	}
+        }
+        function loopSizes(element)
+        {
+
+    		var w = element.offsetWidth;
+    		var h = element.offsetHeight;
+    		if(!isNaN(w) && !isNaN(h))
+    		{
+    			console.log(element.offsetWidth, element.offsetHeight, element.outerHTML);
+    		}
+
+    		var children = element.childNodes;
+    		var len = children.length;
+    		if(!isNaN(len))
+    		{
+    			for(var i = 0; i < len; i++)
+    			{
+			   		loopSizes(children[i]);
+    			}
+    		}
         }
 
         function resizeToBridgeLoaderInfo(w,h)
         {
-        	if(swfnobridge)
-        	{
-        		document.getElementById('swfnobridge').setAttribute("width",w);
-        		document.getElementById('swfnobridge').setAttribute("height",h);
-        	}
-        	else
-        	{
-        		document.getElementById('bridge').setAttribute("width",w);
-        		document.getElementById('bridge').setAttribute("height",h);
-        	}
+        	document.getElementById('bridge').setAttribute("width",w);
+        	document.getElementById('bridge').setAttribute("height",h);
+     
+    		if(this['api_promoloader'])
+    		{
+    			console.log("talking to promoloader");
+    			api_promoloader.resizeToBridge(w,h+document.getElementById('buttons').offsetHeight);
+    		}
         }
 
         function promoloaderResize(w,h)
@@ -108,11 +146,13 @@
         	if(swfnobridge)
         	{
         		document.getElementById('swfnobridge').setAttribute("width",w);
-        		document.getElementById('swfnobridge').setAttribute("height",h);
+        		document.getElementById('swfnobridge').setAttribute("height",h-document.getElementById('buttons').offsetHeight);
         	}
         	else if(bridge)
         	{
         		bridge.api_bridge("resize", w,h -document.getElementById('buttons').offsetHeight);
+        		document.getElementById('bridge').setAttribute("width",w);
+        		document.getElementById('bridge').setAttribute("height",h-document.getElementById('buttons').offsetHeight);
         	}
         }
 
@@ -126,12 +166,13 @@
 
             //REPLACE
             flashParent.replaceChild(swfnobridge,bridgeContent);
+            //loopSizes(document.body);
         }
 
         // FROM LOADED SWF TO JS to promoloader
         function getParam(param)
         {
-          return promoloaderAPI.getParam(param);
+          return api_promoloader.getParam(param);
         }
         // FROM HTML TO BRIDGE
         function toggleBridgeConsole()
@@ -175,21 +216,17 @@
         	if(this['api_promoloader'])
           	{
           		var ar = api_promoloader.dimensions();
+          		console.log("api_promoloader wh",ar);
           		if(ar && ar.length == 3)
           		{
-          			if( ar[0] == 'scale')
-          			{	
-	          			wid=ar[1];
-	          			hei=ar[2];
-	          		}
-	          		/*else
-	          		{
-	          			wid= "100%";
-	          			hei = "100%";
-	          		}*/
+          			wid=ar[1];
+	          		hei=ar[2];
+	          		hei -= document.getElementById('buttons').offsetHeight;
           		}
           	}
-            var div = createWithAttributes("div", ["name","swf-no-bridge"]);
+     
+
+            var div = createWithAttributes("div", ["name","swf-no-bridge","class","label"]);
             var obj = createWithAttributes("object", ["type","application/x-shockwave-flash","id","swfnobridge","align","left","width",wid,"height",hei]);
             if(typeof flashVars == "string")
             {
@@ -247,19 +284,20 @@
         </script>
     </head>
     <body>
-      <!-- HTML TO JS -->
-      <div name='buttons' id='buttons'>
-	      <button onClick="quickReoload()">quick reload</button> 
-	      <button id='btn-console' onClick="toggleBridgeConsole()">console</button> 
-     </div>
-     <!-- BRIDGE OBJECT -->
-      <div id='bridge-content'>
-        <object  type="application/x-shockwave-flash" id="bridge" name="bridge" align="left" data="Bridge.swf" width="910" height="610">
-            <param name="quality" value="high"/>
-            <param name="allowscriptaccess" value="always"/>
-            <param name="allowfullscreen" value="true"/>
-            <param name="wmode" value="direct"/>
-        </object>
-      </div>
+    	<div name='content' class="label">
+	    	<!-- HTML TO JS -->
+	    	<div name='buttons' id='buttons' clas='label'>
+	      		<button id='btn-console'  class="label" onClick="toggleBridgeConsole()">console</button> 
+	      	</div>
+	   		<!-- BRIDGE OBJECT -->
+	    	<div id='bridge-content' class="label">
+	        	<object  type="application/x-shockwave-flash" id="bridge" name="bridge" align="left" data="Bridge.swf" width="910" height="610">
+	           		<param name="quality" value="high"/>
+	            	<param name="allowscriptaccess" value="always"/>
+	           		<param name="allowfullscreen" value="true"/>
+	            	<param name="wmode" value="direct"/>
+	        	</object>
+	    	</div>
+		</div>
    </body>
 </html>

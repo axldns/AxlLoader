@@ -97,6 +97,12 @@ package com.promoloader.core
 			btnConsole.addEventListener(ComponentEvent.BUTTON_DOWN, btnConsoleDown);
 			btnRecent.addEventListener(ComponentEvent.BUTTON_DOWN, btnRecentDown);
 			btnReload.addEventListener(ComponentEvent.BUTTON_DOWN, btnReloadDown);
+			cboxAutoSize.addEventListener(Event.CHANGE, onAutoSizeChange);
+		}
+		
+		protected function onAutoSizeChange(e:Event):void
+		{
+			PromoLoader.instance.onResize();
 		}
 		
 		protected function set xcboxAutoSizeMode(v:String):void { 
@@ -141,6 +147,8 @@ package com.promoloader.core
 			if(cboxAutoSize == null)
 				return;
 			cboxAutoSize.x = btnReload.x - cboxAutoSize.width;
+			xtfData.x = xdates.x + xdates.width;
+			xtfData.width = cboxAutoSize.x - xtfData.x;
 		}
 
 		public function get tfMember():TextInput { return xtfMember }

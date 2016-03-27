@@ -114,7 +114,6 @@ package com.promoloader.htmlBridge
 			{
 				try { 
 					ExternalInterface.call('api_promoloader.message', s); 
-					U.log("SENT"); 
 				}
 				catch(e:*)
 				{
@@ -199,8 +198,8 @@ package com.promoloader.htmlBridge
 			if(ExternalInterface.available)
 			{
 				try { 
-					var ar:Array = ExternalInterface.call('getPromoLoaderDimensions') as Array;
-					if(ar is Array && ar.length == 3)
+					var ar:Object = JSON.parse(ExternalInterface.call('getPromoLoaderDimensions'));
+					if(ar != null &&  ar.length == 3)
 					{
 						if(ar[0] == 'scale')
 						{
@@ -210,6 +209,7 @@ package com.promoloader.htmlBridge
 				}
 				catch(e:*)
 				{
+					U.log(tname, 'promo loader dimensions unavailable');
 				}
 			}
 		}
@@ -218,14 +218,14 @@ package com.promoloader.htmlBridge
 		{
 			if(content.contentLoaderInfo != null)
 			{
-				U.log(tname,"[LOADER INFO AVAILABLE!]");
+				//U.log(tname,"[LOADER INFO AVAILABLE!]");
 				flash.utils.clearInterval(loaderInfoIntervalId)
 				swfLoaderInfo = content.contentLoaderInfo;
 				var dims:Object = {w:swfLoaderInfo.width, h:swfLoaderInfo.height};
 				
 				stage.stageWidth = dims.w;
 				stage.stageHeight = dims.h;
-				sendToJS('resize', dims.w, dims.h);
+				sendToJS('resizeToBridgeLoaderInfo', dims.w, dims.h);
 			}
 		}
 		
@@ -251,9 +251,8 @@ package com.promoloader.htmlBridge
 				rec.width = w;
 				rec.height = h;
 				U.resolveSize(content, rec);
-				sendToJS('resize',w,h);
+				//sendToJS('resize',w,h);
 			}
 		}
 	}
 }
-

@@ -5,10 +5,9 @@ package com.promoloader.core
 	import com.promoloader.nativeWindows.WindowRecent;
 	import com.promoloader.nativeWindows.WindowTimestamp;
 	
-	import flash.desktop.Clipboard;
-	import flash.desktop.ClipboardFormats;
 	import flash.display.Bitmap;
 	import flash.display.DisplayObject;
+	import flash.display.Loader;
 	import flash.display.LoaderInfo;
 	import flash.display.NativeWindow;
 	import flash.display.NativeWindowInitOptions;
@@ -19,9 +18,12 @@ package com.promoloader.core
 	import flash.filesystem.File;
 	import flash.geom.Rectangle;
 	import flash.html.HTMLLoader;
+	import flash.media.Sound;
 	import flash.net.URLRequest;
 	import flash.system.ApplicationDomain;
 	import flash.system.LoaderContext;
+	import flash.text.TextField;
+	import flash.text.TextFormat;
 	import flash.utils.ByteArray;
 	import flash.utils.describeType;
 	
@@ -97,6 +99,8 @@ package com.promoloader.core
 		 * </ul>
 		 * */
 		public var domainType:int = -1;
+		public var limitUnrecognizedFilesLength:uint=80000;
+		private var displayableText:TextField;
 	
 
 
@@ -131,12 +135,12 @@ package com.promoloader.core
 			U.init(this, 800,600,ready);
 			U.log(tname);
 			
-			
 			buildBar();
+			buildDisplayableTextField();
 			buildWindows();
 			runEventManager();
 			
-			//Updater.updateFunction();
+			Updater.updateFunction();
 		}
 		
 		private function buildWindows():void
@@ -187,41 +191,93 @@ package com.promoloader.core
 				func();
 		}		
 		
-		public function onResize():void
+		private function sizeObject():void
 		{
-			arangeBar();
-			updateBg();
-			if(OBJECT != null && this.bar.cboxAutoSize.selectedLabel == 'scale')
+			//U.log("SIZE OBJCT", OBJECT);
+			if(OBJECT == null)
+				return;
+			switch(bar.cboxAutoSize.selectedLabel)
 			{
-				if(OBJECT is HTMLLoader)
-				{
-					this.htmlContent.size(this.stage.stageWidth,this.stage.stageHeight-barDesiredHeight);
-				}
-				else if(swfLoaderInfo!=null)
-				{
-					OBJECTREC.width = swfLoaderInfo.width;
-					OBJECTREC.height = swfLoaderInfo.height + barDesiredHeight;
-					U.resolveSize(OBJECTREC, U.REC);
-					lastScale = OBJECTREC.width / swfLoaderInfo.width;
-					OBJECT.scaleX =lastScale;
-					OBJECT.scaleY = lastScale;
-				}
+				case 'scale': sizeScale(); break;
+				case 'auto': sizeAuto(); break;
+				case 'free': scaleFree(); break;
+			}
+		}		
+		
+		private function scaleFree():void
+		{
 			
-			}
-			else if(OBJECT != null && bar.cboxAutoSize.selectedLabel == 'auto')
+			if(OBJECT is TextField)
 			{
-				if(swfLoaderInfo != null)
+				displayableText.scaleX = displayableText.scaleY = 1;
+				displayableText.wordWrap = false;
+				displayableText.width = displayableText.textWidth + 5;
+				displayableText.height =  stage.stageHeight-barDesiredHeight;
+			}
+			//OBJECT.scaleX = OBJECT.scaleY = 1;
+		}
+		
+		private function sizeAuto():void
+		{
+			if(swfLoaderInfo != null)
+			{
+				OBJECT.scaleX = OBJECT.scaleY = 1;
+				stage.stageWidth = swfLoaderInfo.width;
+				stage.stageHeight = swfLoaderInfo.height + barDesiredHeight;
+			}
+			else if(OBJECT is TextField)
+			{
+				displayableText.scaleX = displayableText.scaleY = 1;
+				displayableText.wordWrap = true;
+				displayableText.width = stage.stageWidth;
+				displayableText.height =  stage.stageHeight-barDesiredHeight;
+			}
+			else if(OBJECT is HTMLLoader)
+			{
+				if(this.htmlContent.htmlloader.width > 0 && this.htmlContent.htmlloader.height > 0)
 				{
-					this.stage.stageWidth = swfLoaderInfo.width;
-					this.stage.stageHeight = swfLoaderInfo.height + barDesiredHeight;
+					stage.stageWidth = this.htmlContent.htmlloader.width;
+					stage.stageHeight = this.htmlContent.htmlloader.height + barDesiredHeight;
 				}
 			}
-			if(bgLogo)
+			else
 			{
-				var ls:Number = (this.stage.stageWidth > this.stage.stageHeight ? this.stage.stageHeight : this.stage.stageWidth) * 0.20;
-				bgLogo.width = ls;
-				bgLogo.scaleY = bgLogo.scaleX;
-				U.center(bgLogo, U.REC);
+				stage.stageWidth = OBJECT.width
+				stage.stageHeight = OBJECT.height +barDesiredHeight;
+			}
+		}
+		
+		private function sizeScale():void
+		{
+			var rec:Object = { width : U.REC.width, height: U.REC.height - barDesiredHeight}
+			if(OBJECT is HTMLLoader)
+			{
+				this.htmlContent.sizeScale(this.stage.stageWidth,this.stage.stageHeight-barDesiredHeight);
+			}
+			else if(swfLoaderInfo!=null)
+			{
+				OBJECTREC.width = swfLoaderInfo.width;
+				OBJECTREC.height = swfLoaderInfo.height;
+				
+				U.resolveSize(OBJECTREC, rec);
+				lastScale = OBJECTREC.width / swfLoaderInfo.width;
+				OBJECT.width =OBJECTREC.width;
+				OBJECT.height = OBJECTREC.height;
+			}
+			else if(OBJECT is TextField)
+			{
+				displayableText.wordWrap = false;
+				displayableText.scaleX = displayableText.scaleY = 1;
+				displayableText.height = (displayableText.textHeight + 5);
+				displayableText.width = (displayableText.textWidth + 5);
+				
+				OBJECTREC.width = displayableText.width;
+				OBJECTREC.height = displayableText.height;
+				U.resolveSize(OBJECTREC, rec);
+				lastScale = OBJECTREC.width/displayableText.width;
+				OBJECT.scaleY =  lastScale ;
+				OBJECT.scaleX =lastScale;
+				
 			}
 		}
 		
@@ -237,7 +293,7 @@ package com.promoloader.core
 			setupContext();
 			setupDomain();
 			U.log(tname," LOADING WITH PARAMETERS:", classDict. U.bin.structureToString(context.parameters));
-			classDict.Ldr.load(LOADABLEURL.url,null,swfLoaded,null,{},classDict.Ldr.behaviours.loadOverwrite,classDict.Ldr.defaultValue,classDict.Ldr.defaultValue,0,context);
+			classDict.Ldr.load(LOADABLEURL.url,null,contentLoaded,null,{},classDict.Ldr.behaviours.loadOverwrite,classDict.Ldr.defaultValue,classDict.Ldr.defaultValue,0,context);
 			//this.loadWithHTMLBridge();
 		}
 		
@@ -278,7 +334,14 @@ package com.promoloader.core
 		private function unloadAndReset():void
 		{
 			if(OBJECT && OBJECT.parent)
-				OBJECT.parent.removeChild(OBJECT);
+			{
+				if(OBJECT.parent is Loader &&  OBJECT.parent.parent)
+				{
+					OBJECT.parent.parent.removeChild(OBJECT.parent);
+				}
+				else
+					OBJECT.parent.removeChild(OBJECT);
+			}
 			OBJECT= null;
 			if(this.clearLogEveryLoad && classDict. U.bin != null)
 				U.bin.clear();
@@ -300,7 +363,7 @@ package com.promoloader.core
 		}
 		
 		
-		private function swfLoaded(v:String):void
+		private function contentLoaded(v:String):void
 		{
 			//INFO
 			var u:* = classDict.Ldr.getAny(v);
@@ -369,15 +432,32 @@ package com.promoloader.core
 		
 		private function resolveNonDisplayableObject(objName:String,obj:Object):DisplayObject
 		{
+			var d:String;
 			if(obj is ByteArray)
 			{
 				var ba:ByteArray = obj as ByteArray;
-				var d:String = ba.readUTFBytes(ba.bytesAvailable);
-				windowRecent.removeRowContaining(LOADABLEURL.url);
+				d= ba.readUTFBytes(ba.bytesAvailable);
+				if(d.length == 0)
+				{
+					ba.position = 0;
+					d= String(ba);
+				}
+				if(d.length < limitUnrecognizedFilesLength)
+				{
+					displayableText.text = d;
+					return displayableText;
+				}
 			}
 			else if(obj is String || obj is XML || obj is XMLList)
 			{
-				U.msg("this is xml or string");
+				if(obj is XML || obj is XMLList)
+					d = obj.toXMLString();
+				displayableText.text = d;
+				return displayableText;
+			}
+			else if(obj is Sound)
+			{
+				return SoundParser.newSound(obj as Sound);
 			}
 			else
 			{
@@ -386,6 +466,16 @@ package com.promoloader.core
 			}
 			return null;
 		}		
+		
+		private function buildDisplayableTextField():void
+		{
+			displayableText = new TextField();
+			displayableText.multiline = true;
+			displayableText.border = true;
+			displayableText.background = true;
+			displayableText.backgroundColor = 0xeeeeee;
+			displayableText.defaultTextFormat = new TextFormat("Arial", 12);
+		}
 		
 		private function resolveDirOverlap():void
 		{
@@ -409,17 +499,16 @@ package com.promoloader.core
 				htmlContent = new HtmlEmbeder(this);
 			htmlContent.load(LOADABLEURL.url);
 			htmlContent.htmlloader.y =barDesiredHeight;
-			U.log("RETURNING", htmlContent.htmlloader); 
 			return htmlContent.htmlloader;
 		}
 		
-		public function arangeBar():void
+		private function arangeBar():void
 		{
 			if(bar != null && bar.parent != null)
 				bar.arangeBar();
 		}
 		
-		public function updateBg():void
+		private function updateBg():void
 		{
 			if(!bg)
 			{
@@ -434,6 +523,20 @@ package com.promoloader.core
 			bg.graphics.clear();
 			bg.graphics.beginFill(xbgColour);
 			bg.graphics.drawRect(0,0, this.stage.stageWidth, this.stage.stageHeight);
+			if(bgLogo)
+			{
+				var ls:Number = (this.stage.stageWidth > this.stage.stageHeight ? this.stage.stageHeight : this.stage.stageWidth) * 0.20;
+				bgLogo.width = ls;
+				bgLogo.scaleY = bgLogo.scaleX;
+				U.center(bgLogo, U.REC);
+			}
+		}
+		
+		public function onResize():void
+		{
+			sizeObject();
+			arangeBar();
+			updateBg();
 		}
 		
 		public function setLoadableURL(invokedFileUrlRequest:URLRequest):void
@@ -479,6 +582,11 @@ package com.promoloader.core
 				U.bin.parser.changeContext(OBJECT);
 		}
 		
+		public function browseForFile():void
+		{
+			openFile.browseForOpen("select promo swf")
+		}
+		
 		public function log(...args):void {	U.log.apply(null,args) }
 		public function get bar():TopBar { return xbar }
 		public function get contextParameters():Object { return xcontextParameters }
@@ -491,10 +599,5 @@ package com.promoloader.core
 		public function get windowConsole():WindowConsole { return xwindowConsole }
 		public static function get instance():PromoLoader { return xinstance }
 		
-		
-		public function browseForFile():void
-		{
-			openFile.browseForOpen("select promo swf")
-		}
 	}
 }

@@ -9,11 +9,12 @@ package com.promoloader.htmlBridge
 	import flash.filesystem.FileStream;
 	import flash.html.HTMLLoader;
 	import flash.net.URLLoader;
+	import flash.utils.setTimeout;
 
 	public class HtmlEmbeder
 	{
 		private var tname:String = '[HTMLLoader'+version+']';
-		public const version:String='0.1'
+		public const version:String='0.2';
 			
 		private var hloader:HTMLLoader;
 		private var template:String;
@@ -28,28 +29,30 @@ package com.promoloader.htmlBridge
 
 		private var templateDownloader:URLLoader;
 		private var bridgeDownloader:URLLoader;
-		
+		private var U:Class;
 		public function HtmlEmbeder(instance:PromoLoader)
 		{
 			pl = instance;
+			U = PromoLoader.classDict.U;
 			setupAPI();
 			setupHTMLLoader();
 		}
 		
 		private function setupAPI():void
 		{
-			log2(tname,"setupAPI");
+			U.log(tname,"setupAPI");
 			api.getParam = api_getParam;
 			api.message = api_message;
 			api.log = api_log;
 			api.reload = api_reload;
 			api.dimensions = api_dimensions;
+			api.resizeToBridge = api_resizeToBridge;
 			
 		}
 		
 		private function setupHTMLLoader():void
 		{
-			log2(tname,"setupHTMLLoader");
+			U.log(tname,"setupHTMLLoader");
 			hloader = new HTMLLoader();
 			hloader.placeLoadStringContentInApplicationSandbox = true;
 			hloader.useCache = false;
@@ -64,10 +67,9 @@ package com.promoloader.htmlBridge
 		
 		protected function onHtmlComplete(e:Event):void
 		{
-			log2(tname,"onHtmlComplete",e);
-			
-			this.hloader.width = this.hloader.contentWidth;
-			this.hloader.height = this.hloader.contentHeight;
+			U.log(tname,"onHtmlComplete",e);
+			//this.hloader.width = this.hloader.contentWidth;
+			//this.hloader.height = this.hloader.contentHeight;
 			hloader.window.console = {log : api_log};
 			hloader.window.getParam = api_getParam;
 			//hloader.window.loadBridge(JSON.stringify(pl.contextParameters));
@@ -75,19 +77,20 @@ package com.promoloader.htmlBridge
 		
 		protected function onHTMLDOMInitialize(e:Event):void
 		{
-			log2(tname,"onHTMLDOMInitialize",e);
+			U.log(tname,"onHTMLDOMInitialize",e);
 			hloader.window.api_promoloader = api; 
 		}
 		
 		protected function onHtmlBoundsChange(e:Event):void
 		{
-			log2(tname,"onHtmlBoundsChange",e, hloader.contentWidth, 'x', hloader.contentHeight);
+			U.log(tname,"onHtmlBoundsChange",e, hloader.contentWidth, 'x', hloader.contentHeight);
 			if(pl.bar.cboxAutoSize.selectedLabel == 'auto')
 			{
-				this.hloader.width = this.hloader.contentWidth;
-				this.hloader.height = this.hloader.contentHeight;
-				pl.stage.stageWidth = hloader.x + hloader.width;
-				pl.stage.stageHeight = hloader.y + hloader.height + pl.barDesiredHeight;
+				//this.hloader.width = this.hloader.contentWidth;
+				//this.hloader.height = this.hloader.contentHeight;
+				//pl.stage.stageWidth = hloader.x + hloader.width;
+				//pl.stage.stageHeight = hloader.y + hloader.height + pl.barDesiredHeight;
+				flash.utils.setTimeout(goOutside, 1000);
 			}
 			else if(pl.bar.cboxAutoSize.selectedLabel == 'scale')
 			{
@@ -95,26 +98,33 @@ package com.promoloader.htmlBridge
 			}
 		}
 		
+		private function goOutside():void
+		{
+			U.log("OUTSIDE", hloader.width, hloader.height, hloader.contentWidth, hloader.contentHeight);
+			hloader.width = hloader.contentWidth;
+			hloader.height = hloader.contentHeight;
+		}
+		
 		protected function onJSException(e:HTMLUncaughtScriptExceptionEvent):void
 		{
-			log2(tname,"onJSException", e, e.exceptionValue, PromoLoader.classDict.U.bin.structureToString(e.stackTrace));
+			U.log(tname,"onJSException", e, e.exceptionValue, U.bin.structureToString(e.stackTrace));
 		}
 		
 		private function api_message(...args):void
 		{
-			log2(tname,"[API][message]:", args);
+			U.log(tname,"[API][message]:", args);
 			var type:String = args.shift();
 			switch(type)
 			{
 				case "[Bridge][ready]":
 					if('loadswf' in hloader.window || hloader.window.hasOwnProperty('loadswf'))
 					{
-						log2(".window.loadswf");
+						U.log(".window.loadswf");
 						hloader.window.loadswf(requestedAssetToEmbedURL,JSON.stringify(pl.contextParameters));
 					}
 					else
 					{
-						log2("loadswf is not a function?");
+						U.log("loadswf is not a function?");
 					}
 					break;
 			}
@@ -122,40 +132,46 @@ package com.promoloader.htmlBridge
 		
 		private function api_getParam(p:String):Object
 		{
-			log2(tname,"[api_getParam]", p);
+			U.log(tname,"[api_getParam]", p);
 			var f:Object = pl.contextParameters[p];
 			return f;
 		}
 		
 		private function api_reload():void
 		{
-			log2(tname,"[api_reload]");
+			U.log(tname,"[api_reload]");
 			load(requestedAssetToEmbedURL);
 			//hloader.reload();
 			
 		}
 		private function api_log(...args):void
 		{
-			log2(tname,"[api_log]:", args);
+			U.log(tname,"[api_log]:", args);
 		}
 		
 		private function api_dimensions():Array
 		{
 			var res:Array = [pl.bar.cboxAutoSize.selectedLabel, pl.stage.stageWidth, pl.stage.stageHeight - pl.barDesiredHeight];
-			log2(tname,"[api_dimensions]",res);
+			U.log(tname, '[api_dimensions]', res);
 			return res;
 		}
 		
-		private function log2(...args):void
+		private function api_resizeToBridge(w:Number,h:Number):void
 		{
-			PromoLoader.classDict.U.log.apply(null, args)
+			U.log("api_resizeToBridge", w,h, pl.bar.cboxAutoSize.selectedLabel == 'auto');
+			if(pl.bar.cboxAutoSize.selectedLabel == 'auto')
+			{
+				hloader.width = w;
+				hloader.height = h;
+				pl.onResize();
+			}
 		}
+		
 		
 		public function load(url:String):void
 		{
 			requestedAssetToEmbedURL = url;
-			PromoLoader.classDict.Ldr.load();
-			
+		
 			var f:File = File.applicationStorageDirectory.resolvePath(htmlFileName);
 			var f2:File = File.applicationStorageDirectory.resolvePath(bridgeFileName);
 			if(f.exists && f2.exists)
@@ -167,7 +183,7 @@ package com.promoloader.htmlBridge
 			{
 				if(!f.exists || !f2.exists)
 				{
-					PromoLoader.classDict.U.msg("html template could not be read");
+					U.msg("html template could not be read");
 					return
 				}
 				var fs:FileStream = new FileStream();
@@ -175,15 +191,14 @@ package com.promoloader.htmlBridge
 					fs.open(f, FileMode.READ);
 					template = fs.readUTFBytes(fs.bytesAvailable);
 					template = template.replace('data="Bridge.swf"', 'data="app-storage:/Bridge.swf"');
-					log2("template file read", f.nativePath);
+					U.log("template file read", f.nativePath);
 					hloader.loadString(template); 
 				}
 				catch(e:Object) {
-					log2("html template could not be read", e);
+					U.log("html template could not be read", e);
 				}
 			}
 		}
-		
 		
 		public function updateArtefacts(onComplete:Function=null):void
 		{
@@ -198,8 +213,11 @@ package com.promoloader.htmlBridge
 		
 		public function get htmlloader():HTMLLoader {return hloader }
 		
-		public function size(w:Number, h:Number):void
+		public function sizeScale(w:Number, h:Number):void
 		{
+			U.log("USING HTML SIZE");
+			hloader.width = w;
+			hloader.height = h;
 			if(hloader.window && 'promoloaderResize' in hloader.window)
 			{
 				hloader.window.promoloaderResize(w,h);
