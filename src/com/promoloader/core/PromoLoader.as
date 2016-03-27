@@ -360,6 +360,12 @@ package com.promoloader.core
 			classDict.Ldr.defaultPathPrefixes = [];
 			xcontextParameters = {};
 			U.bin.parser.changeContext(this);
+			for(var i:int = 0; i< stage.numChildren;i++)
+			{
+				var c:DisplayObject = stage.getChildAt(i);
+				if(c != this && c != this.parent)
+					stage.removeChildAt(i--);
+			}
 		}
 		
 		
