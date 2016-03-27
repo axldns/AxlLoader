@@ -288,8 +288,7 @@ package com.promoloader.core
 				U.msg("Nothing to load?");
 				return;
 			}
-			var f:File = new  File(LOADABLEURL.url);
-			if(!f.exists)
+			if(!this.checkFileExistence())
 			{
 				U.msg("File doesn't exist");
 				return;
@@ -302,7 +301,37 @@ package com.promoloader.core
 				this.loadWithHTMLBridge();
 			else
 				classDict.Ldr.load(LOADABLEURL.url,null,contentLoaded,null,{},classDict.Ldr.behaviours.loadOverwrite,classDict.Ldr.defaultValue,classDict.Ldr.defaultValue,0,context);
-			
+		}
+		
+		private function checkFileExistence():Boolean
+		{
+			if(LOADABLEURL.url.match("^http"))
+				return true;
+			var f:File = new  File(LOADABLEURL.url);
+			if(!f.exists)
+				return false;
+			if(f.isDirectory)
+			{
+				var found:Boolean = false;
+				var fil:Array;
+				try {fil = f.getDirectoryListing() }
+				catch(e:*){U.log(e)}
+				if(!fil)
+					return true;
+				for(var i:int = fil.length; i-->0; )
+				{
+					var fa:File = fil[i] as File;
+					if(fa == null)
+						continue;
+					if(fa.extension != null && fa.extension.toLowerCase() == 'swf')
+					{
+						this.setLoadableURL(new URLRequest(fa.url));
+						return true;
+					}
+				}
+				return false
+			}
+			return true;
 		}
 		
 		private function setupDomain():void
