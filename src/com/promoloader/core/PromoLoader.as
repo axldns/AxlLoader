@@ -102,6 +102,7 @@ package com.promoloader.core
 		 * </ul>
 		 * */
 		public var domainType:int = -1;
+		private var dragNDrop:Sprite;
 
 		public function PromoLoader()
 		{
@@ -397,6 +398,7 @@ package com.promoloader.core
 			classDict.Ldr.defaultPathPrefixes = [];
 			xcontextParameters = {};
 			U.bin.parser.changeContext(this);
+			removeDragNDropOverlay();
 			for(var i:int = 0; i< stage.numChildren;i++)
 			{
 				var c:DisplayObject = stage.getChildAt(i);
@@ -537,7 +539,6 @@ package com.promoloader.core
 		
 		private function loadWithHTMLBridge():HTMLLoader
 		{
-			U.log("trying htmlloaderzz");
 			if(!htmlContent)
 				htmlContent = new HtmlEmbeder(this);
 			htmlContent.load(LOADABLEURL.url);
@@ -623,6 +624,30 @@ package com.promoloader.core
 			onResize();
 			if(changeConsoleContextToLoadedContent && classDict. U.bin != null)
 				U.bin.parser.changeContext(OBJECT);
+		}
+		
+		public function addDragNDropOverlay():void
+		{
+			if(!htmlContent || !htmlContent.htmlloader.parent)
+				return
+			if(!dragNDrop)
+			{
+				dragNDrop = new Sprite();
+				dragNDrop.y = barDesiredHeight;
+			}
+			dragNDrop.graphics.clear();
+			dragNDrop.graphics.beginFill(0xff5500,0.05);
+			dragNDrop.graphics.drawRect(0,0,htmlContent.htmlloader.width, htmlContent.htmlloader.height);
+			if(!this.contains(dragNDrop))
+				this.addChild(dragNDrop);
+		}
+		
+		public function removeDragNDropOverlay():void
+		{
+			if(dragNDrop && dragNDrop.parent)
+			{
+				dragNDrop.parent.removeChild(dragNDrop);
+			}
 		}
 		
 		public function browseForFile():void

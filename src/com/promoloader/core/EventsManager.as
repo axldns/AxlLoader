@@ -72,9 +72,8 @@ package com.promoloader.core
 			
 			pl.addEventListener(NativeDragEvent.NATIVE_DRAG_ENTER, onDragIn);
 			pl.addEventListener(NativeDragEvent.NATIVE_DRAG_DROP, onDragDrop);
+			pl.addEventListener(NativeDragEvent.NATIVE_DRAG_EXIT, onNativeDragExit);
 		}
-		
-		
 		
 		protected function exitingEvent(e:Event):void
 		{
@@ -90,6 +89,10 @@ package com.promoloader.core
 				if(files.length == 1)
 				{
 					NativeDragManager.acceptDragDrop(pl);
+					if(pl.htmlContent && pl.htmlContent.htmlloader.parent)
+					{
+						pl.addDragNDropOverlay();
+					}
 				}
 			}
 		}
@@ -99,9 +102,14 @@ package com.promoloader.core
 			if(arr && arr.length > 0)
 			{
 				pl.setLoadableURL(new URLRequest(arr.pop().url)); 
-				pl.loadContent()
+				pl.loadContent();
 			}
 		}
+		protected function onNativeDragExit(e:NativeDragEvent):void
+		{
+			if(e.stageX < 1 || e.stageX > pl.stage.stageWidth || e.stageY < 1 || e.stageY > (pl.stage.stageHeight-10))
+				pl.removeDragNDropOverlay();
+		}		
 		
 		protected function onNativeKeyDown(e:KeyboardEvent):void
 		{
