@@ -28,7 +28,7 @@ package com.promoloader.core
 		
 		public function onSwfLoaded(swfLoaderInfo:LoaderInfo, overlap:String, overlap2:String):void
 		{
-			PromoLoader.classDict.U.log(tname,"MERGE LIBRARIES ATTEMPT", swfLoaderInfo.applicationDomain.hasDefinition(classLoader),swfLoaderInfo.applicationDomain.getQualifiedDefinitionNames());
+			PromoLoader.classDict.U.log(tname,"MERGE LIBRARIES ATTEMPT");
 			if(swfLoaderInfo.applicationDomain.hasDefinition(classLoader))
 				loaderClass= swfLoaderInfo.applicationDomain.getDefinition(classLoader) as Class;
 			if(loaderClass && 'defaultPathPrefixes' in loaderClass)

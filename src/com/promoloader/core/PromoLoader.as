@@ -67,14 +67,14 @@ package com.promoloader.core
 		private var bg:Sprite;
 		private var bgLogo:Bitmap;
 		private var legacyController:LegacyController;
-		public var htmlContent:HtmlEmbeder;
 		private var eventsManager:EventsManager;
 		private var openFile:File;
 		private var displayableText:TextField;
+		private var dragNDrop:Sprite;
+		public var htmlContent:HtmlEmbeder;
 		
 		private var xbarDesiredHeight:Number = 22;
 		private var xbgColour:uint=0xeeeeee;
-		
 		
 		//tracking
 		private var xVERSION:String = '0.2.13';
@@ -102,7 +102,7 @@ package com.promoloader.core
 		 * </ul>
 		 * */
 		public var domainType:int = -1;
-		private var dragNDrop:Sprite;
+		
 
 		public function PromoLoader()
 		{
@@ -140,7 +140,7 @@ package com.promoloader.core
 			buildWindows();
 			runEventManager();
 			
-			Updater.updateFunction();
+			//Updater.updateFunction();
 		}
 		
 		private function buildWindows():void
@@ -277,7 +277,6 @@ package com.promoloader.core
 				lastScale = OBJECTREC.width/displayableText.width;
 				OBJECT.scaleY =  lastScale ;
 				OBJECT.scaleX =lastScale;
-				
 			}
 		}
 		

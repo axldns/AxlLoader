@@ -90,7 +90,7 @@ package com.promoloader.htmlBridge
 				//this.hloader.height = this.hloader.contentHeight;
 				//pl.stage.stageWidth = hloader.x + hloader.width;
 				//pl.stage.stageHeight = hloader.y + hloader.height + pl.barDesiredHeight;
-				flash.utils.setTimeout(goOutside, 1000);
+				flash.utils.setTimeout(goOutside, 20); // bug !~if width and height is being set here, event is not fired!
 			}
 			else if(pl.bar.cboxAutoSize.selectedLabel == 'scale')
 			{
@@ -100,7 +100,7 @@ package com.promoloader.htmlBridge
 		
 		private function goOutside():void
 		{
-			U.log("OUTSIDE", hloader.width, hloader.height, hloader.contentWidth, hloader.contentHeight);
+			//U.log("OUTSIDE", hloader.width, hloader.height, hloader.contentWidth, hloader.contentHeight);
 			hloader.width = hloader.contentWidth;
 			hloader.height = hloader.contentHeight;
 		}
@@ -119,7 +119,6 @@ package com.promoloader.htmlBridge
 				case "[Bridge][ready]":
 					if('loadswf' in hloader.window || hloader.window.hasOwnProperty('loadswf'))
 					{
-						U.log(".window.loadswf");
 						hloader.window.loadswf(requestedAssetToEmbedURL,JSON.stringify(pl.contextParameters));
 					}
 					else
@@ -166,7 +165,6 @@ package com.promoloader.htmlBridge
 				pl.onResize();
 			}
 		}
-		
 		
 		public function load(url:String):void
 		{
@@ -215,7 +213,6 @@ package com.promoloader.htmlBridge
 		
 		public function sizeScale(w:Number, h:Number):void
 		{
-			U.log("USING HTML SIZE");
 			hloader.width = w;
 			hloader.height = h;
 			if(hloader.window && 'promoloaderResize' in hloader.window)

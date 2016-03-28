@@ -8,11 +8,13 @@
 		    display: inline-block;
 		    height: auto;    
 		    width: auto;
+
 		}
 		body {
 		    display: inline;
 		    height: auto;    
 		    width: auto;
+       		background-color: #EEEEEE;
 		}
 
 	</style>
@@ -49,7 +51,7 @@
               p.unloadOnErrors = true;
               p.stopErrorPropagation = false;
               p.preventErrorDefaults = false;
-              p.allowscriptaccess = true;
+              p.allowscriptaccess = "always";
              
               return p;
         }
@@ -66,7 +68,6 @@
 
          if(this['api_promoloader'])
           {
-            api_promoloader.log("INIT");
             console = {};
             console.log = api_promoloader.log;
           }
@@ -136,7 +137,6 @@
      
     		if(this['api_promoloader'])
     		{
-    			console.log("talking to promoloader");
     			api_promoloader.resizeToBridge(w,h+document.getElementById('buttons').offsetHeight);
     		}
         }
@@ -183,7 +183,6 @@
         // FROM HTML TO JS
         function quickReoload()
         {
-          console.log("quick reoload");
           if(swfnobridge)
           {
             flashParent.removeChild(swfnobridge);
@@ -201,7 +200,6 @@
         	if(this['api_promoloader'])
           	{
           		var ar = api_promoloader.dimensions();
-          		console.log("promo api avail",ar, document.getElementById('buttons').offsetHeight);
           		ar[2] += document.getElementById('buttons').offsetHeight;
           		return JSON.stringify(ar);
 
@@ -216,7 +214,6 @@
         	if(this['api_promoloader'])
           	{
           		var ar = api_promoloader.dimensions();
-          		console.log("api_promoloader wh",ar);
           		if(ar && ar.length == 3)
           		{
           			wid=ar[1];
@@ -234,7 +231,7 @@
             }
             var params = {};
             params.quality = "high";
-            params.bgcolor = "#aa1111";
+            params.bgcolor = "#EEEEEE";
             params.allowscriptaccess = "always";
             params.allowfullscreen = "true";
             params.wmode = "direct";
@@ -296,6 +293,7 @@
 	            	<param name="allowscriptaccess" value="always"/>
 	           		<param name="allowfullscreen" value="true"/>
 	            	<param name="wmode" value="direct"/>
+                <param name="bgcolor" value="eeeeee" />
 	        	</object>
 	    	</div>
 		</div>

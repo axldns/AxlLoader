@@ -18,10 +18,10 @@ package com.promoloader.htmlBridge
 	import axl.utils.NetworkSettings;
 	import axl.utils.U;
 	import axl.utils.binAgent.BinAgent;
-	
+	[SWF(backgroundColor="0xeeeeee")]
 	public class Bridge extends Sprite
 	{
-		public static const version:String = '0.14';
+		public static const version:String = '0.15';
 		private var tname:String = '[Bridge ' + version +']';
 		private var t:TextField;
 		private var swfLoaderInfo:LoaderInfo;
@@ -256,3 +256,4 @@ package com.promoloader.htmlBridge
 		}
 	}
 }
+
