@@ -6,9 +6,9 @@ package com.promoloader.htmlBridge
 	import flash.display.Sprite;
 	import flash.external.ExternalInterface;
 	import flash.geom.Rectangle;
+	import flash.system.Security;
 	import flash.text.TextField;
 	import flash.utils.clearInterval;
-	import flash.utils.clearTimeout;
 	import flash.utils.setInterval;
 	import flash.utils.setTimeout;
 	
@@ -18,10 +18,11 @@ package com.promoloader.htmlBridge
 	import axl.utils.NetworkSettings;
 	import axl.utils.U;
 	import axl.utils.binAgent.BinAgent;
+	
 	[SWF(backgroundColor="0xeeeeee")]
 	public class Bridge extends Sprite
 	{
-		public static const version:String = '0.15';
+		public static const version:String = '0.17';
 		private var tname:String = '[Bridge ' + version +']';
 		private var t:TextField;
 		private var swfLoaderInfo:LoaderInfo;
@@ -38,8 +39,15 @@ package com.promoloader.htmlBridge
 			super();
 			U.bin =  new BinAgent(this);
 			setup();
+			U.onStageAvailable = ats;
 			U.init(this,800,600,onBridgeReady);
 			
+		}
+		
+		private function ats():void
+		{
+			try { Security.allowDomain("*"); }
+			catch(e:*) { trace(this, e)}; 
 		}
 		//------------------------------------ INITIAL SETUP ------------------------------- //
 		private function setup():void
@@ -142,7 +150,11 @@ package com.promoloader.htmlBridge
 		private function setupLoader(url:String,params:Object=null):void
 		{
 			U.log(tname,"[setupLoader]:",url, params);
-			loadParamsFromJS = ExternalInterface.call('getBridgeLoadingParams');
+			
+			try {
+				loadParamsFromJS = ExternalInterface.call('getBridgeLoadingParams');
+			}
+			catch(e:Object){U.log(e)}
 			if(params && params is String)
 			{
 				U.log(tname, "converting string params to object");
@@ -168,7 +180,13 @@ package com.promoloader.htmlBridge
 		
 		private function load(v:String):void
 		{
-			U.log(tname,"[LOAD]");
+			U.log(tname,"[LOAD.t.o]");
+			flash.utils.setTimeout(timedOut,100);
+		}
+		
+		private function timedOut():void
+		{
+			U.log(tname,"[timed]");
 			ll.load();
 		}
 		
@@ -256,4 +274,5 @@ package com.promoloader.htmlBridge
 		}
 	}
 }
+
 

@@ -47,7 +47,6 @@ package com.promoloader.htmlBridge
 			api.reload = api_reload;
 			api.dimensions = api_dimensions;
 			api.resizeToBridge = api_resizeToBridge;
-			
 		}
 		
 		private function setupHTMLLoader():void
@@ -63,7 +62,6 @@ package com.promoloader.htmlBridge
 			hloader.addEventListener(Event.HTML_DOM_INITIALIZE, onHTMLDOMInitialize);
 			hloader.addEventListener(HTMLUncaughtScriptExceptionEvent.UNCAUGHT_SCRIPT_EXCEPTION, onJSException);
 		}
-		
 		
 		protected function onHtmlComplete(e:Event):void
 		{

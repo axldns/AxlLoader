@@ -32,7 +32,8 @@ package com.promoloader.core
 	public class PromoLoader extends Sprite
 	{
 		
-		[Embed(source='../../../../../promo-rsl/promo/bin-debug/axl.swf', mimeType='application/octet-stream')]
+		[Embed(source='../../../../../promo-rsl/promo/bin-debug/lib_axl.swf', mimeType='application/octet-stream')]
+
 		private var AXL_LIBRARY:Class;
 		
 		[Embed(source='../../../../assets/bg-logo.png', mimeType='image/png')]
