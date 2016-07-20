@@ -33,7 +33,7 @@
           <libraryPathEntry kind="3" linkType="1" path="${PROJECT_FRAMEWORKS}/libs/automation_agent.swc" useDefaultLinkType="false"/>
         </excludedEntries>
       </libraryPathEntry>
-      <libraryPathEntry kind="3" linkType="1" path="/Applications/Adobe Gaming SDK 1.4/Frameworks/fl.swc" useDefaultLinkType="false"/>
+      <libraryPathEntry kind="3" linkType="1" path="C:/Program Files (x86)/Adobe Gaming SDK 1.2/Frameworks/fl.swc" useDefaultLinkType="false"/>
     </libraryPath>
     <sourceAttachmentPath/>
   </compiler>
@@ -57,7 +57,6 @@
       <airSettings airCertificatePath="/Users/denis.aleksandrowicz/Documents/Adobe Flash Builder 4.7/PromoLoader/cert.p12" airTimestamp="true" anePathSet="true" version="1">
         <airExcludes>
           <pathEntry path="axl"/>
-          <pathEntry path=".DS_Store"/>
         </airExcludes>
         <anePaths/>
         <newLaunchParams/>
