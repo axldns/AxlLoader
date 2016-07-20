@@ -1,9 +1,9 @@
-package com.promoloader.core
+package com.axlloader.core
 {
-	import com.promoloader.htmlBridge.HtmlEmbeder;
-	import com.promoloader.nativeWindows.WindowConsole;
-	import com.promoloader.nativeWindows.WindowRecent;
-	import com.promoloader.nativeWindows.WindowTimestamp;
+	import com.axlloader.htmlBridge.HtmlEmbeder;
+	import com.axlloader.nativeWindows.WindowConsole;
+	import com.axlloader.nativeWindows.WindowRecent;
+	import com.axlloader.nativeWindows.WindowTimestamp;
 	
 	import flash.display.Bitmap;
 	import flash.display.DisplayObject;
@@ -29,7 +29,7 @@ package com.promoloader.core
 	
 	import axl.utils.LibraryLoader;
 	
-	public class PromoLoader extends Sprite
+	public class AxlLoader extends Sprite
 	{
 		
 		[Embed(source='../../../../../promo-rsl/promo/bin-debug/lib_axl.swf', mimeType='application/octet-stream')]
@@ -40,7 +40,7 @@ package com.promoloader.core
 		private var bgImage:Class;
 		
 		public static var classDict:Object = {};
-		private static var xinstance:PromoLoader;
+		private static var xinstance:AxlLoader;
 		//loading
 		private var swfLoaderInfo:LoaderInfo;
 		private var overlap:String;
@@ -105,7 +105,7 @@ package com.promoloader.core
 		public var domainType:int = -1;
 		
 
-		public function PromoLoader()
+		public function AxlLoader()
 		{
 			xinstance = this;
 			delegates = new Vector.<Function>();
@@ -166,7 +166,7 @@ package com.promoloader.core
 		
 		private function ready():void
 		{
-			new classDict.LiveAranger();
+			new classDict.LiveArranger();
 		}
 		
 		private function delegatesEmpty():void
@@ -665,7 +665,7 @@ package com.promoloader.core
 		public function get windowTimestamp():WindowTimestamp { return xwindowTimestamp }
 		public function get windowRecent():WindowRecent { return xwindowRecent }
 		public function get windowConsole():WindowConsole { return xwindowConsole }
-		public static function get instance():PromoLoader { return xinstance }
+		public static function get instance():AxlLoader { return xinstance }
 		
 	}
 }

@@ -1,4 +1,4 @@
-package com.promoloader.nativeWindows
+package com.axlloader.nativeWindows
 {
 	import flash.events.Event;
 	import flash.events.KeyboardEvent;
@@ -7,7 +7,7 @@ package com.promoloader.nativeWindows
 	import fl.controls.Label;
 	import fl.controls.NumericStepper;
 	import fl.controls.TextInput;
-	import com.promoloader.core.DateComponent;
+	import com.axlloader.core.DateComponent;
 	
 	public class WindowTimestamp extends WindowOwner
 	{

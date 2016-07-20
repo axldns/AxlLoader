@@ -1,8 +1,8 @@
-package com.promoloader.core
+package com.axlloader.core
 {
-	import com.promoloader.nativeWindows.WindowConsole;
-	import com.promoloader.nativeWindows.WindowRecent;
-	import com.promoloader.nativeWindows.WindowTimestamp;
+	import com.axlloader.nativeWindows.WindowConsole;
+	import com.axlloader.nativeWindows.WindowRecent;
+	import com.axlloader.nativeWindows.WindowTimestamp;
 	
 	import flash.desktop.Clipboard;
 	import flash.desktop.ClipboardFormats;
@@ -21,7 +21,7 @@ package com.promoloader.core
 
 	public class EventsManager
 	{
-		private var pl:PromoLoader;
+		private var pl:AxlLoader;
 		private var bar:TopBar;
 		private var windowConsole:WindowConsole;
 		private var windowTimestamp:WindowTimestamp;
@@ -32,14 +32,14 @@ package com.promoloader.core
 		
 		public function EventsManager()
 		{
-			pl = PromoLoader.instance;
+			pl = AxlLoader.instance;
 			bar = pl.bar;
 			windowConsole = pl.windowConsole;
 			windowRecent = pl.windowRecent;
 			windowRecent.addEventListener(Event.SELECT, onHistoryElementSelected);
 			windowTimestamp = pl.windowTimestamp;
 			mainWindow = pl.mainWindow;
-			U = PromoLoader.classDict.U;
+			U = AxlLoader.classDict.U;
 			addNativeAppListeners();
 			setDefaultApp();
 		}

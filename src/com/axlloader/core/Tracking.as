@@ -1,4 +1,4 @@
-package com.promoloader.core
+package com.axlloader.core
 {
 	import flash.filesystem.File;
 	
@@ -21,7 +21,7 @@ package com.promoloader.core
 		{
 			tracking = gatewayURL;
 			version = appVersion;
-			exit = new PromoLoader.classDict.ConnectPHP('event');
+			exit = new AxlLoader.classDict.ConnectPHP('event');
 			exitObject = getNetObject('exit');
 			track_event('launch',null);
 		}
@@ -30,7 +30,7 @@ package com.promoloader.core
 		{
 			if(tracking == null)
 				return;
-			var p:* = new PromoLoader.classDict.ConnectPHP('event');
+			var p:* = new AxlLoader.classDict.ConnectPHP('event');
 			p.sendData(getNetObject(type,url),completed,tracking);
 			function completed():void { p.destroy(true); p = null}
 		}

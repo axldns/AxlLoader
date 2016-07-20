@@ -1,8 +1,8 @@
-package com.promoloader.nativeWindows
+package com.axlloader.nativeWindows
 {
 	import flash.display.DisplayObject;
 	import flash.events.NativeWindowBoundsEvent;
-	import com.promoloader.core.PromoLoader;
+	import com.axlloader.core.AxlLoader;
 	
 
 	public class WindowConsole extends WindowOwner
@@ -14,7 +14,7 @@ package com.promoloader.nativeWindows
 		
 		override protected function setInitialContent(v:DisplayObject):void
 		{
-			super.setInitialContent(PromoLoader.classDict.BinAgent.instance);
+			super.setInitialContent(AxlLoader.classDict.BinAgent.instance);
 		}
 		
 		override protected function onWindowCreated():void
@@ -27,19 +27,19 @@ package com.promoloader.nativeWindows
 		override public function wappear():void
 		{
 			super.wappear();
-			var bi:* = PromoLoader.classDict.BinAgent.instance;
+			var bi:* = AxlLoader.classDict.BinAgent.instance;
 			if(bi && window && window.stage && !window.stage.contains(bi))
 			{
 				bi.allowKeyboardOpen = false;
 				bi.allowGestureOpen = false;
 				bi.autoResize = false;
-				window.stage.addChild(PromoLoader.classDict.BinAgent.instance);
+				window.stage.addChild(AxlLoader.classDict.BinAgent.instance);
 			}
 		}
 		
 		protected function consoleManualyResized(e:NativeWindowBoundsEvent=null):void
 		{
-			PromoLoader.classDict.U.bin.resize( window.stage.stageWidth-1,window.stage.stageHeight-1);
+			AxlLoader.classDict.U.bin.resize( window.stage.stageWidth-1,window.stage.stageHeight-1);
 		}
 	}
 }

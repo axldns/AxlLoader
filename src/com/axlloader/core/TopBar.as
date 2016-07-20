@@ -1,4 +1,4 @@
-package com.promoloader.core
+package com.axlloader.core
 {
 	import flash.display.Sprite;
 	import flash.events.Event;
@@ -79,7 +79,7 @@ package com.promoloader.core
 			
 			addEventListeners();
 			
-			PromoLoader.classDict.U.addChildGroup(this, btnLoad,btnRecent,tfMember,btnConsole,tfCompVal,dates,cboxAutoSize,tfData,btnReload);
+			AxlLoader.classDict.U.addChildGroup(this, btnLoad,btnRecent,tfMember,btnConsole,tfCompVal,dates,cboxAutoSize,tfData,btnReload);
 		}
 		
 		private function addEventListeners():void
@@ -102,7 +102,7 @@ package com.promoloader.core
 		
 		protected function onAutoSizeChange(e:Event):void
 		{
-			PromoLoader.instance.onResize();
+			AxlLoader.instance.onResize();
 		}
 		
 		protected function set xcboxAutoSizeMode(v:String):void { 
@@ -128,22 +128,22 @@ package com.promoloader.core
 		protected function onTopBarKeyUp(e:KeyboardEvent):void
 		{
 			if(e.charCode == 13)
-				PromoLoader.instance.loadContent();
+				AxlLoader.instance.loadContent();
 		}
 		
-		public function btnConsoleDown(e:*=null):void { PromoLoader.instance.windowConsole.wappear() }
-		public function btnRecentDown(e:*=null):void { PromoLoader.instance.windowRecent.wappear() }
-		public function btnTimestampDown(e:*=null):void { PromoLoader.instance.windowTimestamp.wappear() }
-		public function btnReloadDown(e:*=null):void { PromoLoader.instance.loadContent() }
-		public function btnLoadDown(e:*=null):void { PromoLoader.instance.browseForFile(); }
+		public function btnConsoleDown(e:*=null):void { AxlLoader.instance.windowConsole.wappear() }
+		public function btnRecentDown(e:*=null):void { AxlLoader.instance.windowRecent.wappear() }
+		public function btnTimestampDown(e:*=null):void { AxlLoader.instance.windowTimestamp.wappear() }
+		public function btnReloadDown(e:*=null):void { AxlLoader.instance.loadContent() }
+		public function btnLoadDown(e:*=null):void { AxlLoader.instance.browseForFile(); }
 		
 		// --------------------- public api --------------------- //
 		public function arangeBar():void
 		{
 			if(btnReload == null)
 				return;
-			PromoLoader.classDict.U.distribute(this,0);
-			PromoLoader.classDict.U.align(btnReload, PromoLoader.classDict.U.REC, 'right', 'top');
+			AxlLoader.classDict.U.distribute(this,0);
+			AxlLoader.classDict.U.align(btnReload, AxlLoader.classDict.U.REC, 'right', 'top');
 			if(cboxAutoSize == null)
 				return;
 			cboxAutoSize.x = btnReload.x - cboxAutoSize.width;
@@ -168,7 +168,7 @@ package com.promoloader.core
 			cookie.data.memberId = tfMember.text;
 			cookie.data.autoSize = cboxAutoSize.selectedLabel;
 			cookie.flush();
-			PromoLoader.classDict.U.log(this,'cooke saved');
+			AxlLoader.classDict.U.log(this,'cooke saved');
 		}
 	}
 }

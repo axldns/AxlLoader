@@ -1,4 +1,4 @@
-package com.promoloader.core
+package com.axlloader.core
 {
 	import flash.display.Sprite;
 	import flash.events.Event;
@@ -87,7 +87,7 @@ package com.promoloader.core
 			this.addChild(min);
 			this.addChild(sec);
 			eventChange = new Event(flash.events.Event.CHANGE)
-			PromoLoader.classDict.U.distribute(this,0);
+			AxlLoader.classDict.U.distribute(this,0);
 			this.addEventListener(MouseEvent.MOUSE_WHEEL, wheelEvent);
 		}
 		

@@ -1,4 +1,4 @@
-package com.promoloader.htmlBridge
+package com.axlloader.htmlBridge
 {
 	
 	import flash.display.Loader;

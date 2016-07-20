@@ -1,4 +1,4 @@
-package com.promoloader.nativeWindows
+package com.axlloader.nativeWindows
 {
 	import flash.events.Event;
 	import flash.events.KeyboardEvent;
@@ -13,7 +13,7 @@ package com.promoloader.nativeWindows
 	import fl.controls.TextInput;
 	import fl.controls.listClasses.CellRenderer;
 	import fl.data.DataProvider;
-	import com.promoloader.core.PromoLoader;
+	import com.axlloader.core.AxlLoader;
 	
 	public class WindowRecent extends WindowOwner
 	{
@@ -58,7 +58,7 @@ package com.promoloader.nativeWindows
 		
 		protected function listKeyUp(e:KeyboardEvent):void
 		{
-			PromoLoader.classDict.U.log(e.keyCode == flash.ui.Keyboard.DELETE, list.selectedItem != null)
+			AxlLoader.classDict.U.log(e.keyCode == flash.ui.Keyboard.DELETE, list.selectedItem != null)
 			if(e.keyCode == flash.ui.Keyboard.DELETE && list.selectedItem != null)
 				this.removeRowContaining(list.selectedItem.label);
 		}

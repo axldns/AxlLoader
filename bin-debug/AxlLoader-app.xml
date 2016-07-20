@@ -56,7 +56,7 @@
 	<initialWindow>
 		<!-- The main SWF or HTML file of the application. Required. -->
 		<!-- Note: In Flash Builder, the SWF reference is set automatically. -->
-		<content>PromoLoader.swf</content>
+		<content>AxlLoader.swf</content>
 		
 		<!-- The title of the main window. Optional. -->
 		<title>PromoLoader 2.0</title>

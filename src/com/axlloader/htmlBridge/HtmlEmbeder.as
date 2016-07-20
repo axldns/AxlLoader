@@ -1,6 +1,6 @@
-package com.promoloader.htmlBridge
+package com.axlloader.htmlBridge
 {
-	import com.promoloader.core.PromoLoader;
+	import com.axlloader.core.AxlLoader;
 	
 	import flash.events.Event;
 	import flash.events.HTMLUncaughtScriptExceptionEvent;
@@ -23,17 +23,17 @@ package com.promoloader.htmlBridge
 		private var htmlFileName:String = 'htmlTemplate.html';
 		private var bridgeFileName:String = 'Bridge.swf';
 		private var api:Object = {};
-		private var pl:PromoLoader;
+		private var pl:AxlLoader;
 		private var bridgeAddress:String;
 		private var htmlTemplateAddress:String;
 
 		private var templateDownloader:URLLoader;
 		private var bridgeDownloader:URLLoader;
 		private var U:Class;
-		public function HtmlEmbeder(instance:PromoLoader)
+		public function HtmlEmbeder(instance:AxlLoader)
 		{
 			pl = instance;
-			U = PromoLoader.classDict.U;
+			U = AxlLoader.classDict.U;
 			setupAPI();
 			setupHTMLLoader();
 		}
@@ -198,7 +198,7 @@ package com.promoloader.htmlBridge
 		
 		public function updateArtefacts(onComplete:Function=null):void
 		{
-			PromoLoader.classDict.Ldr.load([htmlFileName,bridgeFileName], onComplete,null,null,artefactsAddress,PromoLoader.classDict.Ldr.behaviours.downloadOnly,/.*/);
+			AxlLoader.classDict.Ldr.load([htmlFileName,bridgeFileName], onComplete,null,null,artefactsAddress,AxlLoader.classDict.Ldr.behaviours.downloadOnly,/.*/);
 		}
 		
 		public function unload():void

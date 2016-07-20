@@ -1,4 +1,4 @@
-package com.promoloader.core
+package com.axlloader.core
 {
 	import flash.display.DisplayObject;
 	import flash.display.Sprite;
@@ -68,8 +68,8 @@ package com.promoloader.core
 		
 		private function drawRects():void
 		{
-			wid = PromoLoader.instance.stage.stageWidth;
-			hei = PromoLoader.instance.stage.stageHeight - PromoLoader.instance.barDesiredHeight;
+			wid = AxlLoader.instance.stage.stageWidth;
+			hei = AxlLoader.instance.stage.stageHeight - AxlLoader.instance.barDesiredHeight;
 			this.graphics.clear();
 			this.graphics.lineStyle(1,0xff0000);
 			this.graphics.beginFill(0,0.2);
