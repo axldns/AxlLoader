@@ -67,7 +67,6 @@ package com.axlloader.core
 		private var xbar:TopBar;
 		private var bg:Sprite;
 		private var bgLogo:Bitmap;
-		private var legacyController:LegacyController;
 		private var eventsManager:EventsManager;
 		private var openFile:File;
 		private var displayableText:TextField;
@@ -109,7 +108,6 @@ package com.axlloader.core
 		{
 			xinstance = this;
 			delegates = new Vector.<Function>();
-			legacyController = new LegacyController();
 			axlLoadAndBuild();
 		}	
 
@@ -383,7 +381,6 @@ package com.axlloader.core
 			OBJECT= null;
 			if(this.clearLogEveryLoad && classDict. U.bin != null)
 				U.bin.clear();
-			legacyController.onSwfUnload()
 			classDict.Ldr.unloadAll();
 			if(swfLoaderInfo)
 				swfLoaderInfo.uncaughtErrorEvents.removeEventListener(UncaughtErrorEvent.UNCAUGHT_ERROR, eventsManager.onLoaderError);
@@ -470,8 +467,6 @@ package com.axlloader.core
 			{
 				U.log("got loader info", swfLoaderInfo.width, swfLoaderInfo.height);
 				swfLoaderInfo.uncaughtErrorEvents.addEventListener(UncaughtErrorEvent.UNCAUGHT_ERROR, eventsManager.onLoaderError);
-				if(legacyController)
-					legacyController.onSwfLoaded(swfLoaderInfo, overlap, overlap2);
 			}
 		}
 		
@@ -612,7 +607,6 @@ package com.axlloader.core
 		public function switchToHTMLLoader():void
 		{
 			U.log("SWITCHING TO HTMLLOADER");
-			legacyController.onSwfUnload()
 			classDict.Ldr.unloadAll();
 			classDict.Ldr.defaultPathPrefixes = [];
 			if(swfLoaderInfo)
@@ -652,7 +646,7 @@ package com.axlloader.core
 		
 		public function browseForFile():void
 		{
-			openFile.browseForOpen("select promo swf")
+			openFile.browseForOpen("select swf");
 		}
 		
 		public function log(...args):void {	U.log.apply(null,args) }
