@@ -355,12 +355,8 @@ package com.axlloader.core
 		private function setupContext():void
 		{
 			context =new LoaderContext(classDict.Ldr.policyFileCheck);
-			if(bar.tfMember.text.match(/^\d+$/g).length > 0)
-				contextParameters.memberId = bar.tfMember.text;
-			if(bar.tfCompVal.text.match(/^\d+$/g).length > 0)
-				contextParameters.fakeComp = bar.tfCompVal.text;
 			contextParameters.fakeTimestamp = String(bar.dates.timestampSec);
-			if(bar.tfData.text != 'dataParameter' && bar.tfData.text.length > 1)
+			if(bar.tfData.text != 'data' && bar.tfData.text.length > 1)
 				contextParameters.dataParameter = bar.tfData.text;
 			contextParameters.fileName = U.fileNameFromUrl(LOADABLEURL.url,true);
 			contextParameters.loadedURL =LOADABLEURL.url;

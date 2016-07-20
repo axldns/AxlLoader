@@ -15,9 +15,6 @@ package com.axlloader.core
 	
 	public class TopBar extends Sprite
 	{
-		private var xtfMember:TextInput;
-		private var xtfCompVal:TextInput;
-		
 		private var xbtnConsole:Button;
 		private var xbtnRecent:Button;
 		private var xbtnReload:Button;
@@ -35,20 +32,8 @@ package com.axlloader.core
 			cookie = SharedObject.getLocal('bar');
 			xdates = new DateComponent();
 			
-			xtfMember = new TextInput();
-			tfMember.text =  cookie.data.memberId || 'memberId';
-			
-			tfMember.textField.restrict = '0-9';
-			tfMember.width = 60;
-			tfMember.addEventListener(MouseEvent.MOUSE_WHEEL, tfMemberWheelEvent);
-			
-			xtfCompVal = new TextInput();
-			
-			tfCompVal.text = cookie.data.compValue ||'compValue';
-			tfCompVal.width = 60;
-			tfCompVal.textField.restrict = '0-9';
 			xtfData = new TextInput();
-			tfData.text = cookie.data.dataParameter || 'dataParameter';
+			tfData.text = cookie.data.data || 'data';
 			
 			xbtnLoad = new Button();
 			btnLoad.label = 'select swf';
@@ -79,20 +64,17 @@ package com.axlloader.core
 			
 			addEventListeners();
 			
-			AxlLoader.classDict.U.addChildGroup(this, btnLoad,btnRecent,tfMember,btnConsole,tfCompVal,dates,cboxAutoSize,tfData,btnReload);
+			AxlLoader.classDict.U.addChildGroup(this, btnLoad,btnRecent,btnConsole,dates,cboxAutoSize,tfData,btnReload);
+			arangeBar();
 		}
 		
 		private function addEventListeners():void
 		{
 			this.addEventListener(Event.ADDED_TO_STAGE, ats);
-			tfMember.addEventListener(MouseEvent.CLICK, fin);
-			tfCompVal.addEventListener(MouseEvent.CLICK, fin);
 			this.addEventListener(FocusEvent.FOCUS_OUT, fout);
 			
 			dates.addEventListener(KeyboardEvent.KEY_UP, onTopBarKeyUp);
-			tfCompVal.textField.addEventListener(KeyboardEvent.KEY_UP, onTopBarKeyUp);
 			tfData.textField.addEventListener(KeyboardEvent.KEY_UP, onTopBarKeyUp);
-			tfMember.textField.addEventListener(KeyboardEvent.KEY_UP, onTopBarKeyUp);
 			btnLoad.addEventListener(ComponentEvent.BUTTON_DOWN, btnLoadDown);
 			btnConsole.addEventListener(ComponentEvent.BUTTON_DOWN, btnConsoleDown);
 			btnRecent.addEventListener(ComponentEvent.BUTTON_DOWN, btnRecentDown);
@@ -113,17 +95,7 @@ package com.axlloader.core
 		
 		// --------------------- EVENTS --------------------- //
 		private function fout(e:FocusEvent):void {  dates.timestampSec }
-		private function fin(e:MouseEvent):void {	e.target.setSelection(0, e.target.text.length) }
 		protected function ats(event:Event):void { 	arangeBar()	}
-
-		protected function tfMemberWheelEvent(e:MouseEvent):void
-		{
-			var n:Number = Number(tfMember.text);
-			if(!isNaN(n))
-				tfMember.text = String(n += e.delta > 0 ? 1 : -1);
-			else
-				tfMember.text = '1';
-		}
 		
 		protected function onTopBarKeyUp(e:KeyboardEvent):void
 		{
@@ -151,8 +123,6 @@ package com.axlloader.core
 			xtfData.width = cboxAutoSize.x - xtfData.x;
 		}
 
-		public function get tfMember():TextInput { return xtfMember }
-		public function get tfCompVal():TextInput { return xtfCompVal }
 		public function get btnConsole():Button { return xbtnConsole }
 		public function get btnRecent():Button { return xbtnRecent }
 		public function get btnReload():Button { return xbtnReload }
@@ -163,12 +133,9 @@ package com.axlloader.core
 
 		public function exiting():void
 		{
-			cookie.data.dataParameter =tfData.text;
-			cookie.data.compValue = tfCompVal.text;
-			cookie.data.memberId = tfMember.text;
+			cookie.data.data =tfData.text;
 			cookie.data.autoSize = cboxAutoSize.selectedLabel;
 			cookie.flush();
-			AxlLoader.classDict.U.log(this,'cooke saved');
 		}
 	}
 }
