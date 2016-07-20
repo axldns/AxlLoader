@@ -77,8 +77,8 @@ package com.axlloader.core
 		private var xbgColour:uint=0xeeeeee;
 		
 		//tracking
-		private var xVERSION:String = '0.2.13';
-		private var tname:String = '[PromoLoader ' + xVERSION + ']';
+		private var xVERSION:String = '0.2.16';
+		private var tname:String = '[AxlLoader ' + xVERSION + ']';
 		private var trackingURL:String;
 		private var tracker:Tracking;
 		private var OBJECT:DisplayObject;
@@ -138,7 +138,7 @@ package com.axlloader.core
 			buildDisplayableTextField();
 			buildWindows();
 			runEventManager();
-			
+			delegatesEmpty();
 			//Updater.updateFunction();
 		}
 		

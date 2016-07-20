@@ -15,21 +15,25 @@
 
 	<!-- A universally unique application identifier. Must be unique across all AIR applications.
 	Using a reverse DNS-style name as the id is recommended. (Eg. com.example.ExampleApplication.) Required. -->
-	<id>AxlLoader2.0</id>
+	<id>com.axl.AxlLoader</id>
 
 	<!-- Used as the filename for the application. Required. -->
-	<filename>AxlLoader 2.0</filename>
+	<filename>AxlLoader</filename>
 
 	<!-- The name that is displayed in the AIR application installer. 
 	May have multiple values for each language. See samples or xsd schema file. Optional. -->
-	<name>AxlLoader 2.0</name>
+	<name>AxlLoader</name>
 	
 	<!-- A string value of the format <0-999>.<0-999>.<0-999> that represents application version which can be used to check for application upgrade. 
 	Values can also be 1-part or 2-part. It is not necessary to have a 3-part value.
-	An updated version of application must have a versionNumber value higher than the previous version. Required for namespace >= 2.5 . -->
-	<versionNumber>0.2.0</versionNumber>
+	An updated version of application must have a versionNumber value higher than the previous version. Required for namespace >= 2.5 .
+    For iOS Apps, this represents build number. -->
+	<versionNumber>1.0.0</versionNumber>
 		         
-	<!-- A string value (such as "v1", "2.5", or "Alpha 1") that represents the version of the application, as it should be shown to users. Optional. -->
+	<!-- A string value (such as "v1", "2.5", or "Alpha 1") that represents the version of the application, as it should be shown to users. 
+     For iOS Apps, this represents application version number and format should be (<0-999>.<0-999>.<0-999>).
+     If this tag is not specified or the value is not according to the format, then this tag will be ignored 
+     and <versionNumber> will be used for application version number. Optional. -->
 	<!-- <versionLabel></versionLabel> -->
 
 	<!-- Description, displayed in the AIR application installer.
@@ -37,17 +41,7 @@
 	<!-- <description></description> -->
 
 	<!-- Copyright information. Optional -->
-	<copyright>axldns
-		Hot Keys:
-		ctrl/⌘ + L - show/hide top bar
-		ctrl/⌘ + R - reload last item
-		ctrl/⌘ + [0-9] - load from history
-		ctrl/⌘ + V - load item from clipboard if address found
-		ctrl/⌘ + S - save config for axlx based projects
-		ctrl/⌘ + H - History window
-		ctrl/⌘ + SHIFT + C - console window
-		
-	</copyright>
+	<!-- <copyright></copyright> -->
 
 	<!-- Publisher ID. Used if you're updating an application created prior to 1.5.3 -->
 	<!-- <publisherID></publisherID> -->
@@ -59,7 +53,7 @@
 		<content>[This value will be overwritten by Flash Builder in the output app.xml]</content>
 		
 		<!-- The title of the main window. Optional. -->
-		<title>AxlLoader 2.0</title>
+		<!-- <title></title> -->
 
 		<!-- The type of system chrome to use (either "standard" or "none"). Optional. Default standard. -->
 		<!-- <systemChrome></systemChrome> -->
@@ -111,7 +105,7 @@
 
         <!-- The render mode for the app (either auto, cpu, gpu, or direct). Optional. Default auto -->
 
-        <renderMode>direct</renderMode>
+        <!-- <renderMode></renderMode> -->
 
         <!-- Whether the default direct mode rendering context allocates storage for depth and stencil buffers.  Optional.  Default false. -->
         <!-- <depthAndStencil></depthAndStencil> -->
@@ -196,7 +190,7 @@
 			<!-- <name></name> -->
 
 			<!-- The extension to register. Required. -->
-			<extension>swf</extension>
+			<!-- <extension></extension> -->
 			
 			<!-- The description of the file type. Optional. -->
 			<!-- <description></description> -->

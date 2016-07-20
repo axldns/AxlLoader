@@ -145,37 +145,37 @@
 
 	<!-- The icon the system uses for the application. For at least one resolution,
 	specify the path to a PNG file included in the AIR package. Optional. -->
-	<!-- <icon>
-		<image16x16></image16x16>
-		<image29x29></image29x29>
-		<image32x32></image32x32>
-		<image36x36></image36x36>
-		<image40x40></image40x40>
-		<image44x44></image44x44>
-		<image48x48></image48x48>
-		<image50x50></image50x50>
-		<image57x57></image57x57>
-		<image58x58></image58x58>
-		<image60x60></image60x60>
-		<image66x66></image66x66>
-		<image72x72></image72x72>
-		<image75x75></image75x75>
-		<image76x76></image76x76>
-		<image80x80></image80x80>
-		<image87x87></image87x87>
-		<image96x96></image96x96>
-		<image100x100></image100x100>
-		<image114x114></image114x114>
-		<image120x120></image120x120>
-		<image128x128></image128x128>
-		<image144x144></image144x144>
-		<image152x152></image152x152>
-		<image180x180></image180x180>
-		<image192x192></image192x192>
-		<image512x512></image512x512>
-		<image732x412></image732x412>
-		<image1024x1024></image1024x1024>
-	</icon> -->
+	 <icon>
+ 		<image16x16>assets/icons/i16x16.png</image16x16>
+		<image29x29>assets/icons/i29x29.png</image29x29>
+		<image32x32>assets/icons/i32x32.png</image32x32>
+		<image36x36>assets/icons/i36x36.png</image36x36>
+		<image40x40>assets/icons/i40x40.png</image40x40>
+		<image44x44>assets/icons/i44x44.png</image44x44>
+		<image48x48>assets/icons/i48x48.png</image48x48>
+		<image50x50>assets/icons/i50x50.png</image50x50>
+		<image57x57>assets/icons/i57x57.png</image57x57>
+		<image58x58>assets/icons/i58x58.png</image58x58>
+		<image60x60>assets/icons/i60x60.png</image60x60>
+		<image66x66>assets/icons/i66x66.png</image66x66>
+		<image72x72>assets/icons/i72x72.png</image72x72>
+		<image75x75>assets/icons/i75x75.png</image75x75>
+		<image76x76>assets/icons/i76x76.png</image76x76>
+		<image80x80>assets/icons/i80x80.png</image80x80>
+		<image87x87>assets/icons/i87x87.png</image87x87>
+		<image96x96>assets/icons/i96x96.png</image96x96>
+		<image100x100>assets/icons/i100x100.png</image100x100>
+		<image114x114>assets/icons/i114x114.png</image114x114>
+		<image120x120>assets/icons/i120x120.png</image120x120>
+		<image128x128>assets/icons/i128x128.png</image128x128>
+		<image144x144>assets/icons/i144x144.png</image144x144>
+		<image152x152>assets/icons/i152x152.png</image152x152>
+		<image180x180>assets/icons/i180x180.png</image180x180>
+		<image192x192>assets/icons/i192x192.png</image192x192>
+		<image512x512>assets/icons/i512x512.png</image512x512>
+		<image1024x1024>assets/icons/i1024x1024.png</image1024x1024>
+<!-- 		<image732x412></image732x412> -->
+	</icon> 
 
 	<!-- Whether the application handles the update when a user double-clicks an update version
 	of the AIR file (true), or the default AIR application installer handles the update (false).

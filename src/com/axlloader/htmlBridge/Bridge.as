@@ -14,10 +14,10 @@ package com.axlloader.htmlBridge
 	
 	import axl.ui.controllers.BoundBox;
 	import axl.utils.LibraryLoader;
-	import axl.utils.LiveAranger;
 	import axl.utils.NetworkSettings;
 	import axl.utils.U;
 	import axl.utils.binAgent.BinAgent;
+	import axl.utils.liveArrange.LiveArranger;
 	
 	[SWF(backgroundColor="0xeeeeee")]
 	public class Bridge extends Sprite
@@ -90,7 +90,7 @@ package com.axlloader.htmlBridge
 		private function onBridgeReady():void
 		{
 			U.log(tname,"[onBridgeReady]");
-			new LiveAranger();
+			new LiveArranger();
 			t.text = tname + 'ready';
 			sendToPromoLoader('[Bridge][ready]');
 		}
