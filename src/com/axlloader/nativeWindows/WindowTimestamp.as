@@ -9,7 +9,7 @@ package com.axlloader.nativeWindows
 	import fl.controls.TextInput;
 	import com.axlloader.core.DateComponent;
 	
-	public class WindowTimestamp extends WindowOwner
+	public class WindowTimestamp extends CoreWindow
 	{
 		private var start:DateComponent;
 		private var end:DateComponent;

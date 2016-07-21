@@ -8,14 +8,14 @@ package com.axlloader.nativeWindows
 	import flash.display.StageAlign;
 	import flash.display.StageScaleMode;
 	
-	public class WindowOwner extends Sprite
+	public class CoreWindow extends Sprite
 	{
 		private var xwindow:NativeWindow;
 		private var wop:NativeWindowInitOptions;
 		public var title:String;
 		private var content:DisplayObject;
 		
-		public function WindowOwner(windowTitle:String)
+		public function CoreWindow(windowTitle:String)
 		{
 			title = windowTitle;
 			setInitialContent(this);
@@ -58,8 +58,5 @@ package com.axlloader.nativeWindows
 		{
 			return xwindow;
 		}
-
 	}
-	
-	
 }

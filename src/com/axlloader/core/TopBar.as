@@ -25,6 +25,7 @@ package com.axlloader.core
 		private var xcboxAutoSize:ComboBox;
 		private var cookie:SharedObject;
 		private var scaleModes:Array = [{label : "auto"}, {label : "scale"}, {label: "free"}];
+		private var xbtnParameters:Button;
 		
 		public function TopBar()
 		{
@@ -36,12 +37,12 @@ package com.axlloader.core
 			tfData.text = cookie.data.data || 'data';
 			
 			xbtnLoad = new Button();
-			btnLoad.label = 'select swf';
+			btnLoad.label = 'Open';
 			btnLoad.width = btnLoad.textField.textWidth + 15;
 			
 			
 			xbtnReload = new Button();
-			btnReload.label = 'reload';
+			btnReload.label = 'Reload';
 			btnReload.width = btnReload.textField.textWidth + 15;
 			
 			
@@ -51,8 +52,12 @@ package com.axlloader.core
 			
 			
 			xbtnRecent = new Button();
-			btnRecent.label = 'R';
+			btnRecent.label = 'H';
 			btnRecent.width = btnRecent.height;
+			
+			xbtnParameters = new Button();
+			xbtnParameters.label = 'P';
+			xbtnParameters.width = btnRecent.height;
 			
 			
 			xcboxAutoSize = new ComboBox();
@@ -64,7 +69,7 @@ package com.axlloader.core
 			
 			addEventListeners();
 			
-			AxlLoader.classDict.U.addChildGroup(this, btnLoad,btnRecent,btnConsole,dates,cboxAutoSize,tfData,btnReload);
+			AxlLoader.classDict.U.addChildGroup(this, btnLoad,btnRecent,xbtnParameters,btnConsole,dates,cboxAutoSize,tfData,btnReload);
 			arangeBar();
 		}
 		
@@ -79,8 +84,10 @@ package com.axlloader.core
 			btnConsole.addEventListener(ComponentEvent.BUTTON_DOWN, btnConsoleDown);
 			btnRecent.addEventListener(ComponentEvent.BUTTON_DOWN, btnRecentDown);
 			btnReload.addEventListener(ComponentEvent.BUTTON_DOWN, btnReloadDown);
+			xbtnParameters.addEventListener(ComponentEvent.BUTTON_DOWN, btnParametersDown);
 			cboxAutoSize.addEventListener(Event.CHANGE, onAutoSizeChange);
 		}
+		
 		
 		protected function onAutoSizeChange(e:Event):void
 		{
@@ -108,6 +115,8 @@ package com.axlloader.core
 		public function btnTimestampDown(e:*=null):void { AxlLoader.instance.windowTimestamp.wappear() }
 		public function btnReloadDown(e:*=null):void { AxlLoader.instance.loadContent() }
 		public function btnLoadDown(e:*=null):void { AxlLoader.instance.browseForFile(); }
+		public function btnParametersDown(e:*=null):void { AxlLoader.instance.windowParameters.wappear() }
+		
 		
 		// --------------------- public api --------------------- //
 		public function arangeBar():void

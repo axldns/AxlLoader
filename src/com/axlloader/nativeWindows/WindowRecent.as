@@ -15,7 +15,7 @@ package com.axlloader.nativeWindows
 	import fl.data.DataProvider;
 	import com.axlloader.core.AxlLoader;
 	
-	public class WindowRecent extends WindowOwner
+	public class WindowRecent extends CoreWindow
 	{
 		private var list:List;
 		private var dp:DataProvider;

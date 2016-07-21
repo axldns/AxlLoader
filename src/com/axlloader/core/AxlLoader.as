@@ -2,6 +2,7 @@ package com.axlloader.core
 {
 	import com.axlloader.htmlBridge.HtmlEmbeder;
 	import com.axlloader.nativeWindows.WindowConsole;
+	import com.axlloader.nativeWindows.WindowParameters;
 	import com.axlloader.nativeWindows.WindowRecent;
 	import com.axlloader.nativeWindows.WindowTimestamp;
 	
@@ -31,9 +32,7 @@ package com.axlloader.core
 	
 	public class AxlLoader extends Sprite
 	{
-		
 		[Embed(source='../../../../../promo-rsl/promo/bin-debug/lib_axl.swf', mimeType='application/octet-stream')]
-
 		private var AXL_LIBRARY:Class;
 		
 		[Embed(source='../../../../assets/bg-logo.png', mimeType='image/png')]
@@ -62,6 +61,7 @@ package com.axlloader.core
 		private var xwindowConsole:WindowConsole;
 		private var xwindowRecent:WindowRecent;
 		private var xmainWindow:NativeWindow;
+		private var xwindowParameters:WindowParameters;
 		
 		//elements
 		private var xbar:TopBar;
@@ -93,6 +93,7 @@ package com.axlloader.core
 		
 		//------------------------ VARIABLES -------------------------- //
 		//------------------------ INITIAL SETUP -------------------------- //
+		
 		
 		/** 1. Sets instance reference, requests AXL Library load. */
 		public function AxlLoader()
@@ -154,7 +155,6 @@ package com.axlloader.core
 			}
 		}
 		
-		
 		/** 2.2 Instantiates and top menu bar and adds it to display list. */
 		private function buildBar():void
 		{
@@ -179,6 +179,7 @@ package com.axlloader.core
 			xwindowConsole = new WindowConsole('Console');
 			xwindowTimestamp = new WindowTimestamp('Timestamp Generator');
 			xwindowRecent = new WindowRecent('Recently loaded');
+			xwindowParameters = new WindowParameters("Loader context parameters");
 		}
 		
 		/** 2.5 Instantiates events manager (responds to various events related to loading and unloading content, hot keys etc.). Creates file instance
@@ -764,6 +765,8 @@ package com.axlloader.core
 		public function get windowTimestamp():WindowTimestamp { return xwindowTimestamp }
 		public function get windowRecent():WindowRecent { return xwindowRecent }
 		public function get windowConsole():WindowConsole { return xwindowConsole }
+		public function get windowParameters():WindowParameters	{ return xwindowParameters}
+		
 		public static function get instance():AxlLoader { return xinstance }
 		
 	}

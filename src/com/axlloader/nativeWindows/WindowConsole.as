@@ -5,7 +5,7 @@ package com.axlloader.nativeWindows
 	import com.axlloader.core.AxlLoader;
 	
 
-	public class WindowConsole extends WindowOwner
+	public class WindowConsole extends CoreWindow
 	{
 		public function WindowConsole(windowTitle:String)
 		{
