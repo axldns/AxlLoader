@@ -34,7 +34,8 @@
 
 	<!-- Description, displayed in the AIR application installer.
 	May have multiple values for each language. See samples or xsd schema file. Optional. -->
-	<!-- <description></description> -->
+	<description>Loads swf files with standard + user defined parameters. "Grants" web sand-boxed swf access
+	to local files. Provides set of hot-keys and other features for convenient development and previewing.</description>
 
 	<!-- Copyright information. Optional -->
 	<copyright>axldns
@@ -43,7 +44,6 @@
 		ctrl/⌘ + R - reload last item
 		ctrl/⌘ + [0-9] - load from history
 		ctrl/⌘ + V - load item from clipboard if address found
-		ctrl/⌘ + S - save config for axlx based projects
 		ctrl/⌘ + H - History window
 		ctrl/⌘ + SHIFT + C - console window
 		
@@ -187,13 +187,13 @@
 	<!-- <allowBrowserInvocation></allowBrowserInvocation> -->
 
 	<!-- Listing of file types for which the application can register. Optional. -->
-	<!-- <fileTypes> -->
+	<fileTypes>
 
 		<!-- Defines one file type. Optional. -->
-		<!-- <fileType> -->
+		 <fileType>
 
 			<!-- The name that the system displays for the registered file type. Required. -->
-			<!-- <name></name> -->
+			 <name>ShockwaveFlash</name>
 
 			<!-- The extension to register. Required. -->
 			<extension>swf</extension>
@@ -202,7 +202,7 @@
 			<!-- <description></description> -->
 			
 			<!-- The MIME content type. -->
-			<!-- <contentType></contentType> -->
+			<contentType>application/x-shockwave-flash</contentType>
 			
 			<!-- The icon to display for the file type. Optional. -->
 			<!-- <icon>
@@ -212,8 +212,9 @@
 				<image128x128></image128x128>
 			</icon> -->
 			
-		<!-- </fileType> -->
-	<!-- </fileTypes> -->
+		 </fileType>
+	</fileTypes>
+
 
     <!-- iOS specific capabilities -->
 	<!-- <iPhone> -->
