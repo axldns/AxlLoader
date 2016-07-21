@@ -53,8 +53,8 @@ package com.axlloader.nativeWindows
 			list.controller.omitDraggingAnimation=false;
 			list.controller.animationTime = 1;
 			list.deltaMultiplier = 30;
-			list.visibleWidth = 600;
-			list.visibleHeight = 400;
+			list.visibleWidth = 300;
+			list.visibleHeight = 200;
 			list.y = 60;
 			addSavedRows();
 			addChild(list as DisplayObject);
@@ -77,7 +77,7 @@ package com.axlloader.nativeWindows
 			
 			btnOpen = new Button();
 			btnOpen.label = "open csv xml or json";
-			btnOpen.width = 150;
+			btnOpen.width = 125;
 			
 			addChild(btnOpen);
 			openFile = new File();
@@ -86,8 +86,8 @@ package com.axlloader.nativeWindows
 			
 			btnRemoveAll = new Button();
 			btnRemoveAll.label = "remove all";
-			btnRemoveAll.x = 150;
-			btnRemoveAll.width = 75;
+			btnRemoveAll.x = 125;
+			btnRemoveAll.width = 70;
 			addChild(btnRemoveAll);
 			btnRemoveAll.addEventListener(ComponentEvent.BUTTON_DOWN, onRemoveAll);			
 			addEventListener(NativeDragEvent.NATIVE_DRAG_ENTER, onDragIn);
@@ -96,9 +96,30 @@ package com.axlloader.nativeWindows
 			btnSave = new Button();
 			btnSave.label = "save";
 			btnSave.width = 50;
-			btnSave.x= 225;
+			btnSave.x= 195;
 			addChild(btnSave);
 			btnSave.addEventListener(ComponentEvent.BUTTON_DOWN, onSave);
+		}
+		
+		override protected function onWindowCreated():void
+		{
+			window.addEventListener(NativeWindowBoundsEvent.RESIZE,onResize);
+			window.stage.stageWidth = wid = 245;
+			window.stage.stageHeight = 300;
+		}
+		
+		protected function onResize(event:NativeWindowBoundsEvent):void
+		{
+			graphics.clear();
+			graphics.beginFill(0xffffff);
+			graphics.drawRect(0,0,wid, stage.stageHeight);
+			wid = stage.stageWidth;
+			Row.onResize();
+			btnAdd.x = wid - btnAdd.width;
+			list.visibleWidth = wid;
+			list.visibleHeight = stage.stageHeight-list.y;
+			if(selectedRow)
+				selectRow();
 		}
 		
 		protected function onSave(event:ComponentEvent):void
@@ -145,7 +166,7 @@ package com.axlloader.nativeWindows
 		{
 			// cant use AXL loader since it gots 
 			if(urlr == null) return;
-			AxlLoader.classDict.Ldr.load(urlr.url,null,onLoaded);
+			AxlLoader.classDict.Ldr.load(urlr.url,null,onLoaded,null,null,0);
 		}
 		
 		private function onLoaded(fn:String):void
@@ -269,27 +290,6 @@ package com.axlloader.nativeWindows
 			Row.distributeRows();
 		}
 				
-		override protected function onWindowCreated():void
-		{
-			window.addEventListener(NativeWindowBoundsEvent.RESIZE,onResize);
-			window.stage.stageWidth = wid = 400;
-			window.stage.stageHeight = 600;
-		}
-		
-		protected function onResize(event:NativeWindowBoundsEvent):void
-		{
-			graphics.clear();
-			graphics.beginFill(0xffffff);
-			graphics.drawRect(0,0,wid, stage.stageHeight);
-			wid = stage.stageWidth;
-			Row.onResize();
-			btnAdd.x = wid - btnAdd.width;
-			list.visibleWidth = wid;
-			list.visibleHeight = stage.stageHeight-list.y;
-			if(selectedRow)
-				selectRow();
-		}
-		
 		public function exiting():void
 		{
 			saveCookie();
@@ -367,7 +367,7 @@ internal class Row extends Sprite {
 	{
 		tf.border = true;
 		tf.defaultTextFormat = tff;
-		tf.wordWrap = true;
+		tf.wordWrap = false;
 		tf.type = 'input';
 	}
 	
