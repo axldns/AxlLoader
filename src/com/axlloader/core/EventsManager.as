@@ -47,18 +47,10 @@ package com.axlloader.core
 		private function setDefaultApp():void
 		{
 			try {
-				U.log("SETTING AS DEFAULT SWF APP");
 				if(NativeApplication.supportsDefaultApplication())
-				{
 					NativeApplication.nativeApplication.setAsDefaultApplication("swf");
-					U.log("SETTING AS DEFAULT SW APP DONE");
-				}
-				else
-				{
-					U.log("default app not supported");
-				}
 			}
-			catch(e:*){U.log(e);}
+			catch(e:*){}
 		}
 		
 		private function addNativeAppListeners():void
