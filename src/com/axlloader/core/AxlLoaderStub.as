@@ -18,30 +18,15 @@ package com.axlloader.core
 	
 	public class AxlLoaderStub extends Sprite
 	{
-		/** Loads library to specific application domain according the rule:
-		 * <ul>
-		 * <li><b>negative values</b> (default): new ApplicationDomain(ApplicationDomain.currentDomain) - This allows the loaded SWF file to use the parent's classes directly, 
-		 * for example by writing new MyClassDefinedInParent(). The parent, however, cannot use this syntax; if the parent wishes 
-		 * to use the child's classes, it must call ApplicationDomain.getDefinition() to retrieve them. The advantage of this choice is that, 
-		 * if the child defines a class with the same name as a class already defined by the parent, no error results; the child simply 
-		 * inherits the parent's definition of that class, and the child's conflicting definition goes unused unless either child or parent 
-		 * calls the ApplicationDomain.getDefinition() method to retrieve it.</li>
-		 * <li><b>0 value</b>: ApplicationDomain.currentDomain - When the load is complete, parent and child can use each other's classes directly.
-		 * If the child attempts to define a class with the same name as a class already defined by the parent, the parent class is used and the child class is ignored.
-		 * <li><b>positive values</b>: new ApplicationDomain(null) - This separates loader and loadee entirely, allowing them to define separate versions of classes 
-		 * with the same name without conflict or overshadowing. The only way either side sees the other's classes is by calling the ApplicationDomain.getDefinition() method.</li>
-		 * </ul>
-		 * */
-		public var domainType:int = -1;
 		private var cookie:SharedObject;
 		private var newVersion:Boolean;
 		private var version:String;
 		private var cb:String =  "?cb="+String(new Date().time);
 		private var versionURL:String = "http://axldns.com/axlloader/version.json" + cb;
 		
-		private var lloader:LibraryLoader;
 		private var net:String = "http://axldns.com/axlloader/AxlLoader.swf" + cb;
 		private var local:String = File.applicationStorageDirectory.resolvePath('AxlLoader.swf').nativePath;
+		private var lloader:LibraryLoader;
 		
 		private var log:Function = trace;
 		
@@ -118,7 +103,7 @@ package com.axlloader.core
 		private function loadProgram():void
 		{
 			lloader= new LibraryLoader(this,log);
-			lloader.domainType = domainType;
+			lloader.domainType = lloader.domain.coppyOfCurrent;
 			lloader.mapOnlyClasses = [];
 			lloader.libraryURLs = newVersion ? [net,local] : [local,net];
 			log("urls:", lloader.libraryURLs);
