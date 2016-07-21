@@ -503,6 +503,9 @@ package com.axlloader.core
 		private function setupContext():void
 		{
 			context =new LoaderContext(classDict.Ldr.policyFileCheck);
+			var userParams:Object = windowParameters.getParams();
+			for(var s:String in userParams)
+				contextParameters[s] = userParams[s] is String ? userParams[s] : JSON.stringify(userParams[s]);
 			contextParameters.fakeTimestamp = String(bar.dates.timestampSec);
 			contextParameters.fileName = U.fileNameFromUrl(LOADABLEURL.url,true);
 			contextParameters.loadedURL =LOADABLEURL.url;

@@ -37,6 +37,7 @@ package com.axlloader.nativeWindows
 		private var log:Function;
 		private var btnRemoveAll:Button;
 		private var btnSave:Button;
+		
 		public function WindowParameters(windowTitle:String)
 		{
 			super(windowTitle);
@@ -302,6 +303,7 @@ package com.axlloader.nativeWindows
 			cookie.data.autoSize;
 			cookie.flush();
 		}
+		public function getParams():Object { return Row.getJSON() }
 	}
 }
 import com.axlloader.core.AxlLoader;
