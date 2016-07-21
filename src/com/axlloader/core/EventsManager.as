@@ -79,6 +79,8 @@ package com.axlloader.core
 		{
 			if(bar != null)
 				bar.exiting();
+			if(pl.windowParameters != null)
+				pl.windowParameters.exiting();
 		}
 		
 		private function onDragIn(e:NativeDragEvent):void
