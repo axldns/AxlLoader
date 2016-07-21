@@ -2,6 +2,7 @@ package com.axlloader.core
 {
 	import com.axlloader.htmlBridge.HtmlEmbeder;
 	import com.axlloader.nativeWindows.WindowConsole;
+	import com.axlloader.nativeWindows.WindowInfo;
 	import com.axlloader.nativeWindows.WindowParameters;
 	import com.axlloader.nativeWindows.WindowRecent;
 	import com.axlloader.nativeWindows.WindowTimestamp;
@@ -29,6 +30,8 @@ package com.axlloader.core
 	import flash.utils.describeType;
 	
 	import axl.utils.LibraryLoader;
+
+	[SWF(width="560")]
 	
 	public class AxlLoader extends Sprite
 	{
@@ -62,6 +65,7 @@ package com.axlloader.core
 		private var xwindowRecent:WindowRecent;
 		private var xmainWindow:NativeWindow;
 		private var xwindowParameters:WindowParameters;
+		private var xwindowInfo:WindowInfo;
 		
 		//elements
 		private var xbar:TopBar;
@@ -180,6 +184,7 @@ package com.axlloader.core
 			xwindowTimestamp = new WindowTimestamp('Timestamp Generator');
 			xwindowRecent = new WindowRecent('Recently loaded');
 			xwindowParameters = new WindowParameters("Loader context parameters");
+			xwindowInfo = new WindowInfo("Info");
 		}
 		
 		/** 2.5 Instantiates events manager (responds to various events related to loading and unloading content, hot keys etc.). Creates file instance
@@ -491,8 +496,6 @@ package com.axlloader.core
 		{
 			context =new LoaderContext(classDict.Ldr.policyFileCheck);
 			contextParameters.fakeTimestamp = String(bar.dates.timestampSec);
-			if(bar.tfData.text != 'data' && bar.tfData.text.length > 1)
-				contextParameters.data = bar.tfData.text;
 			contextParameters.fileName = U.fileNameFromUrl(LOADABLEURL.url,true);
 			contextParameters.loadedURL =LOADABLEURL.url;
 			context.parameters = contextParameters;
@@ -766,6 +769,7 @@ package com.axlloader.core
 		public function get windowRecent():WindowRecent { return xwindowRecent }
 		public function get windowConsole():WindowConsole { return xwindowConsole }
 		public function get windowParameters():WindowParameters	{ return xwindowParameters}
+		public function get windowInfo():WindowInfo	{ return xwindowInfo }
 		
 		public static function get instance():AxlLoader { return xinstance }
 		

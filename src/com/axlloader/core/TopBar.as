@@ -21,20 +21,17 @@ package com.axlloader.core
 		private var xbtnLoad:Button;
 		
 		private var xdates:DateComponent;
-		private var xtfData:TextInput;
 		private var xcboxAutoSize:ComboBox;
 		private var cookie:SharedObject;
 		private var scaleModes:Array = [{label : "auto"}, {label : "scale"}, {label: "free"}];
 		private var xbtnParameters:Button;
+		private var xbtnInfo:Button;
 		
 		public function TopBar()
 		{
 			super();
 			cookie = SharedObject.getLocal('bar');
 			xdates = new DateComponent();
-			
-			xtfData = new TextInput();
-			tfData.text = cookie.data.data || 'data';
 			
 			xbtnLoad = new Button();
 			btnLoad.label = 'Open';
@@ -47,17 +44,21 @@ package com.axlloader.core
 			
 			
 			xbtnConsole = new Button();
-			btnConsole.label = 'C';
-			btnConsole.width = btnConsole.height;
+			btnConsole.label = 'Console';
+			btnConsole.width = xbtnConsole.textField.textWidth + 15;
 			
 			
 			xbtnRecent = new Button();
-			btnRecent.label = 'H';
-			btnRecent.width = btnRecent.height;
+			btnRecent.label = 'History';
+			btnRecent.width =  btnRecent.textField.textWidth + 15;
 			
 			xbtnParameters = new Button();
-			xbtnParameters.label = 'P';
-			xbtnParameters.width = btnRecent.height;
+			xbtnParameters.label = 'FlashVars';
+			xbtnParameters.width =  xbtnParameters.textField.textWidth + 15;
+			
+			xbtnInfo = new Button();
+			xbtnInfo.label = 'info';
+			xbtnInfo.width =  xbtnInfo.textField.textWidth + 15;
 			
 			
 			xcboxAutoSize = new ComboBox();
@@ -69,7 +70,7 @@ package com.axlloader.core
 			
 			addEventListeners();
 			
-			AxlLoader.classDict.U.addChildGroup(this, btnLoad,btnRecent,xbtnParameters,btnConsole,dates,cboxAutoSize,tfData,btnReload);
+			AxlLoader.classDict.U.addChildGroup(this, btnLoad,btnConsole,btnRecent,xbtnParameters,dates,xbtnInfo,cboxAutoSize,btnReload);
 			arangeBar();
 		}
 		
@@ -79,12 +80,12 @@ package com.axlloader.core
 			this.addEventListener(FocusEvent.FOCUS_OUT, fout);
 			
 			dates.addEventListener(KeyboardEvent.KEY_UP, onTopBarKeyUp);
-			tfData.textField.addEventListener(KeyboardEvent.KEY_UP, onTopBarKeyUp);
 			btnLoad.addEventListener(ComponentEvent.BUTTON_DOWN, btnLoadDown);
 			btnConsole.addEventListener(ComponentEvent.BUTTON_DOWN, btnConsoleDown);
 			btnRecent.addEventListener(ComponentEvent.BUTTON_DOWN, btnRecentDown);
 			btnReload.addEventListener(ComponentEvent.BUTTON_DOWN, btnReloadDown);
 			xbtnParameters.addEventListener(ComponentEvent.BUTTON_DOWN, btnParametersDown);
+			xbtnInfo.addEventListener(ComponentEvent.BUTTON_DOWN, btnInfoDown);
 			cboxAutoSize.addEventListener(Event.CHANGE, onAutoSizeChange);
 		}
 		
@@ -116,7 +117,7 @@ package com.axlloader.core
 		public function btnReloadDown(e:*=null):void { AxlLoader.instance.loadContent() }
 		public function btnLoadDown(e:*=null):void { AxlLoader.instance.browseForFile(); }
 		public function btnParametersDown(e:*=null):void { AxlLoader.instance.windowParameters.wappear() }
-		
+		public function btnInfoDown(e:ComponentEvent):void { AxlLoader.instance.windowInfo.wappear() }		
 		
 		// --------------------- public api --------------------- //
 		public function arangeBar():void
@@ -128,8 +129,7 @@ package com.axlloader.core
 			if(cboxAutoSize == null)
 				return;
 			cboxAutoSize.x = btnReload.x - cboxAutoSize.width;
-			xtfData.x = xdates.x + xdates.width;
-			xtfData.width = cboxAutoSize.x - xtfData.x;
+			xbtnInfo.x = cboxAutoSize.x - xbtnInfo.width;
 		}
 
 		public function get btnConsole():Button { return xbtnConsole }
@@ -137,12 +137,10 @@ package com.axlloader.core
 		public function get btnReload():Button { return xbtnReload }
 		public function get btnLoad():Button { return xbtnLoad }
 		public function get dates():DateComponent {	return xdates }
-		public function get tfData():TextInput { return xtfData }
 		public function get cboxAutoSize():ComboBox	{ return xcboxAutoSize }
 
 		public function exiting():void
 		{
-			cookie.data.data =tfData.text;
 			cookie.data.autoSize = cboxAutoSize.selectedLabel;
 			cookie.flush();
 		}
