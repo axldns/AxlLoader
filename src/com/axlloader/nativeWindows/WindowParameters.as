@@ -2,13 +2,20 @@ package com.axlloader.nativeWindows
 {
 	import com.axlloader.core.AxlLoader;
 	
+	import flash.desktop.ClipboardFormats;
+	import flash.desktop.NativeDragManager;
 	import flash.display.DisplayObject;
 	import flash.display.Sprite;
 	import flash.events.Event;
 	import flash.events.MouseEvent;
+	import flash.events.NativeDragEvent;
 	import flash.events.NativeWindowBoundsEvent;
+	import flash.filesystem.File;
 	import flash.geom.Rectangle;
 	import flash.net.SharedObject;
+	import flash.net.URLLoader;
+	import flash.net.URLRequest;
+	import flash.utils.ByteArray;
 	
 	import fl.controls.Button;
 	import fl.events.ComponentEvent;
@@ -23,11 +30,18 @@ package com.axlloader.nativeWindows
 		private var btnRemove:Button;
 		private var rowBounds:Rectangle;
 		private var btnAdd:Button;
+		private var btnOpen:Button;
+		private var openFile:File;
+		private var urlr:URLRequest;
+		private var urll:URLLoader;
+		private var log:Function;
+		private var btnRemoveAll:Button;
+		private var btnSave:Button;
 		public function WindowParameters(windowTitle:String)
 		{
 			super(windowTitle);
 			cookie = SharedObject.getLocal('params');
-			
+			log = AxlLoader.classDict.U.log;
 			try { cookie.data.params = JSON.parse(cookie.data.params as String) }
 			catch(e:*) { cookie.data.params = null; trace("error parsing cookie",e)};
 			if(cookie.data.params == null)
@@ -36,11 +50,13 @@ package com.axlloader.nativeWindows
 			
 			list = new AxlLoader.classDict.MaskedScrollable();
 			list.controller.addEventListener("change", onListMovement);
+			list.controller.omitDraggingAnimation=false;
+			list.controller.animationTime = 1;
 			list.deltaMultiplier = 30;
 			list.visibleWidth = 600;
 			list.visibleHeight = 400;
 			list.y = 60;
-			addRows();
+			addSavedRows();
 			addChild(list as DisplayObject);
 			
 			selector = new Sprite();
@@ -58,6 +74,138 @@ package com.axlloader.nativeWindows
 			btnAdd.addEventListener(ComponentEvent.BUTTON_DOWN, onAddRow);
 			addChild(btnAdd);
 			list.addEventListener(MouseEvent.MOUSE_OVER, onMouseOverList);
+			
+			btnOpen = new Button();
+			btnOpen.label = "open csv xml or json";
+			btnOpen.width = 150;
+			
+			addChild(btnOpen);
+			openFile = new File();
+			openFile.addEventListener(Event.SELECT, onFileSelected);
+			btnOpen.addEventListener(ComponentEvent.BUTTON_DOWN, browseForFile);
+			
+			btnRemoveAll = new Button();
+			btnRemoveAll.label = "remove all";
+			btnRemoveAll.x = 150;
+			btnRemoveAll.width = 75;
+			addChild(btnRemoveAll);
+			btnRemoveAll.addEventListener(ComponentEvent.BUTTON_DOWN, onRemoveAll);			
+			addEventListener(NativeDragEvent.NATIVE_DRAG_ENTER, onDragIn);
+			addEventListener(NativeDragEvent.NATIVE_DRAG_DROP, onDragDrop);
+			
+			btnSave = new Button();
+			btnSave.label = "save";
+			btnSave.width = 50;
+			btnSave.x= 225;
+			addChild(btnSave);
+			btnSave.addEventListener(ComponentEvent.BUTTON_DOWN, onSave);
+		}
+		
+		protected function onSave(event:ComponentEvent):void
+		{
+			saveCookie();
+		}
+		
+		protected function onRemoveAll(event:ComponentEvent):void
+		{
+			Row.removeAll();
+			list.controller.percentageVertical=0;
+			if(selector.parent)
+				selector.parent.removeChild(selector);
+		}
+		
+		private function onDragIn(e:NativeDragEvent):void
+		{
+			if(e.clipboard.hasFormat(ClipboardFormats.FILE_LIST_FORMAT))
+			{
+				var files:Array = e.clipboard.getData(ClipboardFormats.FILE_LIST_FORMAT) as Array;
+				if(files.length == 1)
+				{
+					NativeDragManager.acceptDragDrop(this);
+				}
+			}
+		}
+		protected function onDragDrop(e:NativeDragEvent):void
+		{
+			var arr:Array = e.clipboard.getData(ClipboardFormats.FILE_LIST_FORMAT) as Array;
+			if(arr && arr.length > 0)
+			{
+				urlr = new URLRequest(arr.pop().url); 
+				loadFile();
+			}
+		}
+		
+		protected function onFileSelected(e:Event):void
+		{
+			urlr = new URLRequest(e.target.url);
+			loadFile();
+		}
+		
+		private function loadFile():void
+		{
+			// cant use AXL loader since it gots 
+			if(urlr == null) return;
+			AxlLoader.classDict.Ldr.load(urlr.url,null,onLoaded);
+		}
+		
+		private function onLoaded(fn:String):void
+		{
+			var lo:* = AxlLoader.classDict.Ldr.getAny(fn);
+			if(lo is ByteArray)
+			{
+				log("uncregonized type of file");
+				return;
+			}
+			if(lo is String)
+				parseCSV(lo);
+			else if(lo is XMLList)
+				parseXMLList(lo);
+			else if(lo is XML)
+				parseXMLList(XML(lo).param);
+			else if(lo is Object)
+				parseJSON(lo);
+			Row.distributeRows();
+		}
+		
+		private function parseXMLList(lo:XMLList):void
+		{
+			var len:int = lo.length();
+			log("list has length of", len);
+			for(var i:int = 0, xml:XML; i < len; i++)
+			{
+				xml = lo[i];
+				if(xml.hasOwnProperty("@key") && xml.hasOwnProperty("@value"))
+					list.addChild(new Row(xml.@key, xml.@value));
+				else
+					log("node", xml, "does not have key or value or both attributes");
+				
+			}
+		}
+		
+		private function parseJSON(o:Object):void
+		{
+			trace("parse json");
+			for(var k:String in o)
+				list.addChild(new Row(k,o[k] is String ? o[k] : JSON.stringify(o[k])));
+		}
+		
+		private function parseCSV(lo:String):void
+		{
+			var csvrows:Array = lo.split(/(\r\n|\n\r|\n|\r)/);
+			var len:int = csvrows.length;
+			var kv:Array;
+			while(csvrows.length)
+			{
+				kv = csvrows.pop().split(',');
+				if(kv.length < 2)
+					continue;
+				list.addChild(new Row(kv[0],kv[1]));
+			}
+		}
+		
+		public function browseForFile(e:Object=null):void
+		{
+			openFile.browseForOpen("open");
 		}
 		
 		protected function onAddRow(event:ComponentEvent):void
@@ -113,11 +261,11 @@ package com.axlloader.nativeWindows
 			return null;
 		}
 		
-		private function addRows():void
+		private function addSavedRows():void
 		{
 			var o:Object= cookie.data.params;
 			for(var k:String in o)
-				list.addChild(new Row(k,o[k]));
+				list.addChild(new Row(k,o[k] is String ? o[k] : JSON.stringify(o[k])));
 			Row.distributeRows();
 		}
 				
@@ -130,15 +278,24 @@ package com.axlloader.nativeWindows
 		
 		protected function onResize(event:NativeWindowBoundsEvent):void
 		{
+			graphics.clear();
+			graphics.beginFill(0xffffff);
+			graphics.drawRect(0,0,wid, stage.stageHeight);
 			wid = stage.stageWidth;
 			Row.onResize();
 			btnAdd.x = wid - btnAdd.width;
 			list.visibleWidth = wid;
+			list.visibleHeight = stage.stageHeight-list.y;
 			if(selectedRow)
 				selectRow();
 		}
 		
 		public function exiting():void
+		{
+			saveCookie();
+		}
+		
+		private function saveCookie():void
 		{
 			var toSave:String = JSON.stringify(Row.getJSON());
 			cookie.data.params =toSave;
@@ -235,5 +392,16 @@ internal class Row extends Sprite {
 				rows.splice(i,1);
 			if(row.parent)
 				row.parent.removeChild(row);
+		}
+	}
+	public static function removeAll():void
+	{
+		var row:Row;
+		while(rows.length)
+		{
+			row = rows.pop();
+			if(row.parent)
+				row.parent.removeChild(row);
+			row = null;
 		}
 	}}
