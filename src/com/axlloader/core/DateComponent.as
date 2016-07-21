@@ -117,7 +117,6 @@ package com.axlloader.core
 			min.value = d.getUTCMinutes();
 			sec.value =d.getUTCSeconds();
 			d.time += d.timezoneOffset * 60000;
-			trace("ret", Math.round(d.getTime()/1000));
 			return Math.round(d.getTime()/1000);
 		}
 		
