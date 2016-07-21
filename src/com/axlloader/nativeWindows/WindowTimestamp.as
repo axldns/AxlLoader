@@ -102,8 +102,8 @@ package com.axlloader.nativeWindows
 			
 			out = new TextInput();
 			out.y = 70;
-			out.width = this.width;
-			out.height = 120;
+			out.width = stage ? stage.stageWidth - 10 : this.width;
+			out.height = stage ? stage.height - 80 : this.height;
 			this.addChild(out);
 			
 			this.addEventListener(Event.ADDED_TO_STAGE, ats);
@@ -143,13 +143,10 @@ package com.axlloader.nativeWindows
 		private function updateOutput():void
 		{
 			updateIntervalData();
-			var o:String;
-			o = "promoStartTimestamp='_sts_' promoEndTimestamp='_ets_'\n\n";
+			var o:String="";
 			o+= '"timing":[_tarr_]\n\n';
 			o+= '_timeContainers_';
 			
-			o = o.replace('_sts_', rStart.text);
-			o = o.replace('_ets_', rEnd.text);
 			o = o.replace('_tarr_',outputIntervalArray.join(','));
 			o = o.replace('_timeContainers_',timeContainersString);
 			out.text = o;
@@ -195,7 +192,7 @@ package com.axlloader.nativeWindows
 			for(var i:int =0; i < outputIntervalArray.length; i++)
 			{
 				d.time = Number(String(outputIntervalArray[i]) + '000');
-				d.time += ((d.timezoneOffset * -1) * 60 * 1000);
+				//d.time += ((d.timezoneOffset * -1) * 60 * 1000);
 				ts = Math.floor(d.time / 1000);
 				
 				var s:String = sample.replace(/\{timestamp\}/g, String(ts));

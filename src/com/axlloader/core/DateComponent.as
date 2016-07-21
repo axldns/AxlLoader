@@ -25,6 +25,7 @@ package com.axlloader.core
 			super();
 			
 			time = new Date();
+			time.time -= (time.timezoneOffset * 60000);
 			yyyy = new NumericStepper();
 			yyyy.maximum = 2020;
 			yyyy.minimum = 2010;
@@ -32,8 +33,6 @@ package com.axlloader.core
 			yyyy.width = 40;
 			yyyy.textField.restrict = '0-9';
 			yyyy.textField.maxChars = 4;
-			this.addEventListener(flash.events.MouseEvent.MOUSE_UP, dispatchChange);
-			this.addEventListener(flash.events.KeyboardEvent.KEY_UP, dispatchChange);
 			
 			mm = new NumericStepper();
 			mm.minimum=1;
@@ -86,8 +85,11 @@ package com.axlloader.core
 			this.addChild(hh);
 			this.addChild(min);
 			this.addChild(sec);
-			eventChange = new Event(flash.events.Event.CHANGE)
 			AxlLoader.classDict.U.distribute(this,0);
+			
+			eventChange = new Event(flash.events.Event.CHANGE)
+			this.addEventListener(flash.events.MouseEvent.MOUSE_UP, dispatchChange);
+			this.addEventListener(flash.events.KeyboardEvent.KEY_UP, dispatchChange);
 			this.addEventListener(MouseEvent.MOUSE_WHEEL, wheelEvent);
 		}
 		
@@ -114,7 +116,8 @@ package com.axlloader.core
 			hh.value = d.getUTCHours();
 			min.value = d.getUTCMinutes();
 			sec.value =d.getUTCSeconds();
-			
+			d.time += d.timezoneOffset * 60000;
+			trace("ret", Math.round(d.getTime()/1000));
 			return Math.round(d.getTime()/1000);
 		}
 		
@@ -122,7 +125,6 @@ package com.axlloader.core
 		{
 			var d:Date = new Date();
 				d.setTime(v * 1000);
-				//d.time += ((d.timezoneOffset * -1) * 60 * 1000);
 			yyyy.value = d.getUTCFullYear();
 			mm.value = d.getUTCMonth() +1;
 			dd.value =d.getUTCDate();
