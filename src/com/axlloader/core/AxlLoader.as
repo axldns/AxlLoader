@@ -16,6 +16,7 @@ package com.axlloader.core
 	import flash.display.NativeWindowType;
 	import flash.display.Sprite;
 	import flash.events.Event;
+	import flash.events.SyncEvent;
 	import flash.events.UncaughtErrorEvent;
 	import flash.filesystem.File;
 	import flash.geom.Rectangle;
@@ -138,10 +139,17 @@ package com.axlloader.core
 			delegatesEmpty(); // 2.6
 		}
 		
-		/** 2.a Instantiates LiveArranger */
+		/** 2.a Instantiates LiveArranger, starts listening for requestContextChange sync event */
 		private function onAxlInitialised():void
 		{
 			new classDict.LiveArranger();
+			stage.loaderInfo.sharedEvents.addEventListener("requestContextChange", onXrootSyncEvent);
+		}
+		/** Responds to <code>requestContextChange</code> SyncEvent. - changes console context to object passed in changeList */
+		protected function onXrootSyncEvent(e:SyncEvent):void
+		{
+			log(tname + "SYNC EVENT requestContextChange:",e.changeList);
+			U.bin.parser.changeContext(e.changeList.pop());
 		}
 		
 		/** 2.1 Instantiates and adds to display list background sprite and logo */
@@ -757,6 +765,9 @@ package com.axlloader.core
 		{
 			openFile.browseForOpen("open");
 		}
+		
+		//------------------------ OTHER EVENTS MANAGER HANDLERS -------------------------- //
+		//------------------------ OTHER PUBLIC API -------------------------- //
 		
 		public function log(...args):void {	U.log.apply(null,args) }
 		public function get bar():TopBar { return xbar }
