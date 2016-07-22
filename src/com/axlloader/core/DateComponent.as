@@ -136,7 +136,10 @@ package com.axlloader.core
 		{
 			var v:NumericStepper = findRecursive(e.target);
 			if(v != null)
+			{
 				v.value += e.delta > 0 ? 1 : -1;
+				this.dispatchChange(e);
+			}
 		}
 		
 		private function findRecursive(target:Object):NumericStepper
