@@ -381,7 +381,7 @@ package com.axlloader.core
 		 * <li>(Drag and) Drop event</li>
 		 * <li>File selection through top menu bar "open" option</li>
 		 * <li>Selecting (double click) file from History Window</li>
-		 * <li>On hot-keys pressed (ctrl/⌘ + r, ctrl/⌘  + [1-9]
+		 * <li>On hot-keys pressed (ctrl/⌘ + r, ctrl/⌘  + [1-9])</li>
 		 * <li>Paste link or paste file event</li>
 		 * <li>Pressing ENTER key in one of the input fields in top bar menu</li>
 		 * <ul>*/
@@ -654,6 +654,8 @@ package com.axlloader.core
 			{
 				if(obj is XML || obj is XMLList)
 					d = obj.toXMLString();
+				else
+					d = String(obj);
 				displayableText.text = d;
 				return displayableText;
 			}
