@@ -117,6 +117,7 @@ package com.axlloader.core
 					case 'r': pl.loadContent(); break;
 					case 't': bar.btnTimestampDown() ; break;
 					case 'h': bar.btnRecentDown() ; break;
+					case 'f': bar.btnParametersDown() ; break;
 					case 'c': e.shiftKey ? bar.btnConsoleDown() : null ; break;
 					default:
 						var n:Number = Number(keyp);
