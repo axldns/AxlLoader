@@ -3,13 +3,11 @@ package com.axlloader.nativeWindows
 	import com.axlloader.core.AxlLoader;
 	
 	import flash.events.Event;
-	import flash.events.HTMLUncaughtScriptExceptionEvent;
 	import flash.events.NativeWindowBoundsEvent;
 	import flash.filesystem.File;
 	import flash.filesystem.FileMode;
 	import flash.filesystem.FileStream;
 	import flash.geom.Rectangle;
-	import flash.html.HTMLLoader;
 	import flash.media.StageWebView;
 
 	public class WindowInfo extends CoreWindow
@@ -42,6 +40,12 @@ package com.axlloader.nativeWindows
 			window.addEventListener(NativeWindowBoundsEvent.RESIZE,onResize);
 			window.stage.stageWidth  = 600;
 			window.stage.stageHeight = 300;
+		}
+		
+		override public function wappear():void
+		{
+			super.wappear();
+			swv.loadString(template);
 		}
 		
 		protected function onResize(e:NativeWindowBoundsEvent):void
