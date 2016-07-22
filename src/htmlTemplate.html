@@ -1,0 +1,301 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!-- saved from url=(0014)about:internet -->
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"> 
+   
+    <head>
+    <style type="text/css">
+		.label {
+		    display: inline-block;
+		    height: auto;    
+		    width: auto;
+
+		}
+		body {
+		    display: inline;
+		    height: auto;    
+		    width: auto;
+       		background-color: #EEEEEE;
+		}
+
+	</style>
+        <script type="text/javascript">
+        //var oldConsole = console;
+        //var console = {};
+        var bridge;
+        var bridgeContent;
+        var swfnobridge;
+        var flashParent;
+
+        // FROM BRIDGE TO JS to bridge
+        function getBridgeLoadingParams()
+        {
+          /*
+          public const coppyOfCurrent:int = -1;
+          public const current:int = 0;
+          public const separated:int = 1;
+          public const loaderOwnerDomain:int = 2;
+          public const copyOfLoaderOwnerDomain:int = 3;
+
+         ll.domainType = 1;
+          ll.handleUncaughtErrors = false;
+          ll.unloadOnErrors = false;
+          ll.stopErrorPropagation = false;
+          ll.preventErrorDefaults = false;
+          ll.allowscriptaccess = true;
+          ll.contextParameters = {};
+
+          */
+          var p = {};
+              p.domainType = 1;
+              p.handleUncaughtErrors = true;
+              p.unloadOnErrors = true;
+              p.stopErrorPropagation = false;
+              p.preventErrorDefaults = false;
+              p.allowscriptaccess = "always";
+             
+              return p;
+        }
+        var console;
+
+       
+        // FROM BRIDGE TO PROMOLOADER
+        function init()
+        {
+         
+          bridge = document.getElementById("bridge");
+          bridgeContent = document.getElementById("bridge-content");
+          flashParent = bridgeContent.parentNode;
+
+         if(this['api_promoloader'])
+          {
+            console = {};
+            console.log = api_promoloader.log;
+          }
+          else
+          {
+             console.log("INIT");
+          }
+        }
+
+       
+        // FROM PROMOLOADER TO BRIDGE
+        function loadswf(swfurl,stringifiedContextParameters)
+        {
+          if(typeof stringifiedContextParameters == "object")
+          {
+            console.log("converting parameters to string");
+            stringifiedContextParameters = JSON.stringify(stringifiedContextParameters);
+          }
+          bridge.api_bridge("bridge_load", swfurl,stringifiedContextParameters);
+        }
+
+        function resize(w,h)
+        {
+        	if(swfnobridge)
+        	{
+        		console.log("RESIZING SWF NO BRIDGE");
+        		document.getElementById('swfnobridge').setAttribute("width",w);
+        		document.getElementById('swfnobridge').setAttribute("height",h);
+        	}
+        	else
+        	{
+        		console.log("RESIZING BRIDGE");
+        		document.getElementById('bridge').setAttribute("width",w);
+        		document.getElementById('bridge').setAttribute("height",h);
+     
+        		if(this['api_promoloader'])
+        		{
+        			api_promoloader.resizeToBridge(w,h+document.getElementById('buttons').offsetHeight);
+        		}
+        	}
+        }
+        function loopSizes(element)
+        {
+
+    		var w = element.offsetWidth;
+    		var h = element.offsetHeight;
+    		if(!isNaN(w) && !isNaN(h))
+    		{
+    			console.log(element.offsetWidth, element.offsetHeight, element.outerHTML);
+    		}
+
+    		var children = element.childNodes;
+    		var len = children.length;
+    		if(!isNaN(len))
+    		{
+    			for(var i = 0; i < len; i++)
+    			{
+			   		loopSizes(children[i]);
+    			}
+    		}
+        }
+
+        function resizeToBridgeLoaderInfo(w,h)
+        {
+        	document.getElementById('bridge').setAttribute("width",w);
+        	document.getElementById('bridge').setAttribute("height",h);
+     
+    		if(this['api_promoloader'])
+    		{
+    			api_promoloader.resizeToBridge(w,h+document.getElementById('buttons').offsetHeight);
+    		}
+        }
+
+        function promoloaderResize(w,h)
+        {
+        	if(swfnobridge)
+        	{
+        		document.getElementById('swfnobridge').setAttribute("width",w);
+        		document.getElementById('swfnobridge').setAttribute("height",h-document.getElementById('buttons').offsetHeight);
+        	}
+        	else if(bridge)
+        	{
+        		bridge.api_bridge("resize", w,h -document.getElementById('buttons').offsetHeight);
+        		document.getElementById('bridge').setAttribute("width",w);
+        		document.getElementById('bridge').setAttribute("height",h-document.getElementById('buttons').offsetHeight);
+        	}
+        }
+
+         // FROM BRIDGE TO JS
+        function bridgeCantTakeIt(url,params)
+        {
+            console.log("bridgeCantTakeIt2");
+            document.getElementById('btn-console').setAttribute('disabled', 'true');
+            // create new 
+            swfnobridge = createSwfNoBridge(url,params);
+
+            //REPLACE
+            flashParent.replaceChild(swfnobridge,bridgeContent);
+            //loopSizes(document.body);
+        }
+
+        // FROM LOADED SWF TO JS to promoloader
+        function getParam(param)
+        {
+          return api_promoloader.getParam(param);
+        }
+        // FROM HTML TO BRIDGE
+        function toggleBridgeConsole()
+        {
+            bridge.api_bridge("bridge_toggleConsole");
+        }
+        
+        // FROM HTML TO JS
+        function quickReoload()
+        {
+          if(swfnobridge)
+          {
+            flashParent.removeChild(swfnobridge);
+            flashParent.appendChild(swfnobridge);
+          }
+          else if(bridgeContent)
+          {
+            flashParent.removeChild(bridgeContent);
+            flashParent.appendChild(bridgeContent);
+          }      
+        }
+
+        function getPromoLoaderDimensions()
+        {
+        	if(this['api_promoloader'])
+          	{
+          		var ar = api_promoloader.dimensions();
+          		ar[2] += document.getElementById('buttons').offsetHeight;
+          		return JSON.stringify(ar);
+
+          	}
+          	else return [];
+        }
+
+        function createSwfNoBridge(url,flashVars)
+        {
+        	var wid="100%";
+        	var hei="100%";
+        	if(this['api_promoloader'])
+          	{
+          		var ar = api_promoloader.dimensions();
+          		if(ar && ar.length == 3)
+          		{
+          			wid=ar[1];
+	          		hei=ar[2];
+	          		hei -= document.getElementById('buttons').offsetHeight;
+          		}
+          	}
+     
+
+            var div = createWithAttributes("div", ["name","swf-no-bridge","class","label"]);
+            var obj = createWithAttributes("object", ["type","application/x-shockwave-flash","id","swfnobridge","align","left","width",wid,"height",hei]);
+            if(typeof flashVars == "string")
+            {
+              flashVars = JSON.parse(flashVars);
+            }
+            var params = {};
+            params.quality = "high";
+            params.bgcolor = "#EEEEEE";
+            params.allowscriptaccess = "always";
+            params.allowfullscreen = "true";
+            params.wmode = "direct";
+
+           
+            var fw='';
+            for(var f in flashVars)
+            {
+              fw += (f + '=' + flashVars[f] + '&');
+            }
+            if(fw.length)
+            {
+              fw = fw.substr(0, fw.length-1);
+              params.flashvars = fw;
+            }
+
+            console.log("flashVars", fw);
+
+            for(var p in params)
+            {
+              var par = createWithAttributes('param', [p ,params[p]] );
+              obj.appendChild(par);
+            }
+
+            obj.setAttribute("data", url + '?' + fw);
+            div.appendChild(obj);
+
+            return div;
+        }
+
+
+        // ----------------------- LIB ------------------- //
+      
+        function createWithAttributes(ele, arr)
+        {
+          var elem = document.createElement(ele);
+          var l = arr.length;
+          var atrname, atrval;
+          for(var i = 0; i < l;)
+          {
+            atrname = arr[i++];
+            atrval = arr[i++];
+            elem.setAttribute(atrname, atrval);
+          }
+          return elem;
+        }
+        </script>
+    </head>
+    <body>
+    	<div name='content' class="label">
+	    	<!-- HTML TO JS -->
+	    	<div name='buttons' id='buttons' clas='label'>
+	      		<button id='btn-console'  class="label" onClick="toggleBridgeConsole()">console</button> 
+	      	</div>
+	   		<!-- BRIDGE OBJECT -->
+	    	<div id='bridge-content' class="label">
+	        	<object  type="application/x-shockwave-flash" id="bridge" name="bridge" align="left" data="Bridge.swf" width="910" height="610">
+	           		<param name="quality" value="high"/>
+	            	<param name="allowscriptaccess" value="always"/>
+	           		<param name="allowfullscreen" value="true"/>
+	            	<param name="wmode" value="direct"/>
+                <param name="bgcolor" value="eeeeee" />
+	        	</object>
+	    	</div>
+		</div>
+   </body>
+</html>
