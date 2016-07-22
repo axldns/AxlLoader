@@ -85,7 +85,7 @@ package com.axlloader.core
 		private var xbgColour:uint=0xf5f5f5;
 		
 		//tracking
-		private var xVERSION:String = '0.2.17';
+		private var xVERSION:String = '0.2.20';
 		private var tname:String = '[AxlLoader ' + xVERSION + ']';
 		private var trackingURL:String;
 		private var tracker:Tracking;

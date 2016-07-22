@@ -1,178 +1,314 @@
 package com.axlloader.nativeWindows
 {
-	import flash.events.Event;
-	import flash.events.KeyboardEvent;
+	import com.axlloader.core.DateComponent;
 	
-	import fl.controls.Button;
+	import flash.events.Event;
+	import flash.events.NativeWindowBoundsEvent;
+	import flash.globalization.DateTimeFormatter;
+	import flash.net.SharedObject;
+	
+	import fl.controls.ComboBox;
 	import fl.controls.Label;
 	import fl.controls.NumericStepper;
 	import fl.controls.TextInput;
-	import com.axlloader.core.DateComponent;
+	import fl.data.DataProvider;
 	
 	public class WindowTimestamp extends CoreWindow
 	{
-		private var start:DateComponent;
-		private var end:DateComponent;
+		private var cookie:SharedObject;
+		
+		private var startComponent:DateComponent;
+		private var endComponent:DateComponent;
+		
+		private var startTimestampInput:TextInput;
+		private var endTimestampInput:TextInput;
+		private var formatInput:TextInput;
+		private var patternInput:TextInput;
+		
+		private var labelStart:Label;
+		private var labelEnd:Label;
+		private var labelInterval:Label;
+		private var patternLabel:Label;
+		private var formatLabel:Label;
+		
+		private var intervalStepper:NumericStepper;
+		private var cboxLocale:ComboBox;
+		
 		private var out:TextInput;
-		private var lstart:Label;
-		private var lend:Label;
-		private var rStart:TextInput;
-		private var rEnd:TextInput;
-		private var gen:Button;
-		private var linterval:Label;
-		private var interval:NumericStepper;
+		private var margin:int = 10;
+		
+		private var dateConvert:Date = new Date();
+		private var dtf:DateTimeFormatter;
+		private var localeIDs:Array;
 		private var outputIntervalArray:Array;
-		private var timeContainersString:String;
-		private var sample:String = "<!-- CONTAINER [ {index} ][ {timestamp} ][ {date} ] -->"+
-			"\n<div name='timeContainer{index}'  alpha='0' meta='{\"addedToStage\":[0.5,{\"alpha\":1,\"delay\":0.5}],\"removeChild\":[0.5,{\"alpha\":0}]}'>"
-			+ '{user}'
-			+"\n</div>\n\n";
-		private var resizeListenerAdded:Boolean;
+		
+		private var defaultPattern:String = "<!-- {index} || {timestamp} || {dateUTC} || {date} -->\n";
+		private var defaultTimeFormat:String = "EEEE, dd MMMM yyyy @ HHH:mm:ss";
+		private var userReplacedString:String;
+		
 		public function WindowTimestamp(windowTitle:String)
 		{
 			super(windowTitle);
-			lstart= new Label();
-			lstart.text = "start time";
-			lstart.width = 80;
+			this.x = this.y =  margin;
+			cookie = SharedObject.getLocal('timestamp');
 			
-			lend = new Label();	
-			lend.y = lstart.height;
-			lend.text = 'end time';
-			lend.width = 80;
+			labelStart= new Label();
+			labelStart.text = "start time";
+			labelStart.width = 80;
 			
-			linterval = new Label();
-			linterval.y = lend.y + lend.height;
-			linterval.text = 'interval (hours)';
-			linterval.width = 80;
+			labelEnd = new Label();	
+			labelEnd.y = labelStart.height;
+			labelEnd.text = 'end time';
+			labelEnd.width = 80;
+			
+			labelInterval = new Label();
+			labelInterval.y = labelEnd.y + labelEnd.height;
+			labelInterval.text = 'interval (hours)';
+			labelInterval.width = 80;
+			
+			intervalStepper = new NumericStepper();
+			intervalStepper.minimum = 0;
+			intervalStepper.maximum = 9999;
+			
+			intervalStepper.value = 6;
+			intervalStepper.textField.restrict = '0-9';
+			intervalStepper.textField.maxChars = 4;
+			intervalStepper.width = 40;
+			intervalStepper.y = labelInterval.y;
+			intervalStepper.x = labelInterval.width;
+			DateComponent.sizeStepperButtons([intervalStepper]);
+			//
+			startComponent = new DateComponent();
+			endComponent = new DateComponent();
 			
 			
-			interval = new NumericStepper();
-			interval.minimum = 0;
-			interval.maximum = 9999;
+			startComponent.x = labelStart.width;
+			startComponent.y = 0;
 			
-			interval.value = 24;
-			interval.textField.restrict = '0-9';
-			interval.textField.maxChars = 4;
-			interval.width = 40;
-			interval.y = linterval.y;
-			interval.x = linterval.width;
-			interval.addEventListener(Event.CHANGE, dateChange);
-			interval.addEventListener(KeyboardEvent.KEY_UP, dateChange);
-			DateComponent.sizeStepperButtons([interval]);
-
+			endComponent.x = labelStart.width;
+			endComponent.y = labelEnd.y;
 			
-			start = new DateComponent();
-			end = new DateComponent();
-			start.addEventListener(flash.events.Event.CHANGE, dateChange);
-			end.addEventListener(flash.events.Event.CHANGE, dateChange);
+			//	
+			startTimestampInput = new TextInput();
+			startTimestampInput.textField.restrict = '0-9'
+			startTimestampInput.maxChars = 11;
+			startTimestampInput.x  = 295;
 			
-			start.x = lstart.width;
-			start.y = 0;
+			//
+			endTimestampInput = new TextInput();
+			endTimestampInput.textField.restrict = '0-9';
+			endTimestampInput.maxChars = 11;
+			endTimestampInput.x  = 295;
+			endTimestampInput.y = endComponent.y;
+			endComponent.timestampSec += convertToUTC(25 * 60 * 60);
 			
-			end.x = lstart.width;
-			end.y = lend.y;
+			localeIDs = [];
+			var list:Vector.<String> = DateTimeFormatter.getAvailableLocaleIDNames();
+			while(list.length)
+				localeIDs.push({label : list.shift()});
+			cboxLocale= new ComboBox();
+			cboxLocale.dataProvider = new DataProvider(localeIDs);
 			
-				
-			rStart = new TextInput();
-			rStart.textField.restrict = '0-9'
-			rStart.addEventListener(KeyboardEvent.KEY_UP, timestampChangeS);
-			rStart.maxChars = 11;
+			cboxLocale.width = 70;
+			cboxLocale.dropdown.x = 10;//fake
 			
-			rEnd = new TextInput();
-			rEnd.addEventListener(KeyboardEvent.KEY_UP, timestampChangeE);
-			rEnd.textField.restrict = '0-9';
-			rEnd.maxChars = 11;
 			
-			rStart.x  = 295;
-			rEnd.x  = 295;
-			rEnd.y = end.y;
+			cboxLocale.y = intervalStepper.y;
+			cboxLocale.drawNow();
+			cboxLocale.dropdown.rowCount  = 20;
+			xcboxLocaleSaved = cookie.data.locale || "pl-PL";
 			
-			updateRightTimeStamps();
+			formatLabel = new Label();	
+			formatLabel.y = cboxLocale.y+3;
+			formatLabel.text = 'Format';
+			formatLabel.width = 40;
+			formatLabel.textField;
 			
-			this.addChild(lstart);
-			this.addChild(lend);
-			this.addChild(start);
-			this.addChild(end)
-			this.addChild(rStart);
-			this.addChild(rEnd);
-			this.addChild(linterval);
-			this.addChild(interval);
+			formatInput = new TextInput();
+			formatInput.y = cboxLocale.y;
+			formatInput.maxChars = 90;
+			formatInput.x = 200;
+			formatInput.text = cookie.data.timeFormat || defaultTimeFormat;
 			
-			gen = new Button();
+			patternLabel = new Label();
+			patternLabel.textField.multiline = true;
+			patternLabel.textField.wordWrap = true;
+			patternLabel.text = "Pattern variables:\n{index}, {timestamp} {date}, {dateUTC}";
+			patternLabel.y = labelInterval.y + labelInterval.height;
+			
+			patternInput = new TextInput();
+			patternInput.textField.multiline = true;
+			patternInput.textField.wordWrap = true;
+			patternInput.y = patternLabel.y;
+			patternInput.x = cboxLocale.x;
+			patternInput.text = cookie.data.pattern || defaultPattern;
 			
 			out = new TextInput();
-			out.y = 70;
-			out.width = stage ? stage.stageWidth - 10 : this.width;
-			out.height = stage ? stage.height - 80 : this.height;
+			out.textField.wordWrap = true;
+			out.textField.type = "dynamic";
+			
+			this.addChild(labelStart);
+			this.addChild(startComponent);
+			
+			this.addChild(labelEnd);
+			this.addChild(endComponent)
+				
+			this.addChild(startTimestampInput);
+			this.addChild(endTimestampInput);
+			
+			this.addChild(labelInterval);
+			this.addChild(intervalStepper);
+			
+			this.addChild(formatLabel);
+			this.addChild(cboxLocale);
+			this.addChild(formatInput);
+			
+			this.addChild(patternLabel);
+			this.addChild(patternInput);
+			
 			this.addChild(out);
 			
-			this.addEventListener(Event.ADDED_TO_STAGE, ats);
+			dtf = new DateTimeFormatter(cboxLocale.selectedLabel);
+			startTimestampInput.text = String(startComponent.timestampSec);
+			endTimestampInput.text = String(endComponent.timestampSec);
+			updateOutput();
+			
+			startComponent.addEventListener(Event.CHANGE, compomentChange);
+			endComponent.addEventListener(Event.CHANGE, compomentChange);
+			
+			startTimestampInput.addEventListener(Event.CHANGE, timestampChange);
+			endTimestampInput.addEventListener(Event.CHANGE, timestampChange);
+			
+			
+			formatInput.addEventListener(Event.CHANGE, nonRelatedChange);
+			patternInput.addEventListener(Event.CHANGE, nonRelatedChange);
+			intervalStepper.addEventListener(Event.CHANGE, nonRelatedChange);
+			cboxLocale.addEventListener(Event.CHANGE, nonRelatedChange);
 			
 		}
 		
-		protected function ats(event:Event):void
+		override protected function onWindowCreated():void
 		{
-			if(!resizeListenerAdded)
-				this.stage.addEventListener(Event.RESIZE, resize);
+			window.addEventListener(NativeWindowBoundsEvent.RESIZE,onResize);
+			window.stage.stageWidth =  480;
+			window.stage.stageHeight = 317;
+			alignLocaleDropDown();
 		}
 		
-		protected function resize(e:Event):void
+		protected function onResize(e:Event):void
 		{
-			out.height = stage.stageHeight - out.y - 10;
-			out.width = stage.stageWidth - out.x - 10;
-		}
-		
-		protected function timestampChangeS(event:KeyboardEvent):void
-		{
-			start.timestampSec = int(rStart.text);
-			updateOutput();
-		}
-		
-		protected function timestampChangeE(event:KeyboardEvent):void
-		{
-			end.timestampSec = int(rEnd.text);
-			updateOutput();
-		}
-		
-		protected function dateChange(e:Event):void
-		{
-			updateRightTimeStamps();
-			updateOutput();
-		}
-		
-		private function updateOutput():void
-		{
-			updateIntervalData();
-			var o:String="";
-			o+= '"timing":[_tarr_]\n\n';
-			o+= '_timeContainers_';
+			var m:Number = margin * 2;
+			patternInput.height = stage.stageHeight * 0.15;
+			patternLabel.height = patternInput.height;
+			out.y = patternInput.y + patternInput.height;
+			out.height = stage.stageHeight - out.y -m;
+			out.width = stage.stageWidth - out.x - m;
+			startTimestampInput.width = stage.stageWidth - startTimestampInput.x -m;
+			endTimestampInput.width = startTimestampInput.width;
+			alignLocaleDropDown();
+			patternInput.x = intervalStepper.x + intervalStepper.width;
+			patternInput.width = stage.stageWidth- patternInput.x - m;
+			if((stage.stageWidth - m) < 550)
+			{
+				formatInput.x = 250;
+				formatInput.width = stage.stageWidth - formatInput.x - m;
+			}
+			else
+			{
+				formatInput.width = 280;
+				formatInput.x =stage.stageWidth - formatInput.width - m;
+			}
 			
-			o = o.replace('_tarr_',outputIntervalArray.join(','));
-			o = o.replace('_timeContainers_',timeContainersString);
-			out.text = o;
+			cboxLocale.x = formatInput.x - cboxLocale.width;
+			formatLabel.x = cboxLocale.x - formatLabel.width -10;
 		}
 		
-		private function updateRightTimeStamps():void
+		private function alignLocaleDropDown():void
 		{
-			rStart.text = String(start.timestampSec);
-			rEnd.text = String(end.timestampSec);
+			var left:Number = (stage.stageHeight - cboxLocale.y + cboxLocale.height);
+			var single:Number = cboxLocale.dropdown.rowHeight + 5;
+			cboxLocale.dropdown.rowCount  = Math.floor(left / single);
+		}
+		
+		protected function set xcboxLocaleSaved(v:String):void { 
+			for(var i:int = localeIDs.length;i-->0;)
+				if(localeIDs[i].label ==v)
+					cboxLocale.selectedIndex = i;
+		}
+		
+		protected function timestampChange(e:Event):void
+		{
+			// DateComponent accepts UTC timestamps and displays LOCAL time
+			switch(e.target)
+			{
+				case startTimestampInput:
+					startComponent.timestampSec = convertToUTC(Number(startTimestampInput.text));
+					break
+				case endTimestampInput:
+					endComponent.timestampSec = convertToUTC(Number(endTimestampInput.text));
+					break;
+			}
+			updateOutput();
+		}
+		
+		protected function compomentChange(e:Event):void
+		{
+			switch(e.target)
+			{
+				case startComponent:
+					startTimestampInput.text = String(startComponent.timestampSec);
+					break
+				case endComponent:
+					endTimestampInput.text = String(endComponent.timestampSec);
+					break;
+			}
+			
+			startTimestampInput.text = String(startComponent.timestampSec);
+			endTimestampInput.text = String(endComponent.timestampSec);
+			updateOutput();
+		}
+		
+		protected function nonRelatedChange(e:Event):void
+		{
+			if(e.target == this.cboxLocale)
+				dtf = new DateTimeFormatter(cboxLocale.selectedLabel);
+			updateOutput();
+		}
+		
+		private function convertToUTC(v:Number):Number
+		{
+			this.dateConvert.setTime(v * 1000);
+			return (dateConvert.time - (dateConvert.timezoneOffset * 60000))/1000;
+		}
+		
+		protected function dateChange(e:Event=null):void
+		{
+			updateTimeStampsInput();
+			updateOutput();
+		}
+		
+		
+		private function updateTimeStampsInput():void
+		{
+			startTimestampInput.text = String(startComponent.timestampSec);
+			endTimestampInput.text = String(endComponent.timestampSec);
 		}
 		
 		private function updateIntervalData():void
 		{
-			var ss:int = int(rStart.text);
-			var es:int = int(rEnd.text);
+			var ss:int = int(startTimestampInput.text);
+			var es:int = int(endTimestampInput.text);
 			
 			outputIntervalArray =[];
 			var ts:int = ss;
-			var intervalVal:Number = (interval.value) * 60 * 60;
+			var intervalVal:Number = (intervalStepper.value) * 60 * 60;
 			if(intervalVal == 0)
 				intervalVal = es-ts;
 			
 			var howMany:int = (es-ts)/intervalVal;
-			if(howMany > 200)
+			if(howMany > 1000)
 			{
-				timeContainersString = "You're requesting to create over two hundred time containers. e?";
+				userReplacedString = "You're requesting to create over one thoused containers. e?";
 				return;
 			}
 			while(ts < es)
@@ -185,22 +321,44 @@ package com.axlloader.nativeWindows
 			{
 				outputIntervalArray.push(es);
 			}
-			// TRACING
-			var d:Date = new Date();
-			timeContainersString = '';
+			var userPattern:String = patternInput.text;
+			userReplacedString = '';
 			
 			for(var i:int =0; i < outputIntervalArray.length; i++)
 			{
-				d.time = Number(String(outputIntervalArray[i]) + '000');
-				//d.time += ((d.timezoneOffset * -1) * 60 * 1000);
-				ts = Math.floor(d.time / 1000);
+				dateConvert.time = Number(String(outputIntervalArray[i]) + '000');
 				
-				var s:String = sample.replace(/\{timestamp\}/g, String(ts));
-				s = s.replace(/\{date\}/g, d.toUTCString());
+				ts = Math.floor(dateConvert.time / 1000);
+				
+				var s:String = userPattern;
+				s = s.replace(/\{timestamp\}/g, String(ts));
+				s = s.replace(/\{dateUTC\}/g, dateConvert.toUTCString());
+				s = s.replace(/\{date\}/g, dtf.format(dateConvert));
 				s = s.replace(/\{index\}/g, i);
-				s = s.replace(/\{user\}/g, /*user(i)*/ '');
-				timeContainersString += s;
+				userReplacedString += s;
 			}
+		}
+		
+		
+		private function updateOutput():void
+		{
+			dtf.setDateTimePattern(formatInput.text);
+			updateIntervalData();
+			var o:String="";
+			o+= '"timing":[@]\n\n';
+			o+= '@';
+			
+			o = o.replace('@',outputIntervalArray.join(','));
+			o = o.replace('@',userReplacedString);
+			out.text = o;
+		}
+		
+		public function exiting():void
+		{
+			cookie.data.locale = this.cboxLocale.selectedLabel;
+			cookie.data.timeFormat = formatInput.text;
+			cookie.data.pattern = patternInput.text;
+			cookie.flush();
 		}
 	}
 }
