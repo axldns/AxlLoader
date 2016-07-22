@@ -73,6 +73,8 @@ package com.axlloader.core
 				bar.exiting();
 			if(pl.windowParameters != null)
 				pl.windowParameters.exiting();
+			if(pl.windowTimestamp != null);
+				pl.windowTimestamp.exiting();
 		}
 		
 		private function onDragIn(e:NativeDragEvent):void
@@ -116,7 +118,7 @@ package com.axlloader.core
 					case 'l': (bar.parent != null) ? bar.parent.removeChild(bar) : pl.addChild(bar); break;
 					case 'r': pl.loadContent(); break;
 					case 't': bar.btnTimestampDown() ; break;
-					case 'h': bar.btnRecentDown() ; break;
+					case 'h': bar.btnHistoryDown() ; break;
 					case 'f': bar.btnParametersDown() ; break;
 					case 'c': e.shiftKey ? bar.btnConsoleDown() : null ; break;
 					default:

@@ -4,74 +4,74 @@ package com.axlloader.core
 	import flash.events.Event;
 	import flash.events.FocusEvent;
 	import flash.events.KeyboardEvent;
-	import flash.events.MouseEvent;
 	import flash.net.SharedObject;
 	
 	import fl.controls.Button;
 	import fl.controls.ComboBox;
-	import fl.controls.TextInput;
 	import fl.data.DataProvider;
 	import fl.events.ComponentEvent;
 	
 	public class TopBar extends Sprite
 	{
-		private var xbtnConsole:Button;
-		private var xbtnRecent:Button;
-		private var xbtnReload:Button;
-		private var xbtnLoad:Button;
-		
-		private var xdates:DateComponent;
-		private var xcboxAutoSize:ComboBox;
 		private var cookie:SharedObject;
-		private var scaleModes:Array = [{label : "auto"}, {label : "scale"}, {label: "free"}];
+		
+		private var xbtnOpen:Button;
+		private var xbtnConsole:Button;
+		private var xbtnHistory:Button;
 		private var xbtnParameters:Button;
+		private var xdateComponent:DateComponent;
+		private var xbtnTimestamp:Button;
 		private var xbtnInfo:Button;
+		private var xcboxAutoSize:ComboBox;
+		private var xbtnReload:Button;
+		
+		private var scaleModes:Array = [{label : "auto"}, {label : "scale"}, {label: "free"}];
 		
 		public function TopBar()
 		{
 			super();
 			cookie = SharedObject.getLocal('bar');
-			xdates = new DateComponent();
 			
-			xbtnLoad = new Button();
-			btnLoad.label = 'Open';
-			btnLoad.width = btnLoad.textField.textWidth + 15;
-			
-			
-			xbtnReload = new Button();
-			btnReload.label = 'Reload';
-			btnReload.width = btnReload.textField.textWidth + 15;
-			
-			
+			xbtnOpen = new Button();
+			xbtnOpen.label = 'Open';
+			xbtnOpen.width = xbtnOpen.textField.textWidth + 15;
+
 			xbtnConsole = new Button();
-			btnConsole.label = 'Console';
-			btnConsole.width = xbtnConsole.textField.textWidth + 15;
+			xbtnConsole.label = 'Console';
+			xbtnConsole.width = xbtnConsole.textField.textWidth + 15;
 			
-			
-			xbtnRecent = new Button();
-			btnRecent.label = 'History';
-			btnRecent.width =  btnRecent.textField.textWidth + 15;
+			xbtnHistory = new Button();
+			xbtnHistory.label = 'History';
+			xbtnHistory.width =  xbtnHistory.textField.textWidth + 15;
 			
 			xbtnParameters = new Button();
 			xbtnParameters.label = 'FlashVars';
 			xbtnParameters.width =  xbtnParameters.textField.textWidth + 15;
 			
+			xdateComponent = new DateComponent();
+			
+			xbtnTimestamp = new Button();
+			xbtnTimestamp.label = 'T';
+			xbtnTimestamp.width =  xbtnTimestamp.height;
+			xbtnTimestamp.x=412;
+			
 			xbtnInfo = new Button();
 			xbtnInfo.label = 'info';
 			xbtnInfo.width =  xbtnInfo.textField.textWidth + 15;
 			
-			
 			xcboxAutoSize = new ComboBox();
-			cboxAutoSize.dataProvider = new DataProvider(scaleModes);
+			xcboxAutoSize.dataProvider = new DataProvider(scaleModes);
 			xcboxAutoSizeMode = cookie.data.autoSize || 'auto';
+			xcboxAutoSize.width = 55;
 			
-			cboxAutoSize.width = 55;
-			cboxAutoSize.drawNow();
+			xbtnReload = new Button();
+			xbtnReload.label = 'Reload';
+			xbtnReload.width = xbtnReload.textField.textWidth + 15;
 			
 			addEventListeners();
 			
-			AxlLoader.classDict.U.addChildGroup(this, btnLoad,btnConsole,btnRecent,xbtnParameters,dates,xbtnInfo,cboxAutoSize,btnReload);
-			arangeBar();
+			AxlLoader.classDict.U.addChildGroup(this, xbtnOpen,xbtnConsole,xbtnHistory,xbtnParameters,
+				xdateComponent,xbtnTimestamp,xbtnInfo,xcboxAutoSize,xbtnReload);
 		}
 		
 		private function addEventListeners():void
@@ -79,16 +79,16 @@ package com.axlloader.core
 			this.addEventListener(Event.ADDED_TO_STAGE, ats);
 			this.addEventListener(FocusEvent.FOCUS_OUT, fout);
 			
-			dates.addEventListener(KeyboardEvent.KEY_UP, onTopBarKeyUp);
-			btnLoad.addEventListener(ComponentEvent.BUTTON_DOWN, btnLoadDown);
-			btnConsole.addEventListener(ComponentEvent.BUTTON_DOWN, btnConsoleDown);
-			btnRecent.addEventListener(ComponentEvent.BUTTON_DOWN, btnRecentDown);
-			btnReload.addEventListener(ComponentEvent.BUTTON_DOWN, btnReloadDown);
+			xbtnOpen.addEventListener(ComponentEvent.BUTTON_DOWN, btnOpenDown);
+			xbtnConsole.addEventListener(ComponentEvent.BUTTON_DOWN, btnConsoleDown);
+			xbtnHistory.addEventListener(ComponentEvent.BUTTON_DOWN, btnHistoryDown);
 			xbtnParameters.addEventListener(ComponentEvent.BUTTON_DOWN, btnParametersDown);
+			xdateComponent.addEventListener(KeyboardEvent.KEY_UP, onDateKeyUp);
+			xbtnTimestamp.addEventListener(ComponentEvent.BUTTON_DOWN, btnTimestampDown);
 			xbtnInfo.addEventListener(ComponentEvent.BUTTON_DOWN, btnInfoDown);
-			cboxAutoSize.addEventListener(Event.CHANGE, onAutoSizeChange);
+			xcboxAutoSize.addEventListener(Event.CHANGE, onAutoSizeChange);
+			xbtnReload.addEventListener(ComponentEvent.BUTTON_DOWN, btnReloadDown);
 		}
-		
 		
 		protected function onAutoSizeChange(e:Event):void
 		{
@@ -102,24 +102,25 @@ package com.axlloader.core
 		}
 		
 		// --------------------- EVENTS --------------------- //
-		private function fout(e:FocusEvent):void {  dates.timestampSec }
+		private function fout(e:FocusEvent):void {  dateComponent.timestampSec }
 		protected function ats(event:Event):void { 	arangeBar()	}
 		
-		protected function onTopBarKeyUp(e:KeyboardEvent):void
+		protected function onDateKeyUp(e:KeyboardEvent):void
 		{
 			if(e.charCode == 13)
 				AxlLoader.instance.loadContent();
 		}
 		
 		public function btnConsoleDown(e:*=null):void { AxlLoader.instance.windowConsole.wappear() }
-		public function btnRecentDown(e:*=null):void { AxlLoader.instance.windowRecent.wappear() }
+		public function btnHistoryDown(e:*=null):void { AxlLoader.instance.windowRecent.wappear() }
 		public function btnTimestampDown(e:*=null):void { AxlLoader.instance.windowTimestamp.wappear() }
-		public function btnReloadDown(e:*=null):void { AxlLoader.instance.loadContent() }
-		public function btnLoadDown(e:*=null):void { AxlLoader.instance.browseForFile(); }
+		public function btnReloadDown(e:*=null):void { AxlLoader.instance.loadContent()}
+		public function btnOpenDown(e:*=null):void { AxlLoader.instance.browseForFile(); }
 		public function btnParametersDown(e:*=null):void { AxlLoader.instance.windowParameters.wappear() }
 		public function btnInfoDown(e:ComponentEvent):void { AxlLoader.instance.windowInfo.wappear() }		
 		
 		// --------------------- public api --------------------- //
+		
 		public function arangeBar():void
 		{
 			if(btnReload == null)
@@ -130,14 +131,18 @@ package com.axlloader.core
 				return;
 			cboxAutoSize.x = btnReload.x - cboxAutoSize.width;
 			xbtnInfo.x = cboxAutoSize.x - xbtnInfo.width;
+			xbtnTimestamp.x=412;
 		}
 
+		public function get btnOpen():Button { return xbtnOpen}
 		public function get btnConsole():Button { return xbtnConsole }
-		public function get btnRecent():Button { return xbtnRecent }
-		public function get btnReload():Button { return xbtnReload }
-		public function get btnLoad():Button { return xbtnLoad }
-		public function get dates():DateComponent {	return xdates }
+		public function get btnRecent():Button { return xbtnHistory }
+		public function get btnFlashVars():Button { return xbtnParameters }
+		public function get dateComponent():DateComponent {	return xdateComponent }
+		public function get btnTimestamp():Button { return xbtnTimestamp }
+		public function get btnInfo():Button { return xbtnInfo }
 		public function get cboxAutoSize():ComboBox	{ return xcboxAutoSize }
+		public function get btnReload():Button { return xbtnReload }
 
 		public function exiting():void
 		{

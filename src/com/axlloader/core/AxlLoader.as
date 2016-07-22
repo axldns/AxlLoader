@@ -32,7 +32,7 @@ package com.axlloader.core
 	
 	import axl.utils.LibraryLoader;
 
-	[SWF(width="560")]
+	[SWF(width="570")]
 	
 	public class AxlLoader extends Sprite
 	{
@@ -506,7 +506,7 @@ package com.axlloader.core
 			var userParams:Object = windowParameters.getParams();
 			for(var s:String in userParams)
 				contextParameters[s] = userParams[s] is String ? userParams[s] : JSON.stringify(userParams[s]);
-			contextParameters.fakeTimestamp = String(bar.dates.timestampSec);
+			contextParameters.fakeTimestamp = String(bar.dateComponent.timestampSec);
 			contextParameters.fileName = U.fileNameFromUrl(LOADABLEURL.url,true);
 			contextParameters.loadedURL =LOADABLEURL.url;
 			context.parameters = contextParameters;
