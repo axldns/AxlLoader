@@ -13,7 +13,7 @@ package com.axlloader.htmlBridge
 	import flash.utils.setTimeout;
 	
 	import axl.ui.controllers.BoundBox;
-	import axl.utils.LibraryLoader;
+	import axl.utils.RSLLoader;
 	import axl.utils.NetworkSettings;
 	import axl.utils.U;
 	import axl.utils.binAgent.BinAgent;
@@ -28,7 +28,7 @@ package com.axlloader.htmlBridge
 		private var swfLoaderInfo:LoaderInfo;
 		private var loadParamsFromJS:Object;
 		
-		public var ll:LibraryLoader;
+		public var ll:RSLLoader;
 		private var loaderInfoIntervalId:uint;
 		private var content:Loader;
 		private var rec:Rectangle;
@@ -64,7 +64,7 @@ package com.axlloader.htmlBridge
 			this.graphics.drawRect(0,0,100,100);
 			this.addChild(t);
 			//loader
-			ll = new LibraryLoader(this,U.log);
+			ll = new RSLLoader(this,U.log);
 			ll.onReady = swLoaded;
 			//api
 			if(ExternalInterface.available)
@@ -172,8 +172,7 @@ package com.axlloader.htmlBridge
 				ll.domainType = 1;
 				ll.handleUncaughtErrors = false;
 				ll.unloadOnErrors = false;
-				ll.stopErrorPropagation = false;
-				ll.preventErrorDefaults = false;
+				ll.stopErrorBehaviors = false;
 			}
 			U.log(tname,"[setupLoader][CONTEXT]:",U.bin.structureToString(ll.contextParameters));
 		}

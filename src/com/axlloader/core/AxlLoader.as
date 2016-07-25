@@ -30,13 +30,13 @@ package com.axlloader.core
 	import flash.utils.ByteArray;
 	import flash.utils.describeType;
 	
-	import axl.utils.LibraryLoader;
+	import axl.utils.RSLLoader;
 
 	[SWF(width="570")]
 	
 	public class AxlLoader extends Sprite
 	{
-		[Embed(source='../../../../../promo-rsl/promo/bin-debug/lib_axl.swf', mimeType='application/octet-stream')]
+		[Embed(source='../../../../axl.swf', mimeType='application/octet-stream')]
 		private var AXL_LIBRARY:Class;
 		
 		[Embed(source='../../../../assets/bg-logo.png', mimeType='image/png')]
@@ -85,7 +85,7 @@ package com.axlloader.core
 		private var xbgColour:uint=0xf5f5f5;
 		
 		//tracking
-		private var xVERSION:String = '0.2.20';
+		private var xVERSION:String = '0.2.23';
 		private var tname:String = '[AxlLoader ' + xVERSION + ']';
 		private var trackingURL:String;
 		private var tracker:Tracking;
@@ -111,7 +111,7 @@ package com.axlloader.core
 		/** 1.1 Loads AXL Library to separate application domain. */
 		private function axlLoadAndBuild():void
 		{
-			var lloader:LibraryLoader = new LibraryLoader(this);
+			var lloader:RSLLoader = new RSLLoader(this);
 			lloader.domainType = lloader.domain.separated;
 			lloader.libraryURLs = [AXL_LIBRARY];
 			lloader.onReady = go;
@@ -189,10 +189,11 @@ package com.axlloader.core
 		private function buildWindows():void
 		{
 			xwindowConsole = new WindowConsole('Console');
-			xwindowTimestamp = new WindowTimestamp('Timestamp Generator');
 			xwindowRecent = new WindowRecent('Recently loaded');
 			xwindowParameters = new WindowParameters("Loader context parameters");
-			xwindowInfo = new WindowInfo("Info");
+			//LAZY INSTANTIATION NOW
+			//xwindowTimestamp = new WindowTimestamp('Timestamp Generator');
+			//xwindowInfo = new WindowInfo("Info");
 		}
 		
 		/** 2.5 Instantiates events manager (responds to various events related to loading and unloading content, hot keys etc.). Creates file instance
@@ -781,12 +782,21 @@ package com.axlloader.core
 		public function get barDesiredHeight():Number {	return xbarDesiredHeight }
 		
 		public function get mainWindow():NativeWindow { return xmainWindow  }
-		public function get windowTimestamp():WindowTimestamp { return xwindowTimestamp }
 		public function get windowRecent():WindowRecent { return xwindowRecent }
 		public function get windowConsole():WindowConsole { return xwindowConsole }
 		public function get windowParameters():WindowParameters	{ return xwindowParameters}
-		public function get windowInfo():WindowInfo	{ return xwindowInfo }
 		
+		public function get windowTimestamp():WindowTimestamp 
+		{ 
+			if(xwindowTimestamp==null){xwindowTimestamp = new WindowTimestamp('Timestamp Generator')} 
+			return xwindowTimestamp
+		}
+		
+		public function get windowInfo():WindowInfo
+		{ 
+			if(xwindowInfo==null){xwindowInfo = new WindowInfo('Info')} 
+			return xwindowInfo
+		}
 		public static function get instance():AxlLoader { return xinstance }
 		
 	}

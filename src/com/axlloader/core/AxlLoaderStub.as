@@ -14,29 +14,54 @@ package com.axlloader.core
 	import flash.text.TextField;
 	import flash.utils.clearTimeout;
 	
-	import axl.utils.LibraryLoader;
+	import axl.utils.RSLLoader;
+	
+	[SWF(width="570")]
 	
 	public class AxlLoaderStub extends Sprite
 	{
 		private var cookie:SharedObject;
-		private var newVersion:Boolean;
-		private var version:String;
+		private var isNewVersion:Boolean;
+		private var cookieVersion:String;
 		private var cb:String =  "?cb="+String(new Date().time);
 		private var versionURL:String = "http://axldns.com/axlloader/version.json" + cb;
-		
 		private var net:String = "http://axldns.com/axlloader/AxlLoader.swf" + cb;
 		private var local:String = File.applicationStorageDirectory.resolvePath('AxlLoader.swf').nativePath;
-		private var lloader:LibraryLoader;
+		private var lloader:RSLLoader;
 		
 		private var log:Function = trace;
+		public var coreLoaderTrace:String;
 		
 		public function AxlLoaderStub()
 		{
 			cookie = SharedObject.getLocal('axlloader2');
-			version = cookie.data.version || '0';
+			cookieVersion = cookie.data.version || '0';
+			log = recordToString;
 			super();
 			checkVersion(loadProgram);
-			//log = function(...args):void{}
+		}
+		
+		private function recordToString(...args):void
+		{
+			trace.apply(null,args);
+			var v:Object;
+			var s:String='';
+			for(var i:int = 0; i < args.length; i++)
+			{
+				v = args[i];
+				if(v == null)
+					s += 'null';
+				else if(v is String)
+					s += v;
+				else if(v is XML || v is XMLList)
+					s += v.toXMLString();
+				else
+					s += v.toString();
+				if(args.length - i > 1)
+					s += ' ';
+			}
+			s += '\n';
+			coreLoaderTrace += s;
 		}
 		
 		private function checkVersion(callback:Function):void
@@ -70,7 +95,7 @@ package com.axlloader.core
 			function onError(e:Object=null):void
 			{
 				log("version check error", e);
-				newVersion = false;
+				isNewVersion = false;
 				removeListeners();
 				callback();
 			}
@@ -83,8 +108,8 @@ package com.axlloader.core
 				catch (je:*) { }
 				if(versionInfo == null)
 					return onError();
-				newVersion = version != versionInfo;
-				log("versionInfo", versionInfo, "new?", newVersion);
+				isNewVersion = cookieVersion != versionInfo;
+				log("versionInfo", versionInfo, "new?", isNewVersion);
 				removeListeners();
 				callback();
 			}
@@ -102,26 +127,19 @@ package com.axlloader.core
 		
 		private function loadProgram():void
 		{
-			lloader= new LibraryLoader(this,log);
-			lloader.domainType = lloader.domain.coppyOfCurrent;
-			lloader.mapOnlyClasses = [];
-			lloader.libraryURLs = newVersion ? [net,local] : [local,net];
+			lloader= new RSLLoader(this,log);
+			lloader.domainType = lloader.domain.copyOfCurrent;
+			lloader.libraryURLs = isNewVersion ? [net,local] : [local,net];
 			log("urls:", lloader.libraryURLs);
 			lloader.onReady = onProgramLoaded;
-			lloader.currentLibraryVersion = version;
-			lloader.onNewVersion = onNewVersion;
 			lloader.load();
 		}
 		
 		private function onProgramLoaded():void
 		{
-			var l:DisplayObject = lloader.libraryLoader ? lloader.libraryLoader.content : null;
-			if(l)
+			if(lloader.error || !lloader.libraryLoader)
 			{
-				addChild(l);
-			}
-			else
-			{
+				log("Can't load core");
 				var tf:TextField = new TextField();
 				tf.wordWrap = true;
 				tf.multiline = true;
@@ -130,10 +148,17 @@ package com.axlloader.core
 				tf.height = tf.textHeight + 5;
 				tf.width = stage? stage.stageWidth : 640;
 				addChild(tf);
+				return;
 			}
+			var l:DisplayObject = lloader.libraryLoader ? lloader.libraryLoader.content : null;
+			addChild(l);
+			if(isNewVersion)
+				onNewVersion();
+			
 		}
-		private function onNewVersion(newVersion:String):void
+		private function onNewVersion():void
 		{
+			var newVersion:String = lloader.libraryLoader.content['VERSION'];
 			var f:File = File.applicationStorageDirectory.resolvePath('AxlLoader.swf');
 			log("SAVING", f.nativePath);
 			var fs:FileStream = new FileStream();
@@ -141,7 +166,7 @@ package com.axlloader.core
 			fs.writeBytes(lloader.bytes);
 			fs.close();
 			
-			cookie.data.version = newVersion;
+			cookie.data.version = isNewVersion;
 			cookie.flush();
 		}
 	}

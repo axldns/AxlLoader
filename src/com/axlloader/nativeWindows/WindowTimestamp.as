@@ -114,7 +114,7 @@ package com.axlloader.nativeWindows
 			
 			
 			cboxLocale.y = intervalStepper.y;
-			cboxLocale.drawNow();
+			//cboxLocale.drawNow();
 			cboxLocale.dropdown.rowCount  = 20;
 			xcboxLocaleSaved = cookie.data.locale || "pl-PL";
 			

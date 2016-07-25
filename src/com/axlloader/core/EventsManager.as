@@ -2,7 +2,6 @@ package com.axlloader.core
 {
 	import com.axlloader.nativeWindows.WindowConsole;
 	import com.axlloader.nativeWindows.WindowRecent;
-	import com.axlloader.nativeWindows.WindowTimestamp;
 	
 	import flash.desktop.Clipboard;
 	import flash.desktop.ClipboardFormats;
@@ -24,7 +23,6 @@ package com.axlloader.core
 		private var pl:AxlLoader;
 		private var bar:TopBar;
 		private var windowConsole:WindowConsole;
-		private var windowTimestamp:WindowTimestamp;
 		private var windowRecent:WindowRecent;
 		private var mainWindow:NativeWindow;
 		private var U:Class;
@@ -37,7 +35,6 @@ package com.axlloader.core
 			windowConsole = pl.windowConsole;
 			windowRecent = pl.windowRecent;
 			windowRecent.addEventListener(Event.SELECT, onHistoryElementSelected);
-			windowTimestamp = pl.windowTimestamp;
 			mainWindow = pl.mainWindow;
 			U = AxlLoader.classDict.U;
 			addNativeAppListeners();

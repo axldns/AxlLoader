@@ -19,7 +19,7 @@ package com.axlloader.htmlBridge
 		private var hloader:HTMLLoader;
 		private var template:String;
 		private var requestedAssetToEmbedURL:String;
-		private var artefactsAddress:String = "http://axldns.com/test/";
+		private var artefactsAddress:String = "http://axldns.com/axlloader/";
 		private var htmlFileName:String = 'htmlTemplate.html';
 		private var bridgeFileName:String = 'Bridge.swf';
 		private var api:Object = {};

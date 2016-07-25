@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<actionScriptProperties analytics="false" mainApplicationPath="com/axlloader/core/AxlLoaderStub.as" projectUUID="0527c68b-d6ea-4489-9991-a804a992c23e" version="11">
-  <compiler additionalCompilerArguments="-locale en_US" advancedTelemetry="false" autoRSLOrdering="true" copyDependentFiles="true" fteInMXComponents="false" generateAccessible="false" htmlExpressInstall="true" htmlGenerate="false" htmlHistoryManagement="false" htmlPlayerVersionCheck="true" includeNetmonSwc="false" outputFolderPath="bin-debug" removeUnusedRSL="true" sourceFolderPath="src" strict="true" targetPlayerVersion="0.0.0" useApolloConfig="true" useDebugRSLSwfs="true" useFlashSDK="true" verifyDigests="true" warn="true">
+<actionScriptProperties analytics="false" mainApplicationPath="com/axlloader/htmlBridge/Bridge.as" projectUUID="088734fb-d327-464c-8547-14f313b1a5c0" version="11">
+  <compiler additionalCompilerArguments="-locale en_US" advancedTelemetry="false" autoRSLOrdering="true" copyDependentFiles="true" fteInMXComponents="false" generateAccessible="false" htmlExpressInstall="false" htmlGenerate="false" htmlHistoryManagement="false" htmlPlayerVersionCheck="true" includeNetmonSwc="false" outputFolderPath="bin-debug" removeUnusedRSL="true" sourceFolderPath="src" strict="true" targetPlayerVersion="0.0.0" useApolloConfig="true" useDebugRSLSwfs="true" useFlashSDK="true" verifyDigests="true" warn="true">
     <compilerSourcePath>
       <compilerSourcePathEntry kind="1" linkType="1" path="${RSLoader}"/>
       <compilerSourcePathEntry kind="1" linkType="1" path="${AXL}"/>
-      <compilerSourcePathEntry kind="1" linkType="1" path="${RSLoader}"/>
     </compilerSourcePath>
     <libraryPath defaultLinkType="0">
       <libraryPathEntry kind="4" path="">
@@ -39,16 +38,13 @@
     <sourceAttachmentPath/>
   </compiler>
   <applications>
-    <application path="com/axlloader/core/AxlLoaderStub.as">
-      <airExcludes/>
-    </application>
     <application path="com/axlloader/htmlBridge/Bridge.as">
       <airExcludes/>
     </application>
-    <application path="com/axlloader/core/AxlLoader.as">
+    <application path="com/axlloader/core/AxlLoaderStub.as">
       <airExcludes/>
     </application>
-    <application path="PromoLoader.as">
+    <application path="com/axlloader/core/AxlLoader.as">
       <airExcludes/>
     </application>
   </applications>
@@ -58,9 +54,9 @@
   <flashCatalyst validateFlashCatalystCompatibility="false"/>
   <buildTargets>
     <buildTarget buildTargetName="default" platformId="default">
-      <airSettings airCertificatePath="/Users/denis.aleksandrowicz/Documents/Adobe Flash Builder 4.7/PromoLoader/cert.p12" airTimestamp="true" anePathSet="true" version="1">
+      <airSettings airCertificatePath="C:/Users/ddd/Adobe Flash Builder 4.7/AxlLoader/cert.p12" airTimestamp="true" anePathSet="true" version="1">
         <airExcludes>
-          <pathEntry path="axl"/>
+          <pathEntry path="lib_axl.swf"/>
         </airExcludes>
         <anePaths/>
         <newLaunchParams/>
