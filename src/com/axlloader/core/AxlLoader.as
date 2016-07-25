@@ -43,6 +43,8 @@ package com.axlloader.core
 		private var bgImage:Class;
 		
 		//------------------------ VARIABLES -------------------------- //
+		public static var remoteAssetsURL:String = "http://axldns.com/axlloader/";
+		
 		public static var classDict:Object = {};
 		private static var xinstance:AxlLoader;
 		//loading

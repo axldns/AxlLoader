@@ -14,7 +14,7 @@ package com.axlloader.nativeWindows
 	{
 		private var text:String;
 		private var margin:Number = 20;
-		private var artefactsAddress:String = "http://axldns.com/promoloader/";
+		private var artefactsAddress:String =  AxlLoader.remoteAssetsURL;
 		private var htmlFileName:String = 'info.html';
 		private var template:String;
 		private var U:Class;
@@ -45,7 +45,8 @@ package com.axlloader.nativeWindows
 		override public function wappear():void
 		{
 			super.wappear();
-			swv.loadString(template);
+			if(template)
+				swv.loadString(template);
 		}
 		
 		protected function onResize(e:NativeWindowBoundsEvent):void
@@ -57,7 +58,7 @@ package com.axlloader.nativeWindows
 		public function load():void
 		{
 			
-			var f:File = File.applicationDirectory.resolvePath(htmlFileName);
+			var f:File = File.applicationStorageDirectory.resolvePath(htmlFileName);
 			if(f.exists)
 				readTemplate();
 			else
@@ -65,6 +66,7 @@ package com.axlloader.nativeWindows
 			
 			function readTemplate():void
 			{
+				U.log("read template");
 				var fs:FileStream = new FileStream();
 				try {
 					fs.open(f, FileMode.READ);
@@ -81,11 +83,13 @@ package com.axlloader.nativeWindows
 		
 		private function onTemplateReady():void
 		{
+			U.log("onTemplateReady");
 			swv.loadString(template);
 		}
 		
 		public function updateArtefacts(onComplete:Function=null):void
 		{
+			U.log("updateArtefacts");
 			AxlLoader.classDict.Ldr.load([htmlFileName], onComplete,null,null,artefactsAddress,AxlLoader.classDict.Ldr.behaviours.downloadOnly,/.*/);
 		}
 		
