@@ -38,16 +38,7 @@
 	to local files. Provides set of hot-keys and other features for convenient development and previewing.</description>
 
 	<!-- Copyright information. Optional -->
-	<copyright>axldns
-		Hot Keys:
-		ctrl/⌘ + L - show/hide top bar
-		ctrl/⌘ + R - reload last item
-		ctrl/⌘ + [0-9] - load from history
-		ctrl/⌘ + V - load item from clipboard if address found
-		ctrl/⌘ + H - History window
-		ctrl/⌘ + SHIFT + C - console window
-		
-	</copyright>
+	<copyright>axldns</copyright>
 
 	<!-- Publisher ID. Used if you're updating an application created prior to 1.5.3 -->
 	<!-- <publisherID></publisherID> -->
