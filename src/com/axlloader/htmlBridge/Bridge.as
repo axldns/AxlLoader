@@ -17,7 +17,7 @@ package com.axlloader.htmlBridge
 	[SWF(backgroundColor="0xeeeeee")]
 	public class Bridge extends Sprite
 	{
-		[Embed(source='../../../../axl.swf', mimeType='application/octet-stream')]
+		[Embed(source='../../../../libs/axl.swf', mimeType='application/octet-stream')]
 		private var AXL_LIBRARY:Class;
 		
 		public static const version:String = '0.20';

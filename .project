@@ -20,11 +20,4 @@
 		<nature>com.adobe.flexbuilder.project.apollonature</nature>
 		<nature>com.adobe.flexbuilder.project.actionscriptnature</nature>
 	</natures>
-	<linkedResources>
-		<link>
-			<name>[source path] RSLoader</name>
-			<type>2</type>
-			<locationURI>RSLoader</locationURI>
-		</link>
-	</linkedResources>
 </projectDescription>

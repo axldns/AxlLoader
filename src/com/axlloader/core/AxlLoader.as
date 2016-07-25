@@ -36,7 +36,7 @@ package com.axlloader.core
 	
 	public class AxlLoader extends Sprite
 	{
-		[Embed(source='../../../../axl.swf', mimeType='application/octet-stream')]
+		[Embed(source='../../../../libs/axl.swf', mimeType='application/octet-stream')]
 		private var AXL_LIBRARY:Class;
 		
 		[Embed(source='../../../../assets/bg-logo.png', mimeType='image/png')]
