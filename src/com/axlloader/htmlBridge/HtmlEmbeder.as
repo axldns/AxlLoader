@@ -13,8 +13,8 @@ package com.axlloader.htmlBridge
 
 	public class HtmlEmbeder
 	{
+		public const version:String='0.3';
 		private var tname:String = '[HTMLLoader'+version+']';
-		public const version:String='0.2';
 			
 		private var hloader:HTMLLoader;
 		private var template:String;

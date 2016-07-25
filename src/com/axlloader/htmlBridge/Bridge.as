@@ -12,17 +12,15 @@ package com.axlloader.htmlBridge
 	import flash.utils.setInterval;
 	import flash.utils.setTimeout;
 	
-	import axl.ui.controllers.BoundBox;
 	import axl.utils.RSLLoader;
-	import axl.utils.NetworkSettings;
-	import axl.utils.U;
-	import axl.utils.binAgent.BinAgent;
-	import axl.utils.liveArrange.LiveArranger;
 	
 	[SWF(backgroundColor="0xeeeeee")]
 	public class Bridge extends Sprite
 	{
-		public static const version:String = '0.17';
+		[Embed(source='../../../../axl.swf', mimeType='application/octet-stream')]
+		private var AXL_LIBRARY:Class;
+		
+		public static const version:String = '0.20';
 		private var tname:String = '[Bridge ' + version +']';
 		private var t:TextField;
 		private var swfLoaderInfo:LoaderInfo;
@@ -33,15 +31,68 @@ package com.axlloader.htmlBridge
 		private var content:Loader;
 		private var rec:Rectangle;
 		
+		private var NetworkSettings:Class;
+		private var U:Class;
+		private var BinAgent:Class;
+		private var LiveArranger:Class;
+		
+		private var coreLoaderTrace:String;
+		private var loaderAXL:RSLLoader;
+		private var cd:Object;
 		
 		public function Bridge()
 		{
 			super();
+			loadAXL(build);
+		}
+		
+		private function loadAXL(onComplete:Function):void
+		{
+			loaderAXL = new RSLLoader(this,recordToString);
+			loaderAXL.domainType = loaderAXL.domain.separated;
+			loaderAXL.libraryURLs = [AXL_LIBRARY];
+			loaderAXL.onReady = go;
+			loaderAXL.load();
+			function go():void
+			{
+				cd = loaderAXL.classDictionary;
+				NetworkSettings = cd.NetworkSettings;
+				U = cd.U;
+				BinAgent = cd.BinAgent;
+				LiveArranger = cd.LiveArranger;
+				onComplete(); // 2
+			}
+		}
+		
+		private function recordToString(...args):void
+		{
+			trace.apply(null,args);
+			var v:Object;
+			var s:String='';
+			for(var i:int = 0; i < args.length; i++)
+			{
+				v = args[i];
+				if(v == null)
+					s += 'null';
+				else if(v is String)
+					s += v;
+				else if(v is XML || v is XMLList)
+					s += v.toXMLString();
+				else
+					s += v.toString();
+				if(args.length - i > 1)
+					s += ' ';
+			}
+			s += '\n';
+			coreLoaderTrace += s;
+		}
+		
+		private function build():void
+		{
 			U.bin =  new BinAgent(this);
 			setup();
 			U.onStageAvailable = ats;
 			U.init(this,800,600,onBridgeReady);
-			
 		}
 		
 		private function ats():void
@@ -55,7 +106,6 @@ package com.axlloader.htmlBridge
 			U.log(tname,"[SETUP]");
 			//project
 			NetworkSettings.defaultTimeout = 20000;
-			axl.ui.controllers.BoundBox;
 			
 			//graphics
 			t= new TextField();
