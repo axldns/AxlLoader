@@ -55,6 +55,7 @@ package com.axlloader.core
 		private var context:LoaderContext;
 		private var delegatesLock:Boolean=true;
 		private var delegates:Vector.<Function>;
+		private var paramsFromQuery:Array=[];
 		
 		//flags
 		public var clearLogEveryLoad:Boolean = true;
@@ -87,7 +88,7 @@ package com.axlloader.core
 		private var xbgColour:uint=0xf5f5f5;
 		
 		//tracking
-		private var xVERSION:String = '0.2.24';
+		private var xVERSION:String = '0.2.25';
 		private var tname:String = '[AxlLoader ' + xVERSION + ']';
 		private var trackingURL:String;
 		private var tracker:Tracking;
@@ -100,6 +101,7 @@ package com.axlloader.core
 		
 		//------------------------ VARIABLES -------------------------- //
 		//------------------------ INITIAL SETUP -------------------------- //
+		
 		
 		
 		/** 1. Sets instance reference, requests AXL Library load. */
@@ -507,12 +509,26 @@ package com.axlloader.core
 		{
 			context =new LoaderContext(classDict.Ldr.policyFileCheck);
 			var userParams:Object = windowParameters.getParams();
+			for(var i:int = 0, j:int = paramsFromQuery.length;i<j;)
+				contextParameters[paramsFromQuery[i++]] = paramsFromQuery[i++];
 			for(var s:String in userParams)
 				contextParameters[s] = userParams[s] is String ? userParams[s] : JSON.stringify(userParams[s]);
 			contextParameters.fakeTimestamp = String(bar.dateComponent.timestampSec);
 			contextParameters.fileName = U.fileNameFromUrl(LOADABLEURL.url,true);
 			contextParameters.loadedURL =LOADABLEURL.url;
 			context.parameters = contextParameters;
+		}
+		
+		/** Takes querry string from given url and stores key-values in <code>paramsFromQuery</code> variable.
+		 * Returns url without query string. */
+		private function stripParamsFromQuery(url:String):String
+		{
+			paramsFromQuery =[];
+			var q:int = url.indexOf('?');
+			if(q < 0) return url;
+			paramsFromQuery = url.substr(q+1).split(/[&=]/);
+			url =  url.substr(0,q);
+			return url;
 		}
 		
 		/** 4.4 <br>
@@ -575,6 +591,7 @@ package com.axlloader.core
 		public function setLoadableURL(invokedFileUrlRequest:URLRequest):void
 		{
 			LOADABLEURL = invokedFileUrlRequest;
+			LOADABLEURL.url = stripParamsFromQuery(LOADABLEURL.url);
 		}
 		
 		//------------------------ LOADING CONTENT -------------------------- //

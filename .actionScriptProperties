@@ -52,10 +52,8 @@
   <flashCatalyst validateFlashCatalystCompatibility="false"/>
   <buildTargets>
     <buildTarget buildTargetName="default" platformId="default">
-      <airSettings airCertificatePath="C:/Users/ddd/Adobe Flash Builder 4.7/AxlLoader/cert.p12" airTimestamp="true" anePathSet="true" version="1">
-        <airExcludes>
-          <pathEntry path="lib_axl.swf"/>
-        </airExcludes>
+      <airSettings airCertificatePath="" airTimestamp="true" anePathSet="true" version="1">
+        <airExcludes/>
         <anePaths/>
         <newLaunchParams/>
         <modifiedLaunchParams/>
