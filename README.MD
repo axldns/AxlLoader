@@ -39,6 +39,7 @@ Hot Keys
 AxlLoader is quite rich in hot keys. There are two groups it. First controls  main application functions (loading, reloading, bringing windows up/down). Second group gives directives to [LiveArranger](http://axldns.com/?page_id=98).
 
 ***Main program shortcuts***
+
 Hot key  | Function
 ------------- | -------------
 ctrl/cmd + r  | reload current file
@@ -52,6 +53,7 @@ ctrl/cmd + shift + h	| show/hide History window
 
 
 ***LiveArranger shortcuts*** 
+
 Hot key  | Function
 ------------- | -------------
 F6 | switches LiveArranger on/off
